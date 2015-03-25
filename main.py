@@ -14,9 +14,8 @@ view = None
 hadler_editor = None
 
 try:
-    data = open("projects_data.pick", "r")
-    file_system = pickle.load(data)
-    data.close()
+    with open("projects_data.pick", "r") as data:
+        file_system = pickle.load(data)
 except:
     file_system = {"data":{}}
 
@@ -28,9 +27,8 @@ class DataSource(ui.ListDataSource):
         #print "deleted_item", deleted_item
         del file_system["data"][deleted_item]
         
-        data = open("projects_data.pick", "w")
-        pickle.dump(file_system, data)
-        data.close()
+        with open("projects_data.pick", "w") as data:
+            pickle.dump(file_system, data)
         
 
 #Classes first then functions
@@ -54,9 +52,9 @@ class ProjectNav(ui.View):
         
     def setup_list_view(self):
         list_data = []
-        for item in dict(file_system["data"]).items():
-            #print item[0]
-            list_data.append({"title": item[0]})
+        for item in dict(file_system["data"]):
+            #print item
+            list_data.append({"title": item})
         #print list_data
         #print self.root_view.data_source
         #self.root_view.data_source = ui.ListDataSource(list_data)
@@ -65,6 +63,9 @@ class ProjectNav(ui.View):
         #print self.root_view.data_source
     
     def _add_file_folder(self, path):
+        # cclauss: you could also write this as:
+        #head, _, tail = path.partition('/')
+
         path = path.split("/")
         head = path[0]
         tail = path[1:]
@@ -99,7 +100,9 @@ class ProjectNav(ui.View):
             view.remove_subview(in_alert)
         def accept_event(sender):
             result = in_alert["input_field"].text
-            if result != "":
+            if result:
+                # cclauss: consider making HTML and JAVASCRIPT format strings with {} instead of @file_name
+                # you could then write: templates.HTML.format(result)
                 if result.endswith(".html"):
                     file_system["data"][result] = [templates.HTML.replace("@file_name", result), templates.REQUEST_HANDLER]
                 elif result.endswith(".js"):
@@ -109,9 +112,8 @@ class ProjectNav(ui.View):
                 else:
                     file_system["data"][result] = [""]
                 
-                data = open("projects_data.pick", "w")
-                pickle.dump(file_system, data)
-                data.close()
+                with open("projects_data.pick", "w") as data:
+                    pickle.dump(file_system, data)
                 
                 self.setup_list_view()
                 cancle_event(sender)
@@ -122,11 +124,8 @@ class ProjectNav(ui.View):
         view.add_subview(in_alert)
         
     def set_width_height(self, view):
-        self.root_view.width = 200
-        self.nav_view.width = 200
-        
-        self.root_view.height = view.height
-        self.nav_view.height = view.height
+        self.root_view.width  = self.nav_view.width  = 200
+        self.root_view.height = self.nav_view.height = view.height
 
         
 class ToolMenu(ui.View):
@@ -137,7 +136,7 @@ class ToolMenu(ui.View):
         self.open_tags_label.flex = "LRWB"
     
     def reload_label(self, tags):
-        if not len(tags) == 0:
+        if tags:
             label = "Open Tags: " 
             for x in tags:
                 label += x + ", "
@@ -158,14 +157,14 @@ class TextViewDelegate(object):
         
     def textview_should_change(self, textview, text_range, replacement):
         current_text = textview.text
-        if not text_range[0] - 1 == -1:
+        if not text_range[0]:
             last = current_text[text_range[0]-1]
-            opp = [">", "]", "}", ")"]
+            opp = "> ] } )".split()
             try:
                 forward = current_text[text_range[0]]
             except:
                 forward = current_text[-1]
-            if last in ["<", "[", "{", "("]:
+            if last in "< [ { (".split():
                 if replacement == "/" and last == "<":
                     self.check_tags = True
                     self.range_start = text_range[1] + 1
@@ -351,7 +350,7 @@ def load_file(name):
 @ui.in_background
 def set_selected_script(sender):
     index = sender.selected_index
-    if not index == -1:
+    if index != -1:
         file = sender.segments[index]
         #print file
         load_file(file)
@@ -360,7 +359,7 @@ def set_selected_script(sender):
 def set_selected_file(sender):
     #print "set_selected_file(%r)" % sender
     index = sender.selected_index
-    if not index == -1:
+    if index != -1:
         try:
             file = sender.segments[index]
             #print file
@@ -390,19 +389,10 @@ def show_hide_project_nav(sender):
     #print nav_hide
     view = sender.superview.superview
     view["project_nav_view"].hidden = nav_hide
-    if nav_hide:
-        view["editor_view"].x = 0
-        view["editor_view"].width = view.width
-        
-        view["tools_menu"].x = 0
-        view["tools_menu"].width = view.width
-        
-    else:
-        view["editor_view"].x = 200
-        view["editor_view"].width = view.width - 200
-        
-        view["tools_menu"].x = 200
-        view["tools_menu"].width = view.width - 200
+    width = 0 if nav_hide else 200
+    for subview in ("editor_view", "tools_menu"):
+        view[subview].x = width
+        view[subview].width = view.width - width
 
 class WebViewDelegate(object):
     def webview_did_finish_load(self, wv):
@@ -414,7 +404,7 @@ class WebViewDelegate(object):
 @ui.in_background
 def show_web_view(sender):
     index = view["editor_view"]["file_nav"].selected_index
-    if not index == -1:
+    if index != -1:
         file = view["editor_view"]["file_nav"].segments[index]
         print file
         if file.endswith(".html"):
@@ -496,16 +486,15 @@ def edit_handler(sender):
     
 def close_editor(sender):
     index = view["editor_view"]["file_nav"].selected_index
-    if not index == -1:
+    if index != -1:
         file = view["editor_view"]["file_nav"].segments[index]
         print file
         if file.endswith(".html"):
             handler = hadler_editor["editor_view"].text
             file_system["data"][file][1] = handler
             
-            data = open("projects_data.pick", "w")
-            pickle.dump(file_system, data)
-            data.close()
+            with open("projects_data.pick", "w") as data:
+                pickle.dump(file_system, data)
             
             hadler_editor.close()
 
