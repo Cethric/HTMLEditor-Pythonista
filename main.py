@@ -428,21 +428,31 @@ def show_web_view(sender):
                 ts.join()
                 print "Server Closed"
     
-def help_html_tags(sender):
-    help_wv("http://www.w3schools.com/tags/default.asp")
-    
-def help_js(sender):
-    help_wv("http://www.w3schools.com/cssref/default.asp")
-    
-def help_css(sender):
-    help_wv("http://www.w3schools.com/jsref/default.asp")
-    
-def help_wv(path):
+# cclauss: you should be able to have all three buttons share a single action function
+#  if you edit the .pyui file to set the button.names to 'tags', 'cssref', and 'jsref'
+#   and set the button.actions to help_action
+def help_action(sender):
     wv = ui.WebView()
+    wv.load_url("http://www.w3schools.com/{}/default.asp".format(sender.name))
     wv.delegate = WebViewDelegate()
     wv.present("sheet")
-    wv.load_url(path)
     wv.wait_modal()
+
+#def help_html_tags(sender):
+#    help_wv("http://www.w3schools.com/tags/default.asp")
+    
+#def help_js(sender):
+#    help_wv("http://www.w3schools.com/cssref/default.asp")
+    
+#def help_css(sender):
+#    help_wv("http://www.w3schools.com/jsref/default.asp")
+    
+#def help_wv(path):
+#    wv = ui.WebView()
+#    wv.delegate = WebViewDelegate()
+#    wv.present("sheet")
+#    wv.load_url(path)
+#    wv.wait_modal()
     
 def quit_prog(sender):
     sender.superview.close()
