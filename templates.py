@@ -1,38 +1,38 @@
-JAVASCRIPT =    "function hello_world() {\n"\
-                "    alert('hello world @file_name');\n"\
-                "}\n"
+JAVASCRIPT = '''function hello_world() {
+    alert('hello world @file_name');
+}\n'''
                 
-HTML =    "<html>\n"\
-          "\t<head>\n"\
-          "\t\t<title> Hello World </title>\n"\
-          "\t</head>\n"\
-          "\t<body>\n"\
-          "\t\t<p> Hello World </p>\n"\
-          "\t</body>\n"\
-          "</html>"
+HTML = '''<html>
+\t<head>
+\t\t<title> Hello World </title>
+\t</head>
+\t<body>
+\t\t<p> Hello World </p>
+\t</body>
+</html>'''
           
-CSS =    "p {\n"\
-         "    color: #000000;\n"\
-         "}\n"
+CSS = '''p {
+    color: #000000;
+}\n'''
          
-REQUEST_HANDLER =     "class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):\n"\
-                      "    def do_GET(self):\n"\
-                      "        print self.path\n"\
-                      "        if self.path in ['', '/', '/index.html']:\n"\
-                      "            self.send_response(200)\n"\
-                      "            self.end_headers()\n"\
-                      "            index = view['editor_view']['file_nav'].selected_index\n"\
-                      "            if not index == -1:\n"\
-                      "                file = view['editor_view']['file_nav'].segments[index]\n"\
-                      "            #print file\n"\
-                      "            file_data = file_system['data'][file][0]\n"\
-                      "            #print file_data\n"\
-                      "            self.wfile.write(file_data)\n"\
-                      "        else:\n"\
-                      "            name = self.path.split('/')[-1]\n"\
-                      "            try:\n"\
-                      "                self.send_response(200)\n"\
-                      "                self.end_headers()\n"\
-                      "                self.wfile.write(file_system['data'][name][0])\n"\
-                      "            except:\n"\
-                      "                pass"
+REQUEST_HANDLER = '''class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        print self.path
+        if self.path in ['', '/', '/index.html']:
+            self.send_response(200)
+            self.end_headers()
+            index = view['editor_view']['file_nav'].selected_index
+            if not index == -1:
+                file = view['editor_view']['file_nav'].segments[index]
+            #print file
+            file_data = file_system['data'][file][0]
+            #print file_data
+            self.wfile.write(file_data)
+        else:
+            name = self.path.split('/')[-1]
+            try:
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(file_system['data'][name][0])
+            except:
+                pass'''
