@@ -31,7 +31,7 @@ class Manager(object):
         self.file_data = pickle_load(self.pickled_fs_name)
     
     def save_data(self):
-        pickle_dump(self.file_data, self.pickled_fs_name,)
+        pickle_dump(self.file_data, self.pickled_fs_name)
     
     def add_file(self, name):
         self._add_file(name, self.file_data)
