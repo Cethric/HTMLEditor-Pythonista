@@ -143,13 +143,7 @@ class ToolMenu(ui.View):
         self.open_tags_label.flex = "LRWB"
     
     def reload_label(self, tags):
-        if tags:
-            label = "Open Tags: " 
-            for x in tags:
-                label += x + ", "
-        else:
-            label = "No Open Tags"
-        
+        label = "Open Tags: " + ", ".join(tags) if tags else "No Open Tags"
         self.open_tags_label.text = label
     
 class TextViewDelegate(object):
