@@ -38,7 +38,7 @@ class DataSource(ui.ListDataSource):
         ui.ListDataSource.tableview_delete(self, tableview, section, row)
         #print "deleted_item", deleted_item
         del file_system["data"][deleted_item]
-        pickle.dump(file_system, fs_filename)
+        pickle_dump(file_system, fs_filename)
         
 
 #Classes first then functions
@@ -237,10 +237,7 @@ class TextViewDelegate(object):
         print len(textview.text)
         
         file_system["data"][self.file_name][0] = textview.text
-        
-        data = open("projects_data.pick", "w")
-        pickle.dump(file_system, data)
-        data.close()
+        pickle_dump(file_system, fs_filename)
         
         try:
             textview.selected_range = selection
