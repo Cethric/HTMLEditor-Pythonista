@@ -109,18 +109,9 @@ class ProjectNav(ui.View):
         def cancle_event(sender):
             view.remove_subview(in_alert)
         def accept_event(sender):
-            result = in_alert["input_field"].text
-            if result:
-                # cclauss: consider making HTML and JAVASCRIPT format strings with {} instead of @file_name
-                # you could then write: templates.HTML.format(result)
-                if result.endswith(".html"):
-                    file_system["data"][result] = [templates.HTML.replace("@file_name", result), templates.REQUEST_HANDLER]
-                elif result.endswith(".js"):
-                    file_system["data"][result] = [templates.JAVASCRIPT.replace("@file_name", result)]
-                elif result.endswith(".css"):
-                    file_system["data"][result] = [templates.CSS]
-                else:
-                    file_system["data"][result] = [""]
+            filename = in_alert["input_field"].text
+            if filename:
+                file_system["data"][filename] = templates.template_list_for_filename(filename)
                 pickle.dump(file_system, fs_filename)
                 self.setup_list_view()
                 cancle_event(sender)
