@@ -1,9 +1,18 @@
 import os
+
 try:
-    from cPickle import load, dump
+    import cPickle as pickle
 except ImportError:
-    print "CPickle is not avaliable using statard pickle module"
-    from pickle import load, dump
+    print "cPickle is not avaliable, using standard pickle module."
+    import pickle
+
+def pickle_dump(data, filename):  # saves data into filename
+    with open(filename, "w") as out_file:
+        pickle.dump(data, out_file)
+
+def pickle_load(filename):        # reads data out of filename
+    with open(filename) as in_file:
+        return pickle.load(in_file)
     
 ## File Data format
 # {'path': [{'file_name':'data'}, {'folder_name':'contents'}]}
@@ -11,7 +20,7 @@ except ImportError:
     
 class Manager(object):
     file_data = {"/": [{}, {}]}
-    def __init__(self, pickled_fs="data.pick"):
+    def __init__(self, pickled_fs="HTMLEditor.pick"):
         self.pickled_fs_name = pickled_fs
         if (os.path.exists(pickled_fs)):
             self.load_data()
@@ -19,12 +28,10 @@ class Manager(object):
             self.save_data()
                 
     def load_data(self):
-        with open(self.pickled_fs_name, "rb") as f:
-            self.file_data = load(f)
+        self.file_data = pickle_load(self.pickled_fs_name)
     
     def save_data(self):
-        with open(self.pickled_fs_name, "wb") as f:
-            dump(self.file_data, f)
+        pickle_dump(self.file_data, self.pickled_fs_name)
     
     def add_file(self, name):
         self._add_file(name, self.file_data)
@@ -42,6 +49,6 @@ class Manager(object):
         
 
 # Simple testing
-if __name__ in "__main__":
+if __name__ == "__main__":
     m = Manager()
     m.add_file("dir1/test.txt")
