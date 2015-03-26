@@ -6,4 +6,9 @@ except ImportError:
 
 
 class Editor(ui.View):
-    pass
+    def __init__(self, *args, **kwargs):
+        self = ui.load_view("__init__")
+        print self
+
+    def did_load(self):
+        print "%r loaded" % self

@@ -11,7 +11,6 @@ import ServerEditor
 DEBUG = False
 
 fm = FileManager.Manager()
-print HTMLEditor, ServerEditor
 
 
 class MainView(ui.View):
@@ -22,5 +21,5 @@ class MainView(ui.View):
 
 
 if __name__ == "__main__":
-    view = MainView();
+    view = MainView()
     view.present("fullscreen", hide_title_bar=DEBUG)
