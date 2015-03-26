@@ -1,4 +1,8 @@
-import ui
+try:
+    import ui
+except ImportError:
+    print "Using Dummy UI"
+    import dummyUI as ui
 
 import FileManager
 import HTMLEditor
@@ -15,10 +19,6 @@ class MainView(ui.View):
         ui.View.__init__(self, *args, **kwargs)
         self.htmlEditorView = HTMLEditor.Editor()
         self.serverEditorView = ServerEditor.Editor()
-        self.add_subview(self.htmlEditorView)
-        self.add_subview(self.serverEditorView)
-        
-        self.htmlEditorView.bring_to_front()
 
 
 if __name__ == "__main__":
