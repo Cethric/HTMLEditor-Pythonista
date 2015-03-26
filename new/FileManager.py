@@ -49,6 +49,7 @@ class Manager(object):
 
     def new_folder(self, path):
         self._new_folder(path, self.file_data["/"])
+        self.save_data()
 
     def get_folder(self, path):
         return self._get_folder(path, self.file_data["/"])
@@ -78,10 +79,10 @@ class Manager(object):
             return self._get_file("/".join(tail), last[1][head])
 
     def _new_folder(self, path, last):
-        name = path.split("/")
-        head = name[0]
-        name.remove(head)
-        tail = name
+        path = path.split("/")
+        head = path[0]
+        path.remove(head)
+        tail = path
         if not tail:
             last[1][head] = [{}, {}]
         else:
@@ -90,21 +91,24 @@ class Manager(object):
             self._new_folder("/".join(tail), last[1][head])
 
     def _get_folder(self, path, last):
-        name = path.split("/")
-        head = name[0]
-        name.remove(head)
-        tail = name
+        path = path.split("/")
+        head = path[0]
+        path.remove(head)
+        tail = path
         if not tail:
             return head, last[1][head]
         else:
             if head not in last[1]:
                 raise FileManagerException("File/Folder does not exist")
-            return self._get_file("/".join(tail), last[1][head])
+            return self._get_folder("/".join(tail), last[1][head])
 
 
 # Simple testing
 if __name__ == "__main__":
     m = Manager()
     m.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")
-
     print m.get_file("dir1/dir1/test.txt")
+    m.new_folder("dir/folder/path")
+    print m.get_folder("dir/folder/path")
+    print m.get_folder("dir1/dir1")
+    print m.file_data
