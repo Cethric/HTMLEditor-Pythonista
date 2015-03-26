@@ -51,9 +51,7 @@ class ProjectNav(ui.View):
         self.add_subview(self.nav_view)
         
         self.root_view.right_button_items = [
-                                             ui.ButtonItem(image=
-                                                           ui.Image.named("ionicons-hammer-24"))
-                                             ]
+            ui.ButtonItem(image = ui.Image.named("ionicons-hammer-24")) ]
         self.root_view.right_button_items[0].action = self.set_edit
         self.root_view.delegate = self
         self.editing = False
@@ -61,13 +59,7 @@ class ProjectNav(ui.View):
         self.setup_list_view()
         
     def setup_list_view(self):
-        list_data = []
-        for item in dict(file_system["data"]):
-            #print item
-            list_data.append({"title": item})
-        #print list_data
-        #print self.root_view.data_source
-        #self.root_view.data_source = ui.ListDataSource(list_data)
+        list_data = [{"title": item} for item in file_system["data"]]
         self.root_view.data_source = DataSource(list_data)
         self.root_view.reload()
         #print self.root_view.data_source
