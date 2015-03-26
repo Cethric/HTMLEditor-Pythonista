@@ -15,7 +15,7 @@ def pickle_load(filename):        # reads data out of filename
         return pickle.load(in_file)
     
 ## File Data format
-# {'path': [{'file_name':'data'}, {'folder_name':'contents'}]}
+# {'folder_name': [{'file_name':'data'}, {'folder_name':'contents'}]}
     
     
 class Manager(object):
@@ -33,22 +33,41 @@ class Manager(object):
     def save_data(self):
         pickle_dump(self.file_data, self.pickled_fs_name)
     
-    def add_file(self, name):
-        self._add_file(name, self.file_data)
+    def add_file(self, name, contents):
+        self._add_file(name, contents, self.file_data["/"])
+        self.save_data()
+
+    def get_file(self, name):
+        return self._get_file(name, self.file_data["/"])
         
-    def _add_file(self, name, last):
-        tail, _, head = name.rpartition("/")
-        print "Tail: %r Head: %r" % (tail, head)
-        if not head:
-            print "Final File"
-            print tail
+    def _add_file(self, name, contents, last):
+        name = name.split("/")
+        head = name[0]
+        name.remove(head)
+        tail = name
+        if not tail:
+            last[0][head] = contents
         else:
-            print "Dir"
-            print head
-            self._add_file(tail, last)
+            if not head in last[1]:
+                last[1][head] = [{}, {}]
+            self._add_file("/".join(tail), contents, last[1][head])
+
+    def _get_file(self, name, last):
+        name = name.split("/")
+        head = name[0]
+        name.remove(head)
+        tail = name
+        if not tail:
+            return head, last[0][head]
+        else:
+            if not head in last[1]:
+                raise IOError("File does not exist")
+            return self._get_file("/".join(tail), last[1][head])
         
 
 # Simple testing
 if __name__ == "__main__":
     m = Manager()
-    m.add_file("dir1/test.txt")
+    m.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")
+
+    print m.get_file("dir1/dir1/test.txt")
