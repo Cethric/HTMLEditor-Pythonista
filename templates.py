@@ -36,3 +36,18 @@ REQUEST_HANDLER = '''class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
                 self.wfile.write(file_system['data'][name][0])
             except:
                 pass'''
+
+templates_dict = { "css"  : [CSS],
+                   "html" : [HTML, REQUEST_HANDLER],
+                   "js"   : [JAVASCRIPT] }
+
+def template_list_for_filename(filename):
+    suffix = filename.rpartition('.')[2].lower()
+    template_list = templates_dict.get(suffix, [""])
+    template_list[0] = template_list[0].replace("@file_name", filename)
+    return template_list
+
+if __name__ == "__main__":  # self tests...
+    for filename in 'test.css test.html test.js test'.split():
+        print('{} {}:'.format('=' * 10, filename))
+        print(template_list_for_filename(filename))
