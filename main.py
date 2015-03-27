@@ -59,7 +59,7 @@ class ProjectNav(ui.View):
         self.setup_list_view()
         
     def setup_list_view(self):
-        self.root_view.data_source = DataSource(file_system["data"])
+        self.root_view.data_source = DataSource(sorted(file_system["data"]))
         self.root_view.reload()
         #print self.root_view.data_source
     
