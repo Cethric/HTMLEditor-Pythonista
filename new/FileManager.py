@@ -33,26 +33,56 @@ class Manager(object):
             self.load_data()
         else:
             self.save_data()
+        
+        self.current_dir = self.file_data["/"]
+        self.current_root = "/"
+        self.home = "/"
 
     def load_data(self):
         self.file_data = pickle_load(self.pickled_fs_name)
+        self.current_dir = self.file_data["/"]
 
     def save_data(self):
         pickle_dump(self.file_data, self.pickled_fs_name)
 
     def add_file(self, name, contents):
-        self._add_file(name, contents, self.file_data["/"])
+        self._add_file(name, contents, self.current_dir)
         self.save_data()
 
     def get_file(self, name):
-        return self._get_file(name, self.file_data["/"])
+        return self._get_file(name, self.current_dir)
 
     def new_folder(self, path):
-        self._new_folder(path, self.file_data["/"])
+        self._new_folder(path, self.current_dir)
         self.save_data()
 
     def get_folder(self, path):
-        return self._get_folder(path, self.file_data["/"])
+        return self._get_folder(path, self.current_dir)
+        
+    def delete_file(self, path):
+        self._delete_file(path, self.current_dir)
+        
+    def delete_folder(self, path):
+        self._delete_folder(path, self.current_dir)
+        
+    def walk_directory(self, start):
+        self._walk_to_start(start, self.current_dir)
+        
+    def set_current_dir(self, new_dir):
+        self._cd(new_dir, self.current_dir, new_dir, self.current_root)
+        
+    def go_to_home(self):
+        if self.home=="/":
+            self.current_dir = self.file_data["/"]
+            self.current_root = "/"
+        else:
+            self._cd(self.home, self.current_dir, self.home, self.current_root)
+        
+    def get_home(self):
+        return self.home
+        
+    def get_current_root(self):
+        return self.current_root
 
     def _add_file(self, name, contents, last):
         name = name.split("/")
@@ -101,14 +131,82 @@ class Manager(object):
             if head not in last[1]:
                 raise FileManagerException("File/Folder does not exist")
             return self._get_folder("/".join(tail), last[1][head])
+            
+    def _delete_folder(self, path, last):
+        path = path.split("/")
+        head = path[0]
+        path.remove(head)
+        tail = path
+        if not tail:
+            del last[1][head]
+        else:
+            if head not in last[1]:
+                raise FileManagerException("File/Folder does not exist")
+            self._delete_folder("/".join(tail), last[1][head])
+            
+    def _delete_file(self, path, last):
+        path = path.split("/")
+        head = path[0]
+        path.remove(head)
+        tail = path
+        if not tail:
+            del last[0][head]
+        else:
+            if head not in last[1]:
+                raise FileManagerException("File/Folder does not exist")
+            self._delete_file("/".join(tail), last[1][head])
+            
+    def _walk_to_start(self, path, last, root_str=None):
+        root_str = root_str or self.current_root
+        if path == "":
+            self._walk_directory("", last, root_str)
+        else:
+            last = self._get_folder(path, last)
+            self._walk_directory(path, last, root_str)
+        
+    def _walk_directory(self, path, last, root_str):
+        path = path.split("/")
+        head = path[0]
+        path.remove(head)
+        tail = path
+        if not tail:
+            # print last
+            print root_str, last[0].keys(), last[1].keys()
+            for x in last[1]:
+                self._walk_to_start("", last[1][x], "%s/%s/" % (root_str, x))
+        else:
+            if head not in last[1]:
+                raise FileManagerException("File/Folder does not exist")
+            self._walk_directory("/".join(tail), last[1][head], "%s/%s/" % (root_str, head))
+            
+    def _cd(self, path, last, new_cd, old_cd):
+        ncd = self._get_folder(path, last)
+        self.current_root = new_cd
+        self.current_dir = ncd[1]
 
 
 # Simple testing
 if __name__ == "__main__":
     m = Manager()
+    print 'm.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")'
     m.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")
+    print 'print m.get_file("dir1/dir1/test.txt")'
     print m.get_file("dir1/dir1/test.txt")
+    print 'm.new_folder("dir/folder/path")'
     m.new_folder("dir/folder/path")
+    print 'm.get_folder("dir/folder/path")'
     print m.get_folder("dir/folder/path")
+    print 'm.get_folder("dir1/dir1")'
     print m.get_folder("dir1/dir1")
-    print m.file_data
+    print 'm.current_dir'
+    print m.current_dir
+    print 'm.walk_directory("")'
+    m.walk_directory("")
+    print 'm.set_current_dir("dir1")'
+    m.set_current_dir("dir1")
+    print 'm.walk_directory("")'
+    m.walk_directory("")
+    print 'm.go_to_home()'
+    m.go_to_home()
+    print 'm.walk_directory("")'
+    m.walk_directory("")
