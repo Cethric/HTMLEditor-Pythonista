@@ -1,4 +1,5 @@
 import os
+import ui
 
 try:
     import cPickle as pickle
@@ -69,7 +70,11 @@ class Manager(object):
         self._walk_to_start(start, self.current_dir)
         
     def set_current_dir(self, new_dir):
-        self._cd(new_dir, self.current_dir, new_dir, self.current_root)
+        if new_dir=="/":
+            self.current_dir = self.file_data["/"]
+            self.current_root = "/"
+        else:
+            self._cd(new_dir, self.current_dir, new_dir, self.current_root)
         
     def go_to_home(self):
         if self.home=="/":
@@ -83,6 +88,9 @@ class Manager(object):
         
     def get_current_root(self):
         return self.current_root
+        
+    def get_current_dir(self):
+        return self.current_dir
 
     def _add_file(self, name, contents, last):
         name = name.split("/")
@@ -129,7 +137,7 @@ class Manager(object):
             return head, last[1][head]
         else:
             if head not in last[1]:
-                raise FileManagerException("File/Folder does not exist")
+                raise FileManagerException("File/Folder %r does not exist" % head)
             return self._get_folder("/".join(tail), last[1][head])
             
     def _delete_folder(self, path, last):
@@ -165,6 +173,8 @@ class Manager(object):
             self._walk_directory(path, last, root_str)
         
     def _walk_directory(self, path, last, root_str):
+        if root_str=="/":
+            root_str=""
         path = path.split("/")
         head = path[0]
         path.remove(head)
@@ -184,9 +194,59 @@ class Manager(object):
         self.current_root = new_cd
         self.current_dir = ncd[1]
 
+FILE = 0x01
+FOLDER = 0x02
+
+
+
+class FileViewer(ui.View):
+    def __init__(self, fileManager, *args, **kwargs):
+        ui.View.__init__(self, *args, **kwargs)
+        self.fileManager = fileManager
+        self.listview = ui.TableView()
+        self.listview.flex = "TL"
+        self.listview.frame = self.frame
+        self.listdata = ui.ListDataSource([])
+        self.navview = ui.NavigationView(self.listview)
+        self.add_subview(self.navview)
+        self.populate_list("dir")
+        
+    def populate_list(self, directory):
+        if directory != "/":
+            directory = directory
+        print directory
+        self.fileManager.set_current_dir(directory)
+        d = self.fileManager.get_current_dir()
+        files = d[0].keys()
+        dirs = d[1].keys()
+        fdlist = []
+        for file in files:
+            data = {
+                    "title": file,
+                    "image": None,
+                    "accessory_type": "none",
+                    "d_type": FILE
+                    }
+            fdlist.append(data)
+        for dir in dirs:
+            data = {
+                    "title": dir,
+                    "image": None,
+                    "accessory_type": "none",
+                    "d_type": FOLDER
+                    }
+            fdlist.append(data)
+        
+        listview = ui.TableView()
+        listdata = ui.ListDataSource(fdlist)
+        listview.data_source = listdata
+        listview.reload()
+        
+        self.navview.push_view(listview)
 
 # Simple testing
 if __name__ == "__main__":
+    print "running simple file manager tests"
     m = Manager()
     print 'm.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")'
     m.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")
@@ -210,3 +270,7 @@ if __name__ == "__main__":
     m.go_to_home()
     print 'm.walk_directory("")'
     m.walk_directory("")
+    
+    print "running file viewer tests"
+    fv = FileViewer(m)
+    fv.present("sheet")
