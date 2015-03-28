@@ -1,0 +1,113 @@
+@charset "utf-8";
+
+body {
+	background-color: #CCC;
+    padding: 0%;
+    margin: 0%;
+}
+
+div#mainmenu {
+	width: 15%;
+	background-color: #333;
+	height: auto;
+	position: fixed;
+    float: left;
+
+    border-radius: 5px;
+}
+
+ul#menubar, ul#menubarProj, li#menuitem {
+    color: #ffffff;
+    cursor: pointer;
+    text-align: left;
+
+    padding: 0;
+    list-style: none none;
+}
+
+ul#menubar {
+    padding-bottom: 50px;
+}
+
+ul#menubarProj {
+    display: none;
+}
+
+a#menuitem {
+    color: #ffffff;
+}
+
+b#projExpander {
+    cursor: pointer;
+}
+
+p {
+	padding: 0%;
+	margin: 0%;
+}
+
+div#content {
+	width: 70%;
+	margin-left: 15%;
+	background-color: #999;
+	text-align: center;
+	border: 5px ridge #CCC;
+    padding-top: 25px;
+    margin-top: 3px;
+
+    border-radius: 15px;
+}
+
+
+/*Architects Github Theme. Used for the Github Sticker/Button*/
+a.button {
+    transform: scale(0.5, 0.5);
+    -ms-transform: scale(0.5, 0.5);
+    -webkit-transform: scale(0.5, 0.5);
+
+    width: 134px;
+    height: 58px;
+    padding-top: 22px;
+    padding-left: 68px;
+    font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+    font-size: 23px;
+    line-height: 1.2;
+    color: #fff;
+}
+a.button small {
+    display: block;
+    font-size: 11px;
+}
+div#gitbutton a.button {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: transparent url(../images/github-button.png) 0 0 no-repeat;
+}
+
+a.tar {
+    /*display: block;*/
+    width: 138px;
+    padding-left: 40px;
+    margin-bottom: 20px;
+    font-size: 21px;
+    background: transparent url(../images/tar-gz-icon.png) 0 0 no-repeat;
+}
+
+a.zip {
+    /*display: block;*/
+    width: 138px;
+    padding-left: 40px;
+    margin-bottom: 20px;
+    font-size: 21px;
+    background: transparent url(../images/zip-icon.png) 0 0 no-repeat;
+}
+
+a.view {
+    /*display: block;*/
+    width: 138px;
+    padding-left: 40px;
+    margin-bottom: 20px;
+    font-size: 21px;
+    background: transparent url(../images/octocat-icon.png) 0 0 no-repeat;
+}
