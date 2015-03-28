@@ -36,6 +36,9 @@ def load_editor(file_manager = None):
             view = ui.View()
     print "%r was loaded" % view
     view.fileManager = file_manager
+    view.flex = "WH"
+    view.set_needs_display()
+    print "flex %r" % view.flex
     return view
 
 
