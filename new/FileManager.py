@@ -35,8 +35,10 @@ class Manager(object):
         else:
             self.save_data()
         
+        
         self.current_dir = self.file_data["/"]
         self.current_root = "/"
+        self.current_path = self.current_root
         self.home = "/"
 
     def load_data(self):
@@ -74,6 +76,16 @@ class Manager(object):
             self.current_dir = self.file_data["/"]
             self.current_root = "/"
         else:
+            self._cd(new_dir, self.current_dir, new_dir, self.current_root)
+            
+    def go_down_one_level(self):
+        l = self.current_root.split("/")
+        l = l[0:-2]
+        print l
+        new_dir = "/".join(l)
+        print new_dir
+        if new_dir !="":
+            print "reset path"
             self._cd(new_dir, self.current_dir, new_dir, self.current_root)
         
     def go_to_home(self):
@@ -198,7 +210,7 @@ FILE = 0x01
 FOLDER = 0x02
 
 
-
+## How do i go back a view?? and reset folder?
 class FileViewer(ui.View):
     def __init__(self, fileManager, *args, **kwargs):
         ui.View.__init__(self, *args, **kwargs)
@@ -206,14 +218,44 @@ class FileViewer(ui.View):
         self.listview = ui.TableView()
         self.listview.flex = "TL"
         self.listview.frame = self.frame
-        self.listdata = ui.ListDataSource([])
+        self.listview.name = "root"
+        self.listview.delegate = self
         self.navview = ui.NavigationView(self.listview)
         self.add_subview(self.navview)
-        self.populate_list("dir")
+        self.init_list()
+        
+    def init_list(self):
+        directory = "/"
+        print directory
+        print os.path.join(directory, "dir1")
+        self.fileManager.set_current_dir(directory)
+        d = self.fileManager.get_current_dir()
+        files = d[0].keys()
+        dirs = d[1].keys()
+        fdlist = []
+        for file in files:
+            data = {
+                    "title": file,
+                    "image": "ionicons-document-text-24",
+                    "accessory_type": "none",
+                    "d_type": FILE
+                    }
+            fdlist.append(data)
+        for dir in dirs:
+            data = {
+                    "title": dir,
+                    "image": "ionicons-folder-24",
+                    "accessory_type": "none",
+                    "d_type": FOLDER
+                    }
+            fdlist.append(data)
+        
+        #listview = ui.TableView()
+        listdata = ui.ListDataSource(fdlist)
+        self.listview.data_source = listdata
+        self.listview.reload()
         
     def populate_list(self, directory):
-        if directory != "/":
-            directory = directory
         print directory
         self.fileManager.set_current_dir(directory)
         d = self.fileManager.get_current_dir()
@@ -223,7 +265,7 @@ class FileViewer(ui.View):
         for file in files:
             data = {
                     "title": file,
-                    "image": None,
+                    "image": "ionicons-document-text-24",
                     "accessory_type": "none",
                     "d_type": FILE
                     }
@@ -231,7 +273,7 @@ class FileViewer(ui.View):
         for dir in dirs:
             data = {
                     "title": dir,
-                    "image": None,
+                    "image": "ionicons-folder-24",
                     "accessory_type": "none",
                     "d_type": FOLDER
                     }
@@ -241,8 +283,24 @@ class FileViewer(ui.View):
         listdata = ui.ListDataSource(fdlist)
         listview.data_source = listdata
         listview.reload()
-        
+        listview.delegate = self
+        listview.name = self.fileManager.get_current_root()
         self.navview.push_view(listview)
+        listview.left_button_items = []
+        print listview.left_button_items
+        
+    def tableview_did_select(self, tableview, section, row):
+        print "Click"
+        items = tableview.data_source.items
+        item = items[row]
+        if item["d_type"] == FOLDER:
+            self.populate_list(item["title"])
+        elif item["d_type"] == FILE:
+            print "Opening File %r" % item["title"]
+            
+    def pop_view(self, sender):
+        self.navview.pop_view()
+            
 
 # Simple testing
 if __name__ == "__main__":
@@ -262,10 +320,12 @@ if __name__ == "__main__":
     print m.current_dir
     print 'm.walk_directory("")'
     m.walk_directory("")
-    print 'm.set_current_dir("dir1")'
-    m.set_current_dir("dir1")
+    print 'm.set_current_dir("dir1/dir1")'
+    m.set_current_dir("dir1/dir1")
     print 'm.walk_directory("")'
     m.walk_directory("")
+    print "m.go_down_one_level()"
+    m.go_down_one_level()
     print 'm.go_to_home()'
     m.go_to_home()
     print 'm.walk_directory("")'
