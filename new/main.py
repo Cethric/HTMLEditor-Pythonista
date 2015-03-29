@@ -14,11 +14,12 @@ reload(ServerEditor)
 DEBUG = False
 
 fm = FileManager.Manager()
+fv = FileManager.FileViewer(fm)
 
 class MainView(ui.View):
     def __init__(self, *args, **kwargs):
         ui.View.__init__(self, *args, **kwargs)
-        self.htmlEditorView = HTMLEditor.load_editor(fm)
+        self.htmlEditorView = HTMLEditor.load_editor(fm, fv)
         self.serverEditorView = ui.load_view("ServerEditor/__init__")
         
         self.add_subview(self.htmlEditorView)

@@ -10,6 +10,7 @@ class Editor(ui.View):
         print "Called"
         ui.View.__init__(self, *args, **kwargs)
         self.fileManager = None
+        self.fileViewer = None
         
     def did_load(self):
         print "%r loaded" % self
@@ -17,10 +18,15 @@ class Editor(ui.View):
     def bring_to_front(self):
         ui.View.bring_to_front(self)
         print self.fileManager
+        print self.frame
+        x,y,w,h = self.frame
+        self.fileViewer.frame = (x,y,w*0.25,h)
+        print self.fileViewer.frame
+        self.fileViewer.bring_to_front()
         
 HTMLEdit = Editor
         
-def load_editor(file_manager = None):
+def load_editor(file_manager = None, file_viewer = None):
     print "On Load Editor View"
     view = None
     try:
@@ -36,7 +42,8 @@ def load_editor(file_manager = None):
             view = ui.View()
     print "%r was loaded" % view
     view.fileManager = file_manager
-    view.flex = "WH"
+    view.fileViewer = file_viewer
+    #view.flex = "WH"
     view.set_needs_display()
     print "flex %r" % view.flex
     return view

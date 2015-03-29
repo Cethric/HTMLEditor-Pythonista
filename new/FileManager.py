@@ -1,5 +1,6 @@
 import os
 import ui
+import console
 
 try:
     import cPickle as pickle
@@ -210,18 +211,48 @@ FILE = 0x01
 FOLDER = 0x02
 
 
-## How do i go back a view?? and reset folder?
+class AddAction(object):
+    def __init__(self, tableview_data, fileManager):
+        self.tableview_data = tableview_data
+        print tableview_data
+        self.fileManager = fileManager
+    
+    @ui.in_background    
+    def invoke(self, sender):
+        print sender
+        
+        try:
+            c = console.alert("New", "File/Folder", "File", "Folder") - 1
+            print c
+            r = console.input_alert("New File", "Enter Filename")
+            print "%r" % r
+            self.tableview_data[c][r] = "Hello World from %r" % r
+            self.fileManager.save_data()
+        except KeyboardInterrupt:
+            print "The user cancled the input"
+
+def dummy_file_callback(file_name, file_data):
+    print "The file %r was loaded" % file_name
+    print "Contents:\n%s" % file_data
+    v = ui.TextView()
+    v.text = file_data
+    v.name = file_name
+    v.present("sheet")
+    
+    
 class FileViewer(ui.View):
     def __init__(self, fileManager, *args, **kwargs):
         ui.View.__init__(self, *args, **kwargs)
         self.fileManager = fileManager
+        self.file_load_callback = dummy_file_callback
         self.listview = ui.TableView()
-        self.listview.flex = "WH"
+        #self.listview.flex = "WH"
         self.listview.frame = self.frame
         self.listview.name = "root"
         self.listview.delegate = self
         self.navview = ui.NavigationView(self.listview)
         self.navview.flex = "WH"
+        self.navview.frame = self.frame
         self.add_subview(self.navview)
         self.listview.set_needs_display()
         self.navview.set_needs_display()
@@ -239,46 +270,48 @@ class FileViewer(ui.View):
                     "image": "ionicons-document-text-24",
                     "accessory_type": "none",
                     "d_type": FILE,
-                    "d_data": file_data
+                    "d_data": file_data,
+                    "d_path": "/" + file_name
                     }
             fdlist.append(data)
         for dir_name, dir_data in dirs.items():
-            print dir_data
             data = {
                     "title": dir_name,
                     "image": "ionicons-folder-24",
                     "accessory_type": "none",
                     "d_type": FOLDER,
-                    "d_data": dir_data
+                    "d_data": dir_data,
+                    "d_path": "/" + dir_name
                     }
             fdlist.append(data)
         
-        #listview = ui.TableView()
         listdata = ui.ListDataSource(fdlist)
         self.listview.data_source = listdata
         self.listview.reload()
+        self.listview.right_button_items = [ui.ButtonItem("Edit"), ui.ButtonItem("Add")]
         
-    def populate_list(self, path, directory=[]):
-        print directory
-        files = directory[0].keys()
-        dirs = directory[1].keys()
+    def populate_list(self, path, d_path, directory=[]):
+        files = directory[0]
+        dirs = directory[1]
         fdlist = []
-        for file in files:
+        for file_name, file_data in files.items():
             data = {
-                    "title": file,
+                    "title": file_name,
                     "image": "ionicons-document-text-24",
                     "accessory_type": "none",
                     "d_type": FILE,
-                    "d_data": directory[0][file]
+                    "d_data": file_data,
+                    "d_path": d_path + "/" + file_name
                     }
             fdlist.append(data)
-        for dir in dirs:
+        for dir_name, dir_data in dirs.items():
             data = {
-                    "title": dir,
+                    "title": dir_name,
                     "image": "ionicons-folder-24",
                     "accessory_type": "none",
                     "d_type": FOLDER,
-                    "d_data": directory[1][dir]
+                    "d_data": dir_data,
+                    "d_path": d_path + "/" + dir_name
                     }
             fdlist.append(data)
         
@@ -289,22 +322,21 @@ class FileViewer(ui.View):
         listview.delegate = self
         listview.name = path
         self.navview.push_view(listview)
-        listview.left_button_items = []
-        print listview.left_button_items
+        
+        add_act = AddAction(directory, self.fileManager)
+        add_btn = ui.ButtonItem("Add", action=add_act.invoke)
+        
+        listview.right_button_items = [ui.ButtonItem("Edit"), add_btn]
         
     def tableview_did_select(self, tableview, section, row):
-        print "Click"
         items = tableview.data_source.items
         item = items[row]
         if item["d_type"] == FOLDER:
             d_data = item["d_data"]
-            self.populate_list(item["title"], d_data)
+            print "Loading %r" % item["d_path"]
+            self.populate_list(item["title"], item["d_path"], d_data)
         elif item["d_type"] == FILE:
-            print "Opening File %r" % item["title"]
-            print "Contents: %r" % item["d_data"]
-            
-    def pop_view(self, sender):
-        self.navview.pop_view()
+            self.file_load_callback(item["d_path"], item["d_data"])
             
 
 # Simple testing
