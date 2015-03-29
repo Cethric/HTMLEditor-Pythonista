@@ -7,26 +7,24 @@ except ImportError:
 
 class Editor(ui.View):
     def __init__(self, *args, **kwargs):
-        print "Called"
         ui.View.__init__(self, *args, **kwargs)
         self.fileManager = None
-        self.fileViewer = None
+        self.fileViewer = ui.View()
         
     def did_load(self):
         print "%r loaded" % self
-        
-    def bring_to_front(self):
-        ui.View.bring_to_front(self)
-        print self.fileManager
-        print self.frame
         x,y,w,h = self.frame
         self.fileViewer.frame = (x,y,w*0.25,h)
         print self.fileViewer.frame
         self.fileViewer.bring_to_front()
         
+    def bring_to_front(self):
+        ui.View.bring_to_front(self)
+        print self.fileManager
+        
 HTMLEdit = Editor
         
-def load_editor(file_manager = None, file_viewer = None):
+def load_editor(file_manager = None, file_viewer = ui.View()):
     print "On Load Editor View"
     view = None
     try:

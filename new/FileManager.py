@@ -82,11 +82,11 @@ class Manager(object):
     def go_down_one_level(self):
         l = self.current_root.split("/")
         l = l[0:-2]
-        print l
+        #print l
         new_dir = "/".join(l)
-        print new_dir
+        #print new_dir
         if new_dir !="":
-            print "reset path"
+            #print "reset path"
             self._cd(new_dir, self.current_dir, new_dir, self.current_root)
         
     def go_to_home(self):
@@ -214,13 +214,12 @@ FOLDER = 0x02
 class AddAction(object):
     def __init__(self, tableview_data, fileManager):
         self.tableview_data = tableview_data
-        print tableview_data
+        #print tableview_data
         self.fileManager = fileManager
     
     @ui.in_background    
     def invoke(self, sender):
         print sender
-        
         try:
             c = console.alert("New", "File/Folder", "File", "Folder") - 1
             print c
@@ -332,11 +331,11 @@ class FileViewer(ui.View):
         items = tableview.data_source.items
         item = items[row]
         if item["d_type"] == FOLDER:
-            d_data = item["d_data"]
             print "Loading %r" % item["d_path"]
-            self.populate_list(item["title"], item["d_path"], d_data)
+            self.populate_list(item["title"], item["d_path"], item["d_data"])
         elif item["d_type"] == FILE:
             self.file_load_callback(item["d_path"], item["d_data"])
+        else: raise FileManagerException("Unknow object descriptor %h" % item["d_type"])
             
 
 # Simple testing
