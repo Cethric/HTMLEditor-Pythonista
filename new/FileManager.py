@@ -36,12 +36,9 @@ class Manager(object):
             self.load_data()
         else:
             self.save_data()
-        
-        
+
         self.current_dir = self.file_data["/"]
-        self.current_root = "/"
-        self.current_path = self.current_root
-        self.home = "/"
+        self.current_path = self.current_root = self.home = "/"
 
     def load_data(self):
         self.file_data = pickle_load(self.pickled_fs_name)
@@ -74,24 +71,23 @@ class Manager(object):
         self._walk_to_start(start, self.current_dir)
         
     def set_current_dir(self, new_dir):
-        if new_dir=="/":
+        if new_dir == "/":
             self.current_dir = self.file_data["/"]
             self.current_root = "/"
         else:
             self._cd(new_dir, self.current_dir, new_dir, self.current_root)
             
     def go_down_one_level(self):
-        l = self.current_root.split("/")
-        l = l[0:-2]
+        l = self.current_root.split("/")[0:-2]
         #print l
         new_dir = "/".join(l)
         #print new_dir
-        if new_dir !="":
+        if new_dir:
             #print "reset path"
             self._cd(new_dir, self.current_dir, new_dir, self.current_root)
         
     def go_to_home(self):
-        if self.home=="/":
+        if self.home == "/":
             self.current_dir = self.file_data["/"]
             self.current_root = "/"
         else:
@@ -180,15 +176,13 @@ class Manager(object):
             
     def _walk_to_start(self, path, last, root_str=None):
         root_str = root_str or self.current_root
-        if path == "":
-            self._walk_directory("", last, root_str)
-        else:
+        if path:
             last = self._get_folder(path, last)
-            self._walk_directory(path, last, root_str)
+        self._walk_directory("", last, root_str)
         
     def _walk_directory(self, path, last, root_str):
-        if root_str=="/":
-            root_str=""
+        if root_str == "/":
+            root_str = ""
         path = path.split("/")
         head = path[0]
         path.remove(head)
@@ -261,17 +255,16 @@ class EditAction(object):
         except ValueError as e:
             print e
         
-        for file_key in x[0].keys():
+        for file_key in x[0]:
             del self.tableview_data[0][file_key]
         
-        for dir_key in x[1].keys():
+        for dir_key in x[1]:
             del self.tableview_data[1][dir_key]
         self.fileManager.save_data()
         
 
 def dummy_file_callback(file_name, file_data):
-    print "The file %r was loaded" % file_name
-    print "Contents:\n%s" % file_data
+    print "The file %r was loaded\nContents:\n%s" % (file_name, file_data)
     v = ui.TextView()
     v.text = file_data
     v.name = file_name
@@ -313,7 +306,7 @@ class FileViewer(ui.View):
                     "d_path": "/" + file_name
                     }
             fdlist.append(data)
-        for dir_name, dir_data in dirs.items():
+        for dir_name, dir_data in dirs.iteritems():
             data = {
                     "title": dir_name,
                     "image": "ionicons-folder-24",
@@ -323,9 +316,7 @@ class FileViewer(ui.View):
                     "d_path": "/" + dir_name
                     }
             fdlist.append(data)
-        
-        listdata = ui.ListDataSource(fdlist)
-        self.listview.data_source = listdata
+        self.listview.data_source = ui.ListDataSource(fdlist)
         self.listview.reload()
         
         add_act = AddAction(d, self.fileManager)
@@ -349,7 +340,7 @@ class FileViewer(ui.View):
                     "d_path": d_path + "/" + file_name
                     }
             fdlist.append(data)
-        for dir_name, dir_data in dirs.items():
+        for dir_name, dir_data in dirs.iteritems():
             data = {
                     "title": dir_name,
                     "image": "ionicons-folder-24",
@@ -361,8 +352,7 @@ class FileViewer(ui.View):
             fdlist.append(data)
         
         listview = ui.TableView()
-        listdata = ui.ListDataSource(fdlist)
-        listview.data_source = listdata
+        listview.data_source = ui.ListDataSource(fdlist)
         listview.reload()
         listview.delegate = self
         listview.name = path
