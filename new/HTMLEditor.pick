@@ -17,19 +17,24 @@ p12
 S'Bassus victrix saepe imperiums galatae est.'
 p13
 sa(dp14
-asasS'dir'
+asasS'folder'
 p15
 (lp16
 (dp17
 a(dp18
-S'folder'
+asS'dir'
 p19
 (lp20
 (dp21
 a(dp22
-S'path'
+S'folder'
 p23
 (lp24
 (dp25
 a(dp26
+S'path'
+p27
+(lp28
+(dp29
+a(dp30
 asasasas.

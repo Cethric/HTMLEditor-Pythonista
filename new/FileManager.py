@@ -1,5 +1,6 @@
 import os
 import ui
+import copy
 import console
 
 try:
@@ -225,10 +226,48 @@ class AddAction(object):
             print c
             r = console.input_alert("New File", "Enter Filename")
             print "%r" % r
-            self.tableview_data[c][r] = "Hello World from %r" % r
+            if c == 0:
+                self.tableview_data[c][r] = "Hello World from %r" % r
+            elif c == 1:
+                self.tableview_data[c][r] = [{}, {}]
+            print self.tableview_data[c][r]
             self.fileManager.save_data()
         except KeyboardInterrupt:
             print "The user cancled the input"
+            
+
+class EditAction(object):
+    def __init__(self, tableview, tableview_data, fileManager):
+        self.tableview = tableview
+        self.tableview_data = tableview_data
+        self.fileManager = fileManager
+        self.tableview.editing = False
+        self.tableview.data_source.edit_action = self.edit
+        print self.tableview.data_source.edit_action
+        
+    @ui.in_background
+    def invoke(self, sender):
+        self.tableview.editing = not self.tableview.editing
+        
+    @ui.in_background
+    def edit(self, datasource, *args, **kwargs):
+        x = copy.copy(self.tableview_data)
+        try:
+            for i in datasource.items:
+                if i["d_type"] == FOLDER:
+                    del x[1][i["title"]]
+                elif i["d_type"] == FILE:
+                    del x[0][i["title"]]
+        except ValueError as e:
+            print e
+        
+        for file_key in x[0].keys():
+            del self.tableview_data[0][file_key]
+        
+        for dir_key in x[1].keys():
+            del self.tableview_data[1][dir_key]
+        self.fileManager.save_data()
+        
 
 def dummy_file_callback(file_name, file_data):
     print "The file %r was loaded" % file_name
@@ -242,6 +281,7 @@ def dummy_file_callback(file_name, file_data):
 class FileViewer(ui.View):
     def __init__(self, fileManager, *args, **kwargs):
         ui.View.__init__(self, *args, **kwargs)
+        self.name = "FileViewer<%r>" % self
         self.fileManager = fileManager
         self.file_load_callback = dummy_file_callback
         self.listview = ui.TableView()
@@ -287,7 +327,13 @@ class FileViewer(ui.View):
         listdata = ui.ListDataSource(fdlist)
         self.listview.data_source = listdata
         self.listview.reload()
-        self.listview.right_button_items = [ui.ButtonItem("Edit"), ui.ButtonItem("Add")]
+        
+        add_act = AddAction(d, self.fileManager)
+        add_btn = ui.ButtonItem("Add", action=add_act.invoke)
+        edit_act = EditAction(self.listview, d, self.fileManager)
+        edit_btn = ui.ButtonItem("Edit", action=edit_act.invoke)
+        
+        self.listview.right_button_items = [edit_btn, add_btn]
         
     def populate_list(self, path, d_path, directory=[]):
         files = directory[0]
@@ -324,8 +370,10 @@ class FileViewer(ui.View):
         
         add_act = AddAction(directory, self.fileManager)
         add_btn = ui.ButtonItem("Add", action=add_act.invoke)
+        edit_act = EditAction(listview, directory, self.fileManager)
+        edit_btn = ui.ButtonItem("Edit", action=edit_act.invoke)
         
-        listview.right_button_items = [ui.ButtonItem("Edit"), add_btn]
+        listview.right_button_items = [edit_btn, add_btn]
         
     def tableview_did_select(self, tableview, section, row):
         items = tableview.data_source.items

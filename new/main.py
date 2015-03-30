@@ -15,21 +15,31 @@ DEBUG = False
 
 fm = FileManager.Manager()
 fv = FileManager.FileViewer(fm)
+print fv.name
 
 class MainView(ui.View):
     def __init__(self, *args, **kwargs):
         ui.View.__init__(self, *args, **kwargs)
-        self.htmlEditorView = HTMLEditor.load_editor(fm, fv)
+        self.htmlEditorView = ui.View()
+        self.serverEditorView = ui.View()
+    
+    def did_load(self):
+        print "%r did load" % self
         self.serverEditorView = ui.load_view("ServerEditor/__init__")
         
-        self.add_subview(self.htmlEditorView)
         self.add_subview(self.serverEditorView)
         
-        self.htmlEditorView.bring_to_front()
         self.serverEditorView.send_to_back()
+        
+    def present(self, *args, **kwargs):
+        ui.View.present(self, *args, **kwargs)
+        print "Present"
+        print self.frame
+        self.htmlEditorView = HTMLEditor.load_editor(fm, fv, (0, 0, self.frame[2], self.frame[3]))
+        self.add_subview(self.htmlEditorView)
+        self.htmlEditorView.bring_to_front()
 
 
 if __name__ == "__main__":
-    print dir(HTMLEditor)
-    view = MainView()
-    view.present("sheet", hide_title_bar=DEBUG)
+    view = ui.load_view()
+    view.present("fullscreen", hide_title_bar=DEBUG)
