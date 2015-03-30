@@ -178,7 +178,7 @@ class Manager(object):
         root_str = root_str or self.current_root
         if path:
             last = self._get_folder(path, last)
-        self._walk_directory("", last, root_str)
+        self._walk_directory(path, last, root_str)
         
     def _walk_directory(self, path, last, root_str):
         if root_str == "/":
