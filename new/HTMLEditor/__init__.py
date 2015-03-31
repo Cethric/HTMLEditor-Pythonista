@@ -20,6 +20,13 @@ def server_editor(sender):
 @ui.in_background
 def preview(sender):
     console.hud_alert("preview")
+    text = sender.superview.superview["contentContainer"].textview.text
+    wv = ui.WebView()
+    wv.load_html(text)
+    name = wv.evaluate_javascript("document.title")
+    print "Name: :", name
+    wv.name = name
+    wv.present("sheet")
 
 @ui.in_background
 def quitter(sender):
