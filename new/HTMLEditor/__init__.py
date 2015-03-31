@@ -26,10 +26,10 @@ def quitter(sender):
     try:
         result = console.alert("Close", "", "Close File", "Quit")
         if result == 1:
-            if sender.superview.superview.superview == None:
+            if sender.superview.superview == None:
                 console.hud_alert("Close File")
             else:
-                sender.superview.superview.superview.on_close_file()
+                sender.superview.superview.on_close_file()
         elif result == 2:
             if sender.superview.superview.superview == None:
                 sender.superview.superview.close()
@@ -60,6 +60,8 @@ class Editor(ui.View):
     def load_file(self, *args):
         self["contentContainer"].add_file(*args)
         
+    def on_close_file(self):
+        self["contentContainer"].on_close_file()
         
 HTMLEdit = Editor
 
@@ -126,12 +128,30 @@ class TextEditorView(ui.View):
         print replacement
         return True
         
+    def textview_did_change(self, textview):
+        if self.superview.fileManager:
+            name = self.filecontrol.segments[self.filecontrol.selected_index]
+            self.superview.fileManager.add_file(name, textview.text)
+            self.superview.fileManager.save_data()
+        
     def add_file(self, file_path, file_contents):
-        print "Load File", file_path, file_contents
+        #print "Load File", file_path, file_contents
+        index = self.filecontrol.selected_index
         if file_path not in self.filecontrol.segments:
             i = list(self.filecontrol.segments)
             i.append(file_path)
             self.filecontrol.segments = i
+        self.filecontrol.selected_index = self.filecontrol.segments.index(file_path)
+        self.select_file(None)
+            
+    def on_close_file(self):
+        segment = self.filecontrol.segments[self.filecontrol.selected_index]
+        i = list(self.filecontrol.segments)
+        i.remove(segment)
+        self.filecontrol.segments = i
+        self.filecontrol.selected_index = -1
+        self.select_file(None)
+        
         
     def select_file(self, sender):
         name = self.filecontrol.segments[self.filecontrol.selected_index]
@@ -139,8 +159,8 @@ class TextEditorView(ui.View):
             contents = self.superview.fileManager.get_file(name)[1]
             self.textview.text = contents
             self.html_parser.feed(contents)
-            print self.html_parser.open_tags
-            print self.html_parser.files_list
+            #print self.html_parser.open_tags
+            #print self.html_parser.files_list
         else:
             self.textview.text = "Error loading file."
             

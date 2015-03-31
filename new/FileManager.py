@@ -106,6 +106,9 @@ class Manager(object):
         name = name.split("/")
         head = name[0]
         name.remove(head)
+        if head == "":
+            head = name[0]
+            name.remove(head)
         tail = name
         if not tail:
             last[0][head] = contents
@@ -134,6 +137,9 @@ class Manager(object):
         path = path.split("/")
         head = path[0]
         path.remove(head)
+        if head == "":
+            head = name[0]
+            path.remove(head)
         tail = path
         if not tail:
             last[1][head] = [{}, {}]
@@ -146,6 +152,9 @@ class Manager(object):
         path = path.split("/")
         head = path[0]
         path.remove(head)
+        if head == "":
+            head = name[0]
+            path.remove(head)
         tail = path
         if not tail:
             return head, last[1][head]
@@ -158,6 +167,9 @@ class Manager(object):
         path = path.split("/")
         head = path[0]
         path.remove(head)
+        if head == "":
+            head = name[0]
+            path.remove(head)
         tail = path
         if not tail:
             del last[1][head]
@@ -170,6 +182,9 @@ class Manager(object):
         path = path.split("/")
         head = path[0]
         path.remove(head)
+        if head == "":
+            head = name[0]
+            path.remove(head)
         tail = path
         if not tail:
             del last[0][head]
