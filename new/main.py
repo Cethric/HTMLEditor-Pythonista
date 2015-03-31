@@ -37,7 +37,11 @@ class MainView(ui.View):
         print self.frame
         self.htmlEditorView = HTMLEditor.load_editor(fm, fv, (0, 0, self.frame[2], self.frame[3]))
         self.add_subview(self.htmlEditorView)
+        fv.file_load_callback = self.htmlEditorView.load_file
         self.htmlEditorView.bring_to_front()
+        
+    def on_close_file(self):
+        print "Closing File"
 
 
 if __name__ == "__main__":

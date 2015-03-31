@@ -118,12 +118,16 @@ class Manager(object):
         name = name.split("/")
         head = name[0]
         name.remove(head)
+        if head == "":
+            head = name[0]
+            name.remove(head)
         tail = name
+        print head, tail
         if not tail:
             return head, last[0][head]
         else:
             if head not in last[1]:
-                raise FileManagerException("File/Folder does not exist")
+                raise FileManagerException("File/Folder {} does not exist".format(head))
             return self._get_file("/".join(tail), last[1][head])
 
     def _new_folder(self, path, last):
@@ -373,7 +377,7 @@ class FileViewer(ui.View):
             self.populate_list(item["title"], item["d_path"], item["d_data"])
         elif item["d_type"] == FILE:
             self.file_load_callback(item["d_path"], item["d_data"])
-        else: raise FileManagerException("Unknow object descriptor %h" % item["d_type"])
+        else: raise FileManagerException("Unknow object descriptor %s" % hex(item["d_type"]))
             
 
 # Simple testing
