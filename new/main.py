@@ -46,4 +46,4 @@ class MainView(ui.View):
 
 if __name__ == "__main__":
     view = ui.load_view()
-    view.present("fullscreen", hide_title_bar=DEBUG)
+    view.present("fullscreen", hide_title_bar=not DEBUG)
