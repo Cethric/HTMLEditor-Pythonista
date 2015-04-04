@@ -25,11 +25,6 @@ class MainView(ui.View):
     
     def did_load(self):
         print "%r did load" % self
-        self.serverEditorView = ui.load_view("ServerEditor/__init__")
-        
-        self.add_subview(self.serverEditorView)
-        
-        self.serverEditorView.send_to_back()
         
     def present(self, *args, **kwargs):
         ui.View.present(self, *args, **kwargs)
@@ -37,8 +32,25 @@ class MainView(ui.View):
         print self.frame
         self.htmlEditorView = HTMLEditor.load_editor(fm, fv, (0, 0, self.frame[2], self.frame[3]))
         self.add_subview(self.htmlEditorView)
-        fv.file_load_callback = self.htmlEditorView.load_file
+        #self.htmlEditorView.bring_to_front()
+        
+        self.serverEditorView = ServerEditor.load_editor(fm, fv, (0, 0, self.frame[2], self.frame[3]))
+        self.add_subview(self.serverEditorView)
+        #self.serverEditorView.send_to_back()
+        
+        self.set_html_editor()
+        
+    def set_html_editor(self):
         self.htmlEditorView.bring_to_front()
+        self.htmlEditorView.apply_fileview()
+        fv.file_load_callback = self.htmlEditorView.load_file
+        self.serverEditorView.send_to_back()
+        
+    def set_server_editor(self):
+        self.serverEditorView.bring_to_front()
+        self.serverEditorView.apply_fileview()
+        fv.file_load_callback = self.serverEditorView.load_file
+        self.htmlEditorView.send_to_back()
         
     def on_close_file(self):
         print "Closing File"

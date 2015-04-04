@@ -11,11 +11,26 @@ import console
 
 @ui.in_background    
 def show_hide_file_viewer(sender):
-    console.hud_alert("show_hide_file_viewer")
+    #console.hud_alert("show_hide_file_viewer")
+    view = sender.superview.superview
+    old_width = view["fileViewContainer"].width
+    show = old_width == 0
+    width = 150 if show else 0
+    x_mod = 8 if show else 0
+    view["fileViewContainer"].width = width
+    view["fileViewContainer"].set_needs_display()
+    view.set_needs_display()
+    
+    for subview in ("contentContainer", "toolsContainer"):
+        view[subview].x = width + x_mod
+        view[subview].width = view.width - width - x_mod
     
 @ui.in_background
 def server_editor(sender):
-    console.hud_alert("server_editor")
+    if sender.superview.superview.superview == None:
+        console.hud_alert("server_editor")
+    else:
+        sender.superview.superview.superview.set_server_editor()
     
 class WebViewDelegate(object):
     def __init__(self):
@@ -70,12 +85,15 @@ class Editor(ui.View):
     def set_fv_fm(self, file_manager, file_viewer):
         self.fileManager = file_manager
         self.fileViewer = file_viewer
-        self["fileViewContainer"].add_subview(self.fileViewer)
+        #self["fileViewContainer"].add_subview(self.fileViewer)
         self.fileViewer.flex = "WH"
         self.fileViewer.frame =(0, 0, self["fileViewContainer"].frame[2], self["fileViewContainer"].frame[3])
         self.fileViewer.bring_to_front()
         self.fileViewer.size_to_fit()
         self.set_needs_display()
+    
+    def apply_fileview(self):
+        self["fileViewContainer"].add_subview(self.fileViewer)
         
     def load_file(self, *args):
         self["contentContainer"].add_file(*args)
