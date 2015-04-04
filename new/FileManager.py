@@ -125,7 +125,7 @@ class Manager(object):
             head = name[0]
             name.remove(head)
         tail = name
-        print head, tail
+        #print head, tail
         if not tail:
             return head, last[0][head]
         else:
@@ -208,7 +208,7 @@ class Manager(object):
         tail = path
         if not tail:
             # print last
-            print root_str, last[0].keys(), last[1].keys()
+            #print root_str, last[0].keys(), last[1].keys()
             for x in last[1]:
                 self._walk_to_start("", last[1][x], "%s/%s/" % (root_str, x))
         else:
@@ -236,14 +236,14 @@ class AddAction(object):
         print sender
         try:
             c = console.alert("New", "File/Folder", "File", "Folder") - 1
-            print c
+            #print c
             r = console.input_alert("New File", "Enter Filename")
-            print "%r" % r
+            #print "%r" % r
             if c == 0:
                 self.tableview_data[c][r] = "Hello World from %r" % r
             elif c == 1:
                 self.tableview_data[c][r] = [{}, {}]
-            print self.tableview_data[c][r]
+            #print self.tableview_data[c][r]
             self.fileManager.save_data()
         except KeyboardInterrupt:
             print "The user cancled the input"
@@ -256,7 +256,7 @@ class EditAction(object):
         self.fileManager = fileManager
         self.tableview.editing = False
         self.tableview.data_source.edit_action = self.edit
-        print self.tableview.data_source.edit_action
+        #print self.tableview.data_source.edit_action
         
     @ui.in_background
     def invoke(self, sender):
@@ -388,7 +388,7 @@ class FileViewer(ui.View):
         items = tableview.data_source.items
         item = items[row]
         if item["d_type"] == FOLDER:
-            print "Loading %r" % item["d_path"]
+            #print "Loading %r" % item["d_path"]
             self.populate_list(item["title"], item["d_path"], item["d_data"])
         elif item["d_type"] == FILE:
             self.file_load_callback(item["d_path"], item["d_data"])

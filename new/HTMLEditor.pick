@@ -9,15 +9,15 @@ p5
 (dp7
 S'test.html'
 p8
-V<html>\u000a	<head>\u000a		<title> Hello World </title>\u000a		<link href="/dir1/test.css" />\u000a		<script src="/dir1/test.js"> </script>\u000a	</head>\u000a	<body>\u000a		<p> Hello World </p>\u000a		<h1> test </h1>\u000a	</body>\u000a</html>
+V<html>\u000a	<head>\u000a		<title> Hello World </title>\u000a		<link href="/dir1/test.css"/>\u000a		<script src="/dir1/test.js"> </script>\u000a	</head>\u000a	<body>\u000a		<p> Hello World </p>\u000a	</body>\u000a</html>
 p9
 sS'test.js'
 p10
-S"Hello World from 'test.js'"
+Valert("hello world");\u000a
 p11
 sS'test.css'
 p12
-S"Hello World from 'test.css'"
+Vp {\u000a	color: #00FF00;\u000a}
 p13
 sa(dp14
 S'dir1'
@@ -26,7 +26,7 @@ p15
 (dp17
 S'test.txt'
 p18
-VBassus victrix saepe imperiums galatae est.\u000aThis file has been updated
+S'Bassus victrix saepe imperiums galatae est.'
 p19
 sa(dp20
 asasS'dir'

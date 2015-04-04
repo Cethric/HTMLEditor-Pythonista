@@ -17,15 +17,28 @@ def show_hide_file_viewer(sender):
 def server_editor(sender):
     console.hud_alert("server_editor")
     
+class WebViewDelegate(object):
+    def __init__(self):
+        pass
+        
+    def webview_should_start_load(self, webview, url, nav_type):
+        print "Loading %r of type %r" % (url, nav_type)
+        return True
+        
+    def webview_did_finish_load(self, webview):
+        name = webview.evaluate_javascript("document.title")
+        webview.name = name
+        
+    def webview_did_fail_load(self, webview, error_code, error_msg):
+        print "%r Failed to load. %r %r" % (webview, error_code, error_msg)
+    
 @ui.in_background
 def preview(sender):
     #console.hud_alert("preview")
     text = sender.superview.superview["contentContainer"].textview.text
     wv = ui.WebView()
+    wv.delegate = WebViewDelegate()
     wv.load_html(text)
-    name = wv.evaluate_javascript("document.title")
-    print "Name: %r" % name
-    wv.name = name
     wv.present("sheet")
 
 @ui.in_background
@@ -103,6 +116,8 @@ class HTMLParserd(HTMLParser.HTMLParser):
     def feed(self, *args, **kwargs):
         import console
         #print "Start"
+        self.open_tags = []
+        self.files_list = []
         HTMLParser.HTMLParser.feed(self, *args, **kwargs)
         #print "Done"
         #print "files_list = %r" % self.files_list
@@ -140,6 +155,8 @@ class TextEditorView(ui.View):
         self.insert_close = False
         self.close_str = ""
         
+        self.old_text = ""
+        
     def textview_should_change(self, textview, range, replacement):
         #print replacement
         text = textview.text
@@ -163,26 +180,30 @@ class TextEditorView(ui.View):
         return True
         
     def textview_did_change(self, textview):
-        if self.superview.fileManager:
-            name = self.filecontrol.segments[self.filecontrol.selected_index]
-            self.superview.fileManager.add_file(name, textview.text)
-            self.superview.fileManager.save_data()
-            if self.insert_tabs:
-                self.insert_tabs = False
-                self.insert_text(textview.text, "\t" * self.tabs, textview.selected_range[0], textview.selected_range)
+        if len(textview.text) > len(self.old_text):
+            if self.superview.fileManager:
+                name = self.pagecontrol.segments[self.pagecontrol.selected_index]
+                self.superview.fileManager.add_file(name, textview.text)
+                self.superview.fileManager.save_data()
                 
-            if self.insert_close:
-                self.insert_close = False
-                self.insert_text(textview.text, self.close_str, self.insert_start, textview.selected_range, 1)
-            
-            if self.check_tag:
-                self.check_tag = False
                 self.html_parser.feed(textview.text)
                 open_tags = self.html_parser.open_tags
-                tag = open_tags[-1]
-                self.insert_text(textview.text, "%s>" % tag, self.insert_start, textview.selected_range)
+                self.superview["toolsContainer"]["open_tags"].text = ", ".join(open_tags)
                 
-            
+                if self.insert_tabs:
+                    self.insert_tabs = False
+                    self.insert_text(textview.text, "\t" * self.tabs, textview.selected_range[0], textview.selected_range)
+                
+                if self.insert_close:
+                    self.insert_close = False
+                    self.insert_text(textview.text, self.close_str, self.insert_start, textview.selected_range, 1)
+                
+                if self.check_tag:
+                    self.check_tag = False
+                    tag = open_tags[-1]
+                    self.insert_text(textview.text, "%s>" % tag, self.insert_start, textview.selected_range)
+        self.old_text = textview.text
+        
     def insert_text(self, text, replacement, start_point, section, rev=0):
         reptext = text[start_point:]
         reprange = (start_point, len(text))
@@ -228,7 +249,7 @@ class TextEditorView(ui.View):
     def add_page(self, file_path):
         if file_path not in self.pagecontrol.segments:
             i = list(self.pagecontrol.segments)
-            print i
+            #print i
             i.append(file_path)
             self.pagecontrol.segments = i
         
@@ -238,7 +259,7 @@ class TextEditorView(ui.View):
         i = list(self.filecontrol.segments)
         i.remove(segment)
         self.filecontrol.segments = i
-        self.filecontrol.selected_index = -1
+        self.filecontrol.selected_index = 0
         self.select_file(None)
         
         
