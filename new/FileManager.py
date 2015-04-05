@@ -2,6 +2,8 @@ import os
 import ui
 import copy
 import console
+import templates
+reload(templates)
 
 try:
     import cPickle as pickle
@@ -226,8 +228,9 @@ FOLDER = 0x02
 
 
 class AddAction(object):
-    def __init__(self, tableview_data, fileManager):
+    def __init__(self, tableview, tableview_data, fileManager):
         self.tableview_data = tableview_data
+        self.tableview = tableview
         #print tableview_data
         self.fileManager = fileManager
     
@@ -240,13 +243,27 @@ class AddAction(object):
             r = console.input_alert("New File", "Enter Filename")
             #print "%r" % r
             if c == 0:
-                self.tableview_data[c][r] = "Hello World from %r" % r
+                if r.endswith(".html"):
+                    self.tableview_data[c][r] = templates.HTML.format(r)
+                elif r.endswith(".css"):
+                    self.tableview_data[c][r] = templates.CSS
+                elif r.endswith(".js"):
+                    try:
+                        text = templates.JAVASCRIPT.format(r)
+                    except KeyError as e:
+                        text = templates.JAVASCRIPT.replace("{}",r)
+                    self.tableview_data[c][r] = text
+                elif r.endswith("_handler.py"):
+                    self.tableview_data[c][r] = templates.REQUEST_HANDLER
+                else:
+                    self.tableview_data[c][r] = "Hello World from %r" % r
             elif c == 1:
                 self.tableview_data[c][r] = [{}, {}]
             #print self.tableview_data[c][r]
             self.fileManager.save_data()
         except KeyboardInterrupt:
             print "The user cancled the input"
+        self.tableview.reload_data()
             
 
 class EditAction(object):
@@ -274,12 +291,23 @@ class EditAction(object):
         except ValueError as e:
             print e
         
-        for file_key in x[0]:
-            del self.tableview_data[0][file_key]
+        file_key = ""
+        try:
+            for file_key in x[0]:
+                del self.tableview_data[0][file_key]
+        except RuntimeError as e:
+            print "Error occured deleting file %r. refresh view to check what happend" % file_key
+            print e.message
         
-        for dir_key in x[1]:
-            del self.tableview_data[1][dir_key]
+        dir_key = ""
+        try:
+            for dir_key in x[1]:
+                del self.tableview_data[1][dir_key]
+        except RuntimeError as e:
+            print "Error occured deleting directory %r. refresh view to check what happend" % dir_key
+            print e.message
         self.fileManager.save_data()
+        self.tableview.reload_data()
         
 
 def dummy_file_callback(file_name, file_data):
@@ -338,10 +366,10 @@ class FileViewer(ui.View):
         self.listview.data_source = ui.ListDataSource(fdlist)
         self.listview.reload()
         
-        add_act = AddAction(d, self.fileManager)
-        add_btn = ui.ButtonItem("Add", action=add_act.invoke)
+        add_act = AddAction(self.listview, d, self.fileManager)
+        add_btn = ui.ButtonItem(action=add_act.invoke, image=ui.Image.named("ionicons-ios7-compose-outline-24"))
         edit_act = EditAction(self.listview, d, self.fileManager)
-        edit_btn = ui.ButtonItem("Edit", action=edit_act.invoke)
+        edit_btn = ui.ButtonItem(action=edit_act.invoke, image=ui.Image.named("ionicons-hammer-24"))
         
         self.listview.right_button_items = [edit_btn, add_btn]
         
@@ -377,10 +405,10 @@ class FileViewer(ui.View):
         listview.name = path
         self.navview.push_view(listview)
         
-        add_act = AddAction(directory, self.fileManager)
-        add_btn = ui.ButtonItem("Add", action=add_act.invoke)
+        add_act = AddAction(self.listview, directory, self.fileManager)
+        add_btn = ui.ButtonItem(action=add_act.invoke, image=ui.Image.named("ionicons-ios7-compose-outline-24"))
         edit_act = EditAction(listview, directory, self.fileManager)
-        edit_btn = ui.ButtonItem("Edit", action=edit_act.invoke)
+        edit_btn = ui.ButtonItem(action=edit_act.invoke, image=ui.Image.named("ionicons-hammer-24"))
         
         listview.right_button_items = [edit_btn, add_btn]
         

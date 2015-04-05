@@ -46,11 +46,6 @@ class WebViewDelegate(object):
 @ui.in_background
 def preview(sender):
     console.hud_alert("preview")
-    #text = sender.superview.superview["contentContainer"].textview.text
-    #wv = ui.WebView()
-    #wv.delegate = WebViewDelegate()
-    #wv.load_html(text)
-    #wv.present("sheet")
 
 @ui.in_background
 def quitter(sender):
