@@ -1,17 +1,17 @@
-(dp0
+(dp1
 S'data'
-p1
-(dp2
+p2
+(dp3
 Vindex.html
-p3
-(lp4
+p4
+(lp5
 V<html>\u000a	<head>\u000a		<title> Hello World </title>\u000a		<link href="main.css" />\u000a	</head>\u000a	<body>\u000a		<div id="menubar>\u000a		</div>\u000a		<div id="content">\u000a			<p> Some Content </p>\u000a		</div>\u000a	</body>\u000a</html>
-p5
-aVclass Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):\u000a    def do_GET(self):\u000a        print self.path\u000a        if self.path in ['', '/', '/index.html']:\u000a            self.send_response(200)\u000a            self.end_headers()\u000a            index = view['editor_view']['file_nav'].selected_index\u000a            if not index == -1:\u000a                file = view['editor_view']['file_nav'].segments[index]\u000a            #print file\u000a            file_data = file_system['data'][file][0]\u000a            #print file_data\u000a            self.wfile.write(file_data)\u000a        else:\u000a            name = self.path.split('/')[-1]\u000a            try:\u000a                self.send_response(200)\u000a                self.end_headers()\u000a                self.wfile.write(file_system['data'][name][0])\u000a            except:\u000a                pass
 p6
-asVmain.css
+aVclass Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):\u000a    def do_GET(self):\u000a        print self.path\u000a        if self.path in ['', '/', '/index.html']:\u000a            self.send_response(200)\u000a            self.end_headers()\u000a            index = view['editor_view']['file_nav'].selected_index\u000a            if not index == -1:\u000a                file = view['editor_view']['file_nav'].segments[index]\u000a            #print file\u000a            file_data = file_system['data'][file][0]\u000a            #print file_data\u000a            self.wfile.write(file_data)\u000a        else:\u000a            name = self.path.split('/')[-1]\u000a            try:\u000a                self.send_response(200)\u000a                self.end_headers()\u000a                self.wfile.write(file_system['data'][name][0])\u000a            except:\u000a                pass
 p7
-(lp8
+asVmain.css
+p8
+(lp9
 Vp {\u000a    color: #000000;\u000a}\u000a\u000adiv {\u000a	color: #00FF00;\u000a	border-radius: 2em;\u000a	padding-left: 15%;\u000a	padding-right: 15%;\u000a}\u000a
-p9
+p10
 ass.

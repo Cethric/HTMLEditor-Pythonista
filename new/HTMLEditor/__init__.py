@@ -1,3 +1,4 @@
+#coding: utf-8
 import sys
 import random
 import HTMLParser
@@ -175,27 +176,40 @@ class TextEditorView(ui.View):
         
         self.old_text = ""
         
+        self.insert_comment = False
+            
     def textview_should_change(self, textview, range, replacement):
-        #print replacement
-        text = textview.text
-        bracket_open = "( { [ <".split()
-        bracket_close = ") } ] >".split()
-        #print bracket_open, bracket_close
-        if range[0] > 0:
-            last = text[range[0] - 1]
-            #print "%r" % last
-            if last in bracket_open:
-                if replacement == "/" and last == "<":
-                    self.check_tag = True
-                    self.insert_start = range[1] + 1
-                else: # replacement != "":
-                    self.insert_close = True
-                    self.insert_start = range[1] + 1
-                    self.close_str = bracket_close[bracket_open.index(last)]
-                    #print "Close: %r %r %r" % (self.insert_close, self.insert_start, self.close_str)
-            elif replacement == "\n":
-                self.get_tabs_for_line(textview.text, textview.selected_range)
-        return True
+        keys = {u"÷": "insert_comment", u"π": "preview"}
+        print replacement
+        #print keys[replacement]
+        if replacement in keys:
+            ui.in_background(console.hud_alert(keys[replacement]))
+            if replacement == u"π":
+                preview(textview)
+            if replacement == u"÷":
+                self.insert_comment = True
+            return False
+        else:
+            #print replacement
+            text = textview.text
+            bracket_open = "( { [ <".split()
+            bracket_close = ") } ] >".split()
+            #print bracket_open, bracket_close
+            if range[0] > 0:
+                last = text[range[0] - 1]
+                #print "%r" % last
+                if last in bracket_open:
+                    if replacement == "/" and last == "<":
+                        self.check_tag = True
+                        self.insert_start = range[1] + 1
+                    else: # replacement != "":
+                        self.insert_close = True
+                        self.insert_start = range[1] + 1
+                        self.close_str = bracket_close[bracket_open.index(last)]
+                        #print "Close: %r %r %r" % (self.insert_close, self.insert_start, self.close_str)
+                elif replacement == "\n":
+                    self.get_tabs_for_line(textview.text, textview.selected_range)
+            return True
         
     def textview_did_change(self, textview):
         if len(textview.text) > len(self.old_text):
@@ -208,18 +222,22 @@ class TextEditorView(ui.View):
                 open_tags = self.html_parser.open_tags
                 self.superview["toolsContainer"]["open_tags"].text = ", ".join(open_tags)
                 
-                if self.insert_tabs:
-                    self.insert_tabs = False
-                    self.insert_text(textview.text, "\t" * self.tabs, textview.selected_range[0], textview.selected_range)
+            if self.insert_tabs:
+                self.insert_tabs = False
+                self.insert_text(textview.text, "\t" * self.tabs, textview.selected_range[0], textview.selected_range)
                 
-                if self.insert_close:
-                    self.insert_close = False
-                    self.insert_text(textview.text, self.close_str, self.insert_start, textview.selected_range, 1)
+            if self.insert_close:
+                self.insert_close = False
+                self.insert_text(textview.text, self.close_str, self.insert_start, textview.selected_range, 1)
                 
-                if self.check_tag:
-                    self.check_tag = False
-                    tag = open_tags[-1]
-                    self.insert_text(textview.text, "%s>" % tag, self.insert_start, textview.selected_range)
+            if self.check_tag:
+                self.check_tag = False
+                tag = open_tags[-1]
+                self.insert_text(textview.text, "%s>" % tag, self.insert_start, textview.selected_range)
+            if self.insert_comment:
+                print "insert comment"
+                self.insert_comment = False
+                self.comment_line()
         self.old_text = textview.text
         
     def insert_text(self, text, replacement, start_point, section, rev=0):
@@ -230,9 +248,11 @@ class TextEditorView(ui.View):
             
     def get_tabs_for_line(self, text, textrange):
         ctext = text[textrange[0]:textrange[1]]
-        x = textrange[1] - 1
+        x = textrange[1] - 1 if textrange[1] - 1 < len(text) and textrange[1] - 1 > 0 else len(text) - 1
         while True:
             #print x, len(text)
+            if not x < len(text):
+                break
             c = text[x]
             if c != "\n":
                 ctext += c
@@ -240,7 +260,7 @@ class TextEditorView(ui.View):
             else:
                 break
         
-        x = textrange[0] - 1
+        x = textrange[0] - 1 if textrange[0] - 1 >= 0 else 0
         while True:
             #print x, len(text)
             c = text[x]
@@ -253,6 +273,44 @@ class TextEditorView(ui.View):
         #print "Tabs: %i %r" % (tabs, "\t" * tabs)
         self.tabs = tabs
         self.insert_tabs = True
+        
+    def comment_line(self):
+        text = self.textview.text
+        srange = list(self.textview.selected_range)
+        ctext = text[srange[0] : srange[1]]
+        frange = [0, 0]
+        x = srange[1] - 1 if srange[1] - 1 < len(text) and srange[1] - 1 > 0 else len(text) - 1
+        while True:
+            #print x, len(text)
+            if not x < len(text):
+                break
+            c = text[x]
+            if c != "\n":
+                ctext += c
+                x+=1
+            else:
+                break
+        frange[1] = x
+        
+        x = srange[0] - 1 if srange[0] - 1 >= 0 else 0
+        while True:
+            #print x, len(text)
+            c = text[x]
+            if c != "\n" and x != 0:
+                ctext = c + ctext
+                x-=1
+            else:
+                break
+        frange[0] = x
+        #print frange
+        try:
+            self.insert_text(text, "<!--", frange[0], frange, -frange[1])
+        except ValueError as e:
+            print "error with comment", e
+        #try:
+        #    self.insert_text(text, "-->", frange[1], frange, -(frange[1]))
+        #except ValueError as e:
+        #    print e
         
     def add_file(self, file_path, file_contents):
         #print "Load File", file_path, file_contents

@@ -36,23 +36,23 @@ p23
 (dp25
 S'test.html'
 p26
-V<html>\u000a	<head>\u000a		<title> Hello test.html </title>\u000a		<link href="/dir/test.css" />\u000a		<script src="/dir/test.js"> </script>\u000a	</head>\u000a	<body>\u000a		<p> Hello World </p>\u000a	</body>\u000a</html>
+V<html>\u000a	<head>\u000a		<title> Hello test.html </title>\u000a		<link href="/dir/test.css" />\u000a		<script src="/dir/test.js"> </script>\u000a	</head>\u000a	<body>\u000a		<p> Hello World </p>\u000a		\u000a	</body>\u000a</html>
 p27
 sS'test.js'
 p28
 S"function hello_world() {\n\talert('hello test.js');\n}"
 p29
-sS'test.css'
+sS'test_handler.py'
 p30
-S'p {\n    color: #000000;\n}\n'
+S"class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):\n    def do_GET(self):\n        print self.path\n        if self.path in ['', '/', '/index.html']:\n            self.send_response(200)\n            self.end_headers()\n            index = view['editor_view']['file_nav'].selected_index\n            if not index == -1:\n                file = view['editor_view']['file_nav'].segments[index]\n            #print file\n            file_data = file_system['data'][file][0]\n            #print file_data\n            self.wfile.write(file_data)\n        else:\n            name = self.path.split('/')[-1]\n            try:\n                self.send_response(200)\n                self.end_headers()\n                self.wfile.write(file_system['data'][name][0])\n            except:\n                pass"
 p31
 sS'a_files.txt'
 p32
 S"Hello World from 'a_files.txt'"
 p33
-sS'test_handler.py'
+sS'test.css'
 p34
-S"class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):\n    def do_GET(self):\n        print self.path\n        if self.path in ['', '/', '/index.html']:\n            self.send_response(200)\n            self.end_headers()\n            index = view['editor_view']['file_nav'].selected_index\n            if not index == -1:\n                file = view['editor_view']['file_nav'].segments[index]\n            #print file\n            file_data = file_system['data'][file][0]\n            #print file_data\n            self.wfile.write(file_data)\n        else:\n            name = self.path.split('/')[-1]\n            try:\n                self.send_response(200)\n                self.end_headers()\n                self.wfile.write(file_system['data'][name][0])\n            except:\n                pass"
+S'p {\n    color: #000000;\n}\n'
 p35
 sa(dp36
 S'folder'

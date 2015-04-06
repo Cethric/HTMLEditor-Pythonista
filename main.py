@@ -26,10 +26,12 @@ def pickle_load(filename):        # reads data out of filename
     with open(filename) as in_file:
         return pickle.load(in_file)
 
-try:
-    file_system = pickle_load(fs_filename)
-except:
-    file_system = {"data":{}}
+#try:
+#    file_system = pickle_load(fs_filename)
+#except:
+#    file_system = {"data":{}}
+    
+file_system = pickle_load(fs_filename)
 
 
 class DataSource(ui.ListDataSource):
