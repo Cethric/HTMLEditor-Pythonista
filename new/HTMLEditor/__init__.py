@@ -51,7 +51,7 @@ class WebViewDelegate(object):
 @ui.in_background
 def preview(sender):
     #console.hud_alert("preview")
-    text = sender.superview.superview["contentContainer"].textview.text
+    text = sender.superview.superview["contentContainer"].textview.evaluate_javascript("get_editor().getValue()")
     wv = ui.WebView()
     wv.delegate = WebViewDelegate()
     wv.load_html(text)
@@ -160,6 +160,9 @@ class TextEditorView(ui.View):
         self.pagecontrol = self["page_control"]
         self.pagecontrol.action = self.select_page
         
+        self.editor_control = self["editor_control"]
+        #self.textview.touch_enabled = False
+        
         self.filecontrol.segments = ()
         self.pagecontrol.segments = ()
         
@@ -177,6 +180,63 @@ class TextEditorView(ui.View):
         self.old_text = ""
         
         self.insert_comment = False
+        
+        self.textview.load_html('''<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Editor</title>
+  <style type="text/css" media="screen">
+    body {
+        overflow: scroll;
+        //height:1200px;
+        -webkit-overflow-scrolling: touch;
+        overflow-y:auto;
+    }
+
+    #editor {
+        margin: 0;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height:4096px;
+        overflow: scroll;
+    }
+  </style>
+</head>
+<body <!--ontouchmove="event.preventDefault()-->">
+
+<pre id="editor">
+<code>import code
+print "hi"</code>
+</pre>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/twilight");
+    editor.getSession().setMode("ace/mode/python");
+    
+    editor.setAutoScrollEditorIntoView(false);
+    editor.setOption("maxLines", 4096);
+    editor.setOption("minLines", 29);
+    
+    function get_editor() {
+        return editor;
+    }
+    document.getElementById('editor').style.fontSize='13px';
+</script>
+
+</body>
+</html>''')
+
+    @ui.in_background
+    def webview_did_finish_load(self, textview):
+        pass
+        #console.hud_alert("Editor: " + textview.evaluate_javascript("get_editor().getValue()"))
             
     def textview_should_change(self, textview, range, replacement):
         keys = {u"÷": "insert_comment", u"π": "preview"}
@@ -233,14 +293,14 @@ class TextEditorView(ui.View):
             if self.check_tag:
                 self.check_tag = False
                 tag = open_tags[-1]
-                self.insert_text(textview.text, "%s>" % tag, self.insert_start, textview.selected_range)
+                self.insert_text(textview.text, "%s>" % tag, self.insert_start)
             if self.insert_comment:
                 print "insert comment"
                 self.insert_comment = False
                 self.comment_line()
         self.old_text = textview.text
         
-    def insert_text(self, text, replacement, start_point, section, rev=0):
+    def insert_text(self, text, replacement, start_point, rev=0):
         reptext = text[start_point:]
         reprange = (start_point, len(text))
         self.textview.replace_range(reprange, replacement + reptext)
@@ -304,13 +364,13 @@ class TextEditorView(ui.View):
         frange[0] = x
         #print frange
         try:
-            self.insert_text(text, "<!--", frange[0], frange, -frange[1])
+            self.insert_text(text, "<!--", frange[0], -frange[1])
         except ValueError as e:
-            print "error with comment", e
-        #try:
-        #    self.insert_text(text, "-->", frange[1], frange, -(frange[1]))
-        #except ValueError as e:
-        #    print e
+            print "Error with comment", e
+        try:
+            self.insert_text(text, "-->", frange[1], -(frange[1]))
+        except ValueError as e:
+            print "Error with comment", e
         
     def add_file(self, file_path, file_contents):
         #print "Load File", file_path, file_contents
@@ -353,7 +413,19 @@ class TextEditorView(ui.View):
         if self.superview.fileManager:
             name = self.pagecontrol.segments[self.pagecontrol.selected_index]
             file_data = self.superview.fileManager.get_file(name)[1]
-            self.textview.text = file_data
+            #self.textview.text = file_data
+            #file_data = file_data.replace("<", "").replace(">", "")
+            print "%r" % file_data
+            #file_data = '''
+            #<html>
+            #    <head>
+            #        <title>hi</title>
+            #    </head>
+            #    <body>
+            #        <p>hmm</p>
+            #    </body>
+            #</html>'''
+            self.textview.evaluate_javascript("get_editor().setValue(%r)" % file_data)
         
             if name.endswith(".html"):
                 self.html_parser.feed(file_data)
@@ -362,8 +434,16 @@ class TextEditorView(ui.View):
                 for file in self.html_parser.files_list:
                     self.add_page(file)
                 self.pagecontrol.selected_index = 0
+                self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/html');")
+            elif name.endswith(".js"):
+                self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/javascript');")
+            elif name.endswith(".css"):
+                self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/css');")
         else:
             self.textview.text = "Error loading file."
+            
+class Delegate(object):
+    pass
         
 
 class PropertiesView(ui.View):

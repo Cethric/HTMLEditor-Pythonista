@@ -12,8 +12,10 @@ This is a complete rewrite of the code paying attention to the suggestions and i
 + HTML tag completions
 + HTML quick previewer
 + HTML code checking
-
++ Syntax Highlighter - Done Through [ACE][0]
 
 
 ### Server Editor Features
 + Yet to be done.
+
+[0]:http://ace.c9.io/#nav=about

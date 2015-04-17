@@ -1,14 +1,14 @@
 JAVASCRIPT = '''function hello_world() {
-\talert('hello {}');
+    alert('hello {}');
 }'''
                 
 HTML = '''<html>
-\t<head>
-\t\t<title> Hello {} </title>
-\t</head>
-\t<body>
-\t\t<p> Hello World </p>
-\t</body>
+    <head>
+        <title> Hello {} </title>
+    </head>
+    <body>
+        <p> Hello World </p>
+    </body>
 </html>'''
           
 CSS = '''p {
