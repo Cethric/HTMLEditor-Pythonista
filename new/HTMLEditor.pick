@@ -14,7 +14,7 @@ p9
 (dp11
 S'test.txt'
 p12
-S'Bassus victrix saepe imperiums galatae est.'
+VBassus victrix saepe imperiums galatae est.
 p13
 sa(dp14
 asasS'dir'
@@ -23,17 +23,7 @@ p15
 (dp17
 S'test.html'
 p18
-S'<html>\n    <head>\n        <title> Hello test.html </title>\n    </head>\n    <body>\n        <p> Hello World </p>\n    </body>\n</html>'
+V<!doctype html>\u000a<html>\u000a    <head>\u000a        <title> Hello World </title>\u000a    </head>\u000a    <body>\u000a        <h1> Title </h1>\u000a        <p> Some text </p>\u000a    </body>\u000a</html>
 p19
 sa(dp20
-S'folder'
-p21
-(lp22
-(dp23
-a(dp24
-S'path'
-p25
-(lp26
-(dp27
-a(dp28
-asasasas.
+asas.

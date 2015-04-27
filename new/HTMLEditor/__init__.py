@@ -1,14 +1,17 @@
 #coding: utf-8
 import sys
 import random
+import socket
 import HTMLParser
+import SimpleWebSocketServer
 try:
     import ui
 except ImportError:
     print "Using Dummy UI"
     import dummyUI as ui
 import console
-    
+
+print dir(SimpleWebSocketServer)
 
 @ui.in_background    
 def show_hide_file_viewer(sender):
@@ -67,6 +70,7 @@ def quitter(sender):
             else:
                 sender.superview.superview.on_close_file()
         elif result == 2:
+            sender.superview.superview["contentContainer"].active = False
             if sender.superview.superview.superview == None:
                 sender.superview.superview.close()
             else:
@@ -152,6 +156,9 @@ class TextEditorView(ui.View):
     def __init__(self, *args, **kwargs):
         ui.View.__init__(self, *args, **kwargs)
         self.html_parser = HTMLParserd()
+        import threading
+        self.threader = threading.Thread(target=self.threaded_saver)
+        self.active = True
         
     def did_load(self):
         self.textview = self["text_control"]
@@ -160,26 +167,13 @@ class TextEditorView(ui.View):
         self.pagecontrol = self["page_control"]
         self.pagecontrol.action = self.select_page
         
-        self.editor_control = self["editor_control"]
-        #self.textview.touch_enabled = False
-        
         self.filecontrol.segments = ()
         self.pagecontrol.segments = ()
         
         print self.textview
         self.textview.delegate = self
         
-        self.tabs = 0
-        self.insert_tabs = False
-        
-        self.check_tag = False
-        self.insert_start = 0
-        self.insert_close = False
-        self.close_str = ""
-        
-        self.old_text = ""
-        
-        self.insert_comment = False
+        self.set_browser = False
         
         self.textview.load_html('''<!DOCTYPE html>
 <html lang="en">
@@ -210,19 +204,20 @@ class TextEditorView(ui.View):
 <body <!--ontouchmove="event.preventDefault()-->">
 
 <pre id="editor">
-<code>import code
-print "hi"</code>
+NO OPEN FILE
 </pre>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
     var editor = ace.edit("editor");
-    editor.setTheme("ace/theme/twilight");
-    editor.getSession().setMode("ace/mode/python");
+    editor.setTheme("ace/theme/kuroir");
+    //editor.getSession().setMode("ace/mode/python");
     
-    editor.setAutoScrollEditorIntoView(false);
+    editor.setAutoScrollEditorIntoView(true);
     editor.setOption("maxLines", 4096);
     editor.setOption("minLines", 29);
+    
+    editor.setCursor(0, 0);
     
     function get_editor() {
         return editor;
@@ -232,11 +227,40 @@ print "hi"</code>
 
 </body>
 </html>''')
+        self.can_update = False
 
     @ui.in_background
     def webview_did_finish_load(self, textview):
-        pass
+        self.can_update = True
         #console.hud_alert("Editor: " + textview.evaluate_javascript("get_editor().getValue()"))
+        #import threading
+        #threading.Thread(target=self.threaded_saver).start()
+        self.auto_save_wait = 2 * 1000 # Seconds to wait before saving
+        self.force_save = False
+        self.threader.start()
+    
+    def threaded_saver(self):
+        import time
+        pages = self.pagecontrol
+        while self.active:
+            try:
+                i = 0
+                while i < self.auto_save_wait and self.force_save == False:
+                    i+=1
+                    
+                sindex = pages.selected_index
+                page = pages.segments[sindex]
+                contents = self.textview.evaluate_javascript("get_editor().getValue();")
+                if self.superview.fileManager:
+                    self.superview.fileManager.add_file(page, contents)
+                #print "Hanging function"
+                #print page
+                #print contents
+            except IndexError as e:
+                print "IndexError"
+                print e
+            time.sleep(2)
+        print "Saver Thread Stoped"
             
     def textview_should_change(self, textview, range, replacement):
         keys = {u"÷": "insert_comment", u"π": "preview"}
@@ -246,131 +270,9 @@ print "hi"</code>
             ui.in_background(console.hud_alert(keys[replacement]))
             if replacement == u"π":
                 preview(textview)
-            if replacement == u"÷":
-                self.insert_comment = True
             return False
         else:
-            #print replacement
-            text = textview.text
-            bracket_open = "( { [ <".split()
-            bracket_close = ") } ] >".split()
-            #print bracket_open, bracket_close
-            if range[0] > 0:
-                last = text[range[0] - 1]
-                #print "%r" % last
-                if last in bracket_open:
-                    if replacement == "/" and last == "<":
-                        self.check_tag = True
-                        self.insert_start = range[1] + 1
-                    else: # replacement != "":
-                        self.insert_close = True
-                        self.insert_start = range[1] + 1
-                        self.close_str = bracket_close[bracket_open.index(last)]
-                        #print "Close: %r %r %r" % (self.insert_close, self.insert_start, self.close_str)
-                elif replacement == "\n":
-                    self.get_tabs_for_line(textview.text, textview.selected_range)
             return True
-        
-    def textview_did_change(self, textview):
-        if len(textview.text) > len(self.old_text):
-            if self.superview.fileManager:
-                name = self.pagecontrol.segments[self.pagecontrol.selected_index]
-                self.superview.fileManager.add_file(name, textview.text)
-                self.superview.fileManager.save_data()
-                
-                self.html_parser.feed(textview.text)
-                open_tags = self.html_parser.open_tags
-                self.superview["toolsContainer"]["open_tags"].text = ", ".join(open_tags)
-                
-            if self.insert_tabs:
-                self.insert_tabs = False
-                self.insert_text(textview.text, "\t" * self.tabs, textview.selected_range[0], textview.selected_range)
-                
-            if self.insert_close:
-                self.insert_close = False
-                self.insert_text(textview.text, self.close_str, self.insert_start, textview.selected_range, 1)
-                
-            if self.check_tag:
-                self.check_tag = False
-                tag = open_tags[-1]
-                self.insert_text(textview.text, "%s>" % tag, self.insert_start)
-            if self.insert_comment:
-                print "insert comment"
-                self.insert_comment = False
-                self.comment_line()
-        self.old_text = textview.text
-        
-    def insert_text(self, text, replacement, start_point, rev=0):
-        reptext = text[start_point:]
-        reprange = (start_point, len(text))
-        self.textview.replace_range(reprange, replacement + reptext)
-        self.textview.selected_range = (start_point + len(replacement) - rev, start_point + len(replacement) - rev)
-            
-    def get_tabs_for_line(self, text, textrange):
-        ctext = text[textrange[0]:textrange[1]]
-        x = textrange[1] - 1 if textrange[1] - 1 < len(text) and textrange[1] - 1 > 0 else len(text) - 1
-        while True:
-            #print x, len(text)
-            if not x < len(text):
-                break
-            c = text[x]
-            if c != "\n":
-                ctext += c
-                x+=1
-            else:
-                break
-        
-        x = textrange[0] - 1 if textrange[0] - 1 >= 0 else 0
-        while True:
-            #print x, len(text)
-            c = text[x]
-            if c != "\n" and x != 0:
-                ctext = c + ctext
-                x-=1
-            else:
-                break
-        tabs = ctext.count("\t")
-        #print "Tabs: %i %r" % (tabs, "\t" * tabs)
-        self.tabs = tabs
-        self.insert_tabs = True
-        
-    def comment_line(self):
-        text = self.textview.text
-        srange = list(self.textview.selected_range)
-        ctext = text[srange[0] : srange[1]]
-        frange = [0, 0]
-        x = srange[1] - 1 if srange[1] - 1 < len(text) and srange[1] - 1 > 0 else len(text) - 1
-        while True:
-            #print x, len(text)
-            if not x < len(text):
-                break
-            c = text[x]
-            if c != "\n":
-                ctext += c
-                x+=1
-            else:
-                break
-        frange[1] = x
-        
-        x = srange[0] - 1 if srange[0] - 1 >= 0 else 0
-        while True:
-            #print x, len(text)
-            c = text[x]
-            if c != "\n" and x != 0:
-                ctext = c + ctext
-                x-=1
-            else:
-                break
-        frange[0] = x
-        #print frange
-        try:
-            self.insert_text(text, "<!--", frange[0], -frange[1])
-        except ValueError as e:
-            print "Error with comment", e
-        try:
-            self.insert_text(text, "-->", frange[1], -(frange[1]))
-        except ValueError as e:
-            print "Error with comment", e
         
     def add_file(self, file_path, file_contents):
         #print "Load File", file_path, file_contents
@@ -392,40 +294,44 @@ print "hi"</code>
             
     def on_close_file(self):
         segment = self.filecontrol.segments[self.filecontrol.selected_index]
+        print segment
         i = list(self.filecontrol.segments)
         i.remove(segment)
         self.filecontrol.segments = i
         self.filecontrol.selected_index = 0
         self.select_file(None)
+    
+    def close_file(self, file):
+        print "Closing file: %s" % (file)
+        for page in self.pagecontrol.segments:
+            self.pagecontrol.selected_index = self.pagecontrol.segments.indexof(page)
+            self.select_page(None)
+            
+        self.pagecontrol.segments = tuple()
         
         
     def select_file(self, sender):
-        name = self.filecontrol.segments[self.filecontrol.selected_index]
-        if self.superview.fileManager:
-            self.pagecontrol.segments = ()
-            self.add_page(name)
-            self.pagecontrol.selected_index = 0
-            self.select_page(None)
-        else:
-            self.textview.text = "Error loading file."
+        try:
+            name = self.filecontrol.segments[self.filecontrol.selected_index]
+            if self.superview.fileManager:
+                self.pagecontrol.segments = ()
+                self.add_page(name)
+                self.pagecontrol.selected_index = 0
+                self.select_page(None)
+            else:
+                #self.textview.text = "Error loading file."
+                pass
+        except:
+            pass
             
     def select_page(self, sender):
         if self.superview.fileManager:
             name = self.pagecontrol.segments[self.pagecontrol.selected_index]
             file_data = self.superview.fileManager.get_file(name)[1]
-            #self.textview.text = file_data
-            #file_data = file_data.replace("<", "").replace(">", "")
             print "%r" % file_data
-            #file_data = '''
-            #<html>
-            #    <head>
-            #        <title>hi</title>
-            #    </head>
-            #    <body>
-            #        <p>hmm</p>
-            #    </body>
-            #</html>'''
             self.textview.evaluate_javascript("get_editor().setValue(%r)" % file_data)
+            self.textview.evaluate_javascript("get_editor().setCursor(0, 0);")
+            self.textview.evaluate_javascript("get_editor().setReadOnly(false);")
         
             if name.endswith(".html"):
                 self.html_parser.feed(file_data)
@@ -473,3 +379,5 @@ __all__ = ["load_editor", "Editor", "HTMLEdit", "TextEditorView", "PropertiesVie
 if __name__ == "__main__":
     view = load_editor()
     view.present("fullscreen", hide_title_bar=True)
+    
+    print "CLOSE"
