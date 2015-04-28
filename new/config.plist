@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>editor.font.size</key>
-	<integer>13</integer>
+	<integer>15</integer>
 	<key>editor.show.gutter</key>
 	<string>true</string>
 	<key>editor.style</key>

@@ -10,11 +10,16 @@ import HTMLEditor
 reload(HTMLEditor)
 import ServerEditor
 reload(ServerEditor)
+import ConfigManager
+reload(ConfigManager)
 
 DEBUG = False
 
 fm = FileManager.Manager()
 fv = FileManager.FileViewer(fm)
+c = ConfigManager.Config()
+cv = ConfigManager.load_view(c)
+cv.set_config(c)
 print fv.name
 
 class MainView(ui.View):
@@ -22,9 +27,13 @@ class MainView(ui.View):
         ui.View.__init__(self, *args, **kwargs)
         self.htmlEditorView = ui.View()
         self.serverEditorView = ui.View()
+        
+        global cv
+        self.config_view = cv
     
     def did_load(self):
         print "%r did load" % self
+        print self.config_view
         
     def present(self, *args, **kwargs):
         ui.View.present(self, *args, **kwargs)
@@ -57,5 +66,6 @@ class MainView(ui.View):
 
 
 if __name__ == "__main__":
+    cv.present("sheet")
     view = ui.load_view()
     view.present("fullscreen", hide_title_bar=not DEBUG)

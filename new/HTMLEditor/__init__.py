@@ -235,8 +235,9 @@ NO OPEN FILE
         #console.hud_alert("Editor: " + textview.evaluate_javascript("get_editor().getValue()"))
         #import threading
         #threading.Thread(target=self.threaded_saver).start()
-        self.auto_save_wait = 2 * 1000 # Seconds to wait before saving
+        self.auto_save_wait = 0.001 # Seconds to wait before saving
         self.force_save = False
+        self.threader.daemon = True
         self.threader.start()
     
     def threaded_saver(self):
@@ -244,9 +245,7 @@ NO OPEN FILE
         pages = self.pagecontrol
         while self.active:
             try:
-                i = 0
-                while i < self.auto_save_wait and self.force_save == False:
-                    i+=1
+                time.sleep(self.auto_save_wait)
                     
                 sindex = pages.selected_index
                 page = pages.segments[sindex]
@@ -259,7 +258,6 @@ NO OPEN FILE
             except IndexError as e:
                 print "IndexError"
                 print e
-            time.sleep(2)
         print "Saver Thread Stoped"
             
     def textview_should_change(self, textview, range, replacement):
