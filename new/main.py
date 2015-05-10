@@ -13,7 +13,7 @@ reload(ServerEditor)
 import ConfigManager
 reload(ConfigManager)
 
-DEBUG = False
+DEBUG = True
 
 fm = FileManager.Manager()
 fv = FileManager.FileViewer(fm)
@@ -49,6 +49,8 @@ class MainView(ui.View):
         
         self.set_html_editor()
         
+        self.htmlEditorView.update_config(self.config_view)
+        
     def set_html_editor(self):
         self.htmlEditorView.bring_to_front()
         self.htmlEditorView.apply_fileview()
@@ -66,6 +68,8 @@ class MainView(ui.View):
 
 
 if __name__ == "__main__":
-    cv.present("sheet")
+    #cv.present("sheet")
     view = ui.load_view()
-    view.present("fullscreen", hide_title_bar=not DEBUG)
+    #view.right_button_items = [ui.ButtonItem("TEST")]
+    #view.left_button_items = [ui.ButtonItem("HI")]
+    view.present("sheet" if DEBUG else "fullscreen", hide_title_bar=not DEBUG)

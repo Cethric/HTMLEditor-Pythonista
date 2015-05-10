@@ -3,15 +3,12 @@ import sys
 import random
 import socket
 import HTMLParser
-import SimpleWebSocketServer
 try:
     import ui
 except ImportError:
     print "Using Dummy UI"
     import dummyUI as ui
 import console
-
-print dir(SimpleWebSocketServer)
 
 @ui.in_background    
 def show_hide_file_viewer(sender):
@@ -62,8 +59,11 @@ def preview(sender):
 
 @ui.in_background
 def quitter(sender):
+    print "ON QUIT" 
     try:
-        result = console.alert("Close", "", "Close File", "Quit")
+        print "QUIT UI"
+        result = 2
+        result = console.alert("Close", "Close File or Quit", "Close File", "Quit")
         if result == 1:
             if sender.superview.superview == None:
                 console.hud_alert("Close File")
@@ -77,6 +77,39 @@ def quitter(sender):
                 sender.superview.superview.superview.close()
     except KeyboardInterrupt as e:
         print "User cancled the input."
+        
+@ui.in_background
+def configure(sender):
+    if sender.superview.superview.superview:
+        sender.superview.superview.superview.config_view.present("sheet")
+        sender.superview.superview.superview.config_view.wait_modal()
+        tv = sender.superview.superview["contentContainer"].textview
+        config = sender.superview.superview.superview.config_view.config
+        
+        # editor.show.gutter
+        # editor.style
+        # editor.print.margin
+        # editor.line.wrap
+        # editor.soft.tabs
+        # editor.tab.size
+        
+        font_size = config.get_value("editor.font.size")
+        gutter = config.get_value("editor.show.gutter")
+        style = config.get_value("editor.style")
+        margin = config.get_value("editor.print.margin")
+        wrap = config.get_value("editor.line.wrap")
+        soft_tab = config.get_value("editor.soft.tabs")
+        tab_size = config.get_value("editor.tab.size")
+        
+        tv.evaluate_javascript("document.getElementById('editor').style.fontSize='%ipx'" % font_size)
+        tv.evaluate_javascript("get_editor().getSession().setTabSize(%s);" % tab_size)
+        tv.evaluate_javascript("get_editor().getSession().setUseSoftTabs(%s);" % soft_tab)
+        tv.evaluate_javascript("get_editor().getSession().setUseWrapMode(%s);" % wrap)
+        tv.evaluate_javascript("get_editor().getSession().setShowPrintMargin(%s);" % margin)
+        tv.evaluate_javascript("get_editor().getSession().setShowInvisibles(%s);" % gutter)
+        tv.evaluate_javascript("get_editor().getSession().setTheme(%s);" % style)
+    else:
+        console.alert("Configuration is only avaliable through the Main View")
 
 class Editor(ui.View):
     def __init__(self, *args, **kwargs):
@@ -96,6 +129,9 @@ class Editor(ui.View):
         self.fileViewer.bring_to_front()
         self.fileViewer.size_to_fit()
         self.set_needs_display()
+        
+    def update_config(self, config_view):
+        self["contentContainer"].update_from_config(config_view)
     
     def apply_fileview(self):
         self["fileViewContainer"].add_subview(self.fileViewer)
@@ -104,7 +140,11 @@ class Editor(ui.View):
         self["contentContainer"].add_file(*args)
         
     def on_close_file(self):
-        self["contentContainer"].on_close_file()
+        try:
+            self["contentContainer"].on_close_file()
+        except Exception as e:
+            print "Error Closing File"
+            print e
         
 HTMLEdit = Editor
 
@@ -115,7 +155,6 @@ class HTMLParserd(HTMLParser.HTMLParser):
         self.files_list = []
         
     def handle_starttag(self, tag, attr):
-        #print tag, attr
         if tag == "script":
             for x in attr:
                 if "src" in x:
@@ -123,33 +162,23 @@ class HTMLParserd(HTMLParser.HTMLParser):
         self.open_tags.append(tag)
     
     def handle_endtag(self, tag):
-        #print tag
         try:
             self.open_tags.remove(tag)
         except:
             pass
         
     def handle_startendtag(self, tag, attr):
-        #print tag, attr
         if tag == "link":
             for x in attr:
                 if "href" in x:
                     self.files_list.append(x[1])
         
     def feed(self, *args, **kwargs):
-        import console
-        #print "Start"
         self.open_tags = []
         self.files_list = []
         HTMLParser.HTMLParser.feed(self, *args, **kwargs)
-        #print "Done"
-        #print "files_list = %r" % self.files_list
         if not self.open_tags == []:
-            try:
-                console.alert("Parse Error", "Not all tag/s have been closed.\nOpen tag/s %r" % self.open_tags)
-            except:
-                print "Not all tag/s have been closed.\nOpen tag/s %r" % self.open_tags
-        #console.alert("parse done")
+            print "Not all tag/s have been closed.\nOpen tag/s %r" % self.open_tags
 
 
 class TextEditorView(ui.View):
@@ -228,52 +257,56 @@ NO OPEN FILE
 </body>
 </html>''')
         self.can_update = False
-
-    @ui.in_background
+        
+        self.wait_save = False
+    
+    def update_from_config(self, config_view):
+        tv = self.textview
+        config = config_view.config
+        
+        font_size = config.get_value("editor.font.size")
+        gutter = config.get_value("editor.show.gutter")
+        style = config.get_value("editor.style")
+        margin = config.get_value("editor.print.margin")
+        wrap = config.get_value("editor.line.wrap")
+        soft_tab = config.get_value("editor.soft.tabs")
+        tab_size = config.get_value("editor.tab.size")
+        
+        tv.evaluate_javascript("document.getElementById('editor').style.fontSize='%ipx'" % font_size)
+        tv.evaluate_javascript("get_editor().getSession().setTabSize(%s);" % tab_size)
+        tv.evaluate_javascript("get_editor().getSession().setUseSoftTabs(%s);" % soft_tab)
+        tv.evaluate_javascript("get_editor().getSession().setUseWrapMode(%s);" % wrap)
+        tv.evaluate_javascript("get_editor().getSession().setShowPrintMargin(%s);" % margin)
+        tv.evaluate_javascript("get_editor().getSession().setShowInvisibles(%s);" % gutter)
+        tv.evaluate_javascript("get_editor().getSession().setTheme(%s);" % style)
+        
     def webview_did_finish_load(self, textview):
         self.can_update = True
-        #console.hud_alert("Editor: " + textview.evaluate_javascript("get_editor().getValue()"))
-        #import threading
-        #threading.Thread(target=self.threaded_saver).start()
         self.auto_save_wait = 0.001 # Seconds to wait before saving
         self.force_save = False
         self.threader.daemon = True
         self.threader.start()
     
     def threaded_saver(self):
+        DEBUG = False
         import time
         pages = self.pagecontrol
         while self.active:
             try:
                 time.sleep(self.auto_save_wait)
-                    
-                sindex = pages.selected_index
-                page = pages.segments[sindex]
-                contents = self.textview.evaluate_javascript("get_editor().getValue();")
-                if self.superview.fileManager:
-                    self.superview.fileManager.add_file(page, contents)
-                #print "Hanging function"
-                #print page
-                #print contents
+                if not self.wait_save:
+                    sindex = pages.selected_index
+                    page = pages.segments[sindex]
+                    contents = self.textview.evaluate_javascript("get_editor().getValue();")
+                    if self.superview.fileManager:
+                        self.superview.fileManager.add_file(page, contents)
             except IndexError as e:
-                print "IndexError"
-                print e
+                if DEBUG:
+                    print "IndexError"
+                    print e
         print "Saver Thread Stoped"
-            
-    def textview_should_change(self, textview, range, replacement):
-        keys = {u"÷": "insert_comment", u"π": "preview"}
-        print replacement
-        #print keys[replacement]
-        if replacement in keys:
-            ui.in_background(console.hud_alert(keys[replacement]))
-            if replacement == u"π":
-                preview(textview)
-            return False
-        else:
-            return True
         
     def add_file(self, file_path, file_contents):
-        #print "Load File", file_path, file_contents
         if file_path not in self.filecontrol.segments:
             i = list(self.filecontrol.segments)
             i.append(file_path)
@@ -285,7 +318,6 @@ NO OPEN FILE
     def add_page(self, file_path):
         if file_path not in self.pagecontrol.segments:
             i = list(self.pagecontrol.segments)
-            #print i
             i.append(file_path)
             self.pagecontrol.segments = i
         
@@ -317,19 +349,19 @@ NO OPEN FILE
                 self.pagecontrol.selected_index = 0
                 self.select_page(None)
             else:
-                #self.textview.text = "Error loading file."
-                pass
-        except:
-            pass
+                print "Error opening file"
+        except Exception as e:
+            print "Error loading file"
+            print e
             
     def select_page(self, sender):
+        self.wait_save = True
         if self.superview.fileManager:
             name = self.pagecontrol.segments[self.pagecontrol.selected_index]
             file_data = self.superview.fileManager.get_file(name)[1]
             print "%r" % file_data
             self.textview.evaluate_javascript("get_editor().setValue(%r)" % file_data)
             self.textview.evaluate_javascript("get_editor().setCursor(0, 0);")
-            self.textview.evaluate_javascript("get_editor().setReadOnly(false);")
         
             if name.endswith(".html"):
                 self.html_parser.feed(file_data)
@@ -343,8 +375,13 @@ NO OPEN FILE
                 self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/javascript');")
             elif name.endswith(".css"):
                 self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/css');")
+            
+            print "Opened File"
+            
+            self.textview.evaluate_javascript("get_editor().setValue(%r)" % file_data)
         else:
             self.textview.text = "Error loading file."
+        self.wait_save = False
             
 class Delegate(object):
     pass
@@ -355,7 +392,7 @@ class PropertiesView(ui.View):
         ui.View.__init__(self, *args, **kwargs)
     
 
-def load_editor(file_manager = None, file_viewer = ui.View(), frame=(0, 0, 540, 575)):
+def load_editor(file_manager = None, file_viewer = ui.View(), frame=(0, 0, 540, 600)):#575)):
     try:
         view = ui.load_view("HTMLEditor/__init__")
     except ValueError as e:
@@ -375,7 +412,8 @@ def load_editor(file_manager = None, file_viewer = ui.View(), frame=(0, 0, 540, 
 __all__ = ["load_editor", "Editor", "HTMLEdit", "TextEditorView", "PropertiesView"]
 
 if __name__ == "__main__":
+    DEBUG = True
     view = load_editor()
-    view.present("fullscreen", hide_title_bar=True)
+    view.present("sheet" if DEBUG else "fullscreen", hide_title_bar=not DEBUG)
     
     print "CLOSE"

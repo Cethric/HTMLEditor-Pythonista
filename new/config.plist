@@ -3,10 +3,18 @@
 <plist version="1.0">
 <dict>
 	<key>editor.font.size</key>
-	<integer>15</integer>
+	<integer>16</integer>
+	<key>editor.line.wrap</key>
+	<string>true</string>
+	<key>editor.print.margin</key>
+	<string>true</string>
 	<key>editor.show.gutter</key>
+	<string>true</string>
+	<key>editor.soft.tabs</key>
 	<string>true</string>
 	<key>editor.style</key>
 	<string>ace/theme/kuroir</string>
+	<key>editor.tab.size</key>
+	<string>4</string>
 </dict>
 </plist>
