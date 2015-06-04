@@ -86,13 +86,6 @@ def configure(sender):
         tv = sender.superview.superview["contentContainer"].textview
         config = sender.superview.superview.superview.config_view.config
         
-        # editor.show.gutter
-        # editor.style
-        # editor.print.margin
-        # editor.line.wrap
-        # editor.soft.tabs
-        # editor.tab.size
-        
         font_size = config.get_value("editor.font.size")
         gutter = config.get_value("editor.show.gutter")
         style = config.get_value("editor.style")
@@ -180,13 +173,15 @@ class HTMLParserd(HTMLParser.HTMLParser):
         if not self.open_tags == []:
             print "Not all tag/s have been closed.\nOpen tag/s %r" % self.open_tags
 
-
+wait_save = False
 class TextEditorView(ui.View):
     def __init__(self, *args, **kwargs):
         ui.View.__init__(self, *args, **kwargs)
+        
         self.html_parser = HTMLParserd()
         import threading
         self.threader = threading.Thread(target=self.threaded_saver)
+        self.threader.daemon = False
         self.active = True
         
     def did_load(self):
@@ -257,8 +252,6 @@ NO OPEN FILE
 </body>
 </html>''')
         self.can_update = False
-        
-        self.wait_save = False
     
     def update_from_config(self, config_view):
         tv = self.textview
@@ -291,22 +284,42 @@ NO OPEN FILE
         DEBUG = False
         import time
         pages = self.pagecontrol
+        global wait_save
+        print wait_save
         while self.active:
             try:
+                print wait_save
+                if not wait_save:
+                    self.save()
+                else:
+                    print "Waiting to save"
                 time.sleep(self.auto_save_wait)
-                if not self.wait_save:
-                    sindex = pages.selected_index
-                    page = pages.segments[sindex]
-                    contents = self.textview.evaluate_javascript("get_editor().getValue();")
-                    if self.superview.fileManager:
-                        self.superview.fileManager.add_file(page, contents)
             except IndexError as e:
                 if DEBUG:
                     print "IndexError"
                     print e
         print "Saver Thread Stoped"
         
+    def save(self):
+        global DEBUG
+        global wait_save
+        try:
+            if not wait_save():
+                sindex = pages.selected_index
+                page = pages.segments[sindex]
+                contents = self.textview.evaluate_javascript("get_editor().getValue();")
+                if self.superview.fileManager:
+                    self.superview.fileManager.add_file(page, contents)
+            else:
+                print "Save function disabled"
+        except NameError as e:
+            if DEBUG:
+                print "NameError"
+                print e
+        
     def add_file(self, file_path, file_contents):
+        global wait_save
+        wait_save = True
         if file_path not in self.filecontrol.segments:
             i = list(self.filecontrol.segments)
             i.append(file_path)
@@ -316,6 +329,8 @@ NO OPEN FILE
         self.select_file(None)
         
     def add_page(self, file_path):
+        global wait_save
+        wait_save = True
         if file_path not in self.pagecontrol.segments:
             i = list(self.pagecontrol.segments)
             i.append(file_path)
@@ -341,6 +356,8 @@ NO OPEN FILE
         
         
     def select_file(self, sender):
+        global wait_save
+        wait_save = True
         try:
             name = self.filecontrol.segments[self.filecontrol.selected_index]
             if self.superview.fileManager:
@@ -355,7 +372,8 @@ NO OPEN FILE
             print e
             
     def select_page(self, sender):
-        self.wait_save = True
+        global wait_save
+        wait_save = True
         if self.superview.fileManager:
             name = self.pagecontrol.segments[self.pagecontrol.selected_index]
             file_data = self.superview.fileManager.get_file(name)[1]
@@ -381,7 +399,7 @@ NO OPEN FILE
             self.textview.evaluate_javascript("get_editor().setValue(%r)" % file_data)
         else:
             self.textview.text = "Error loading file."
-        self.wait_save = False
+        wait_save = False
             
 class Delegate(object):
     pass
