@@ -10,6 +10,8 @@ except ImportError:
     import dummyUI as ui
 import console
 
+DEBUG = True
+
 @ui.in_background    
 def show_hide_file_viewer(sender):
     #console.hud_alert("show_hide_file_viewer")
@@ -104,6 +106,7 @@ def configure(sender):
     else:
         console.alert("Configuration is only avaliable through the Main View")
 
+wait_save = True
 class Editor(ui.View):
     def __init__(self, *args, **kwargs):
         ui.View.__init__(self, *args, **kwargs)
@@ -130,14 +133,20 @@ class Editor(ui.View):
         self["fileViewContainer"].add_subview(self.fileViewer)
         
     def load_file(self, *args):
+        global wait_save
+        wait_save = True
         self["contentContainer"].add_file(*args)
+        wait_save = False
         
     def on_close_file(self):
+        global wait_save
+        wait_save = False
         try:
             self["contentContainer"].on_close_file()
         except Exception as e:
             print "Error Closing File"
             print e
+        wait_save = True
         
 HTMLEdit = Editor
 
@@ -173,7 +182,6 @@ class HTMLParserd(HTMLParser.HTMLParser):
         if not self.open_tags == []:
             print "Not all tag/s have been closed.\nOpen tag/s %r" % self.open_tags
 
-wait_save = False
 class TextEditorView(ui.View):
     def __init__(self, *args, **kwargs):
         ui.View.__init__(self, *args, **kwargs)
@@ -275,20 +283,20 @@ NO OPEN FILE
         
     def webview_did_finish_load(self, textview):
         self.can_update = True
-        self.auto_save_wait = 0.001 # Seconds to wait before saving
+        self.auto_save_wait = 0.5 # Seconds to wait before saving
         self.force_save = False
         self.threader.daemon = True
         self.threader.start()
+        #self.threaded_saver()
     
     def threaded_saver(self):
         DEBUG = False
         import time
-        pages = self.pagecontrol
         global wait_save
-        print wait_save
+        #print wait_save
         while self.active:
             try:
-                print wait_save
+                #print wait_save
                 if not wait_save:
                     self.save()
                 else:
@@ -303,8 +311,11 @@ NO OPEN FILE
     def save(self):
         global DEBUG
         global wait_save
+        pages = self.pagecontrol
+        #print self.pagecontrol
+        
         try:
-            if not wait_save():
+            if not wait_save:
                 sindex = pages.selected_index
                 page = pages.segments[sindex]
                 contents = self.textview.evaluate_javascript("get_editor().getValue();")
