@@ -1,39 +1,50 @@
-#coding: utf-8
-import sys
-import random
-import socket
+#!/usr/bin/env python
+# coding: utf-8
+
+# the following line is recommended to ease porting to Python 3
+#  from __future__ import (absolute_import, division, print_function, unicode_literals)
+# todo: uncomment the line above and then fix up all the print commands
+
+import sys      # todo: is this used?
+import random   # todo: is this used?
+import socket   # todo: is this used?
 import HTMLParser
 try:
     import ui
 except ImportError:
     print "Using Dummy UI"
     import dummyUI as ui
-import console
+import console  # todo: see https://github.com/Cethric/HTMLEditor-Pythonista/issues/14
 
 DEBUG = True
+
+def exception_str(exception):
+    return '{}: {}'.format(exception.__class__.__name__, exception)
 
 @ui.in_background    
 def show_hide_file_viewer(sender):
     #console.hud_alert("show_hide_file_viewer")
-    view = sender.superview.superview
-    old_width = view["fileViewContainer"].width
+    ss_view = sender.superview.superview
+    old_width = ss_view["fileViewContainer"].width
     show = old_width == 0
     width = 150 if show else 0
     x_mod = 8 if show else 0
-    view["fileViewContainer"].width = width
-    view["fileViewContainer"].set_needs_display()
-    view.set_needs_display()
+    ss_view["fileViewContainer"].width = width
+    ss_view["fileViewContainer"].set_needs_display()
+    ss_view.set_needs_display()
     
     for subview in ("contentContainer", "toolsContainer"):
-        view[subview].x = width + x_mod
-        view[subview].width = view.width - width - x_mod
+        ss_view[subview].x = width + x_mod
+        ss_view[subview].width = ss_view.width - width - x_mod
     
 @ui.in_background
 def server_editor(sender):
-    if sender.superview.superview.superview == None:
-        console.hud_alert("server_editor")
+    sss_view = sender.superview.superview.superview
+    if sss_view:
+        sss_view.set_server_editor()
     else:
-        sender.superview.superview.superview.set_server_editor()
+        console.hud_alert("server_editor")
+
     
 class WebViewDelegate(object):
     def __init__(self):
@@ -44,8 +55,7 @@ class WebViewDelegate(object):
         return True
         
     def webview_did_finish_load(self, webview):
-        name = webview.evaluate_javascript("document.title")
-        webview.name = name
+        webview.name = webview.evaluate_javascript("document.title")
         
     def webview_did_fail_load(self, webview, error_code, error_msg):
         print "%r Failed to load. %r %r" % (webview, error_code, error_msg)
@@ -67,26 +77,27 @@ def quitter(sender):
         result = 2
         result = console.alert("Close", "Close File or Quit", "Close File", "Quit")
         if result == 1:
-            if sender.superview.superview == None:
-                console.hud_alert("Close File")
-            else:
+            if sender.superview.superview:
                 sender.superview.superview.on_close_file()
+            else:
+                console.hud_alert("Close File")
         elif result == 2:
             sender.superview.superview["contentContainer"].active = False
-            if sender.superview.superview.superview == None:
-                sender.superview.superview.close()
-            else:
+            if sender.superview.superview.superview:
                 sender.superview.superview.superview.close()
+            else:
+                sender.superview.superview.close()
     except KeyboardInterrupt as e:
-        print "User cancled the input."
+        print "User canceled the input. " + exception_str(e)
         
 @ui.in_background
 def configure(sender):
-    if sender.superview.superview.superview:
-        sender.superview.superview.superview.config_view.present("sheet")
-        sender.superview.superview.superview.config_view.wait_modal()
+    sss_view = sender.superview.superview.superview
+    if sss_view:
+        sss_view.config_view.present("sheet")
+        sss_view.config_view.wait_modal()
         tv = sender.superview.superview["contentContainer"].textview
-        config = sender.superview.superview.superview.config_view.config
+        config = sss_view.config_view.config
         
         font_size = config.get_value("editor.font.size")
         gutter = config.get_value("editor.show.gutter")
@@ -104,7 +115,7 @@ def configure(sender):
         tv.evaluate_javascript("get_editor().getSession().setShowInvisibles(%s);" % gutter)
         tv.evaluate_javascript("get_editor().getSession().setTheme(%s);" % style)
     else:
-        console.alert("Configuration is only avaliable through the Main View")
+        console.alert("Configuration is only available through the Main View")
 
 wait_save = True
 class Editor(ui.View):
@@ -121,7 +132,8 @@ class Editor(ui.View):
         self.fileViewer = file_viewer
         #self["fileViewContainer"].add_subview(self.fileViewer)
         self.fileViewer.flex = "WH"
-        self.fileViewer.frame =(0, 0, self["fileViewContainer"].frame[2], self["fileViewContainer"].frame[3])
+        _, _, w, h = self["fileViewContainer"].frame
+        self.fileViewer.frame =(0, 0, w, h)
         self.fileViewer.bring_to_front()
         self.fileViewer.size_to_fit()
         self.set_needs_display()
@@ -143,14 +155,13 @@ class Editor(ui.View):
         wait_save = False
         try:
             self["contentContainer"].on_close_file()
-        except Exception as e:
-            print "Error Closing File"
-            print e
+        except Exception as e:  # todo: this should be a qualified exception
+            print "Error Closing File. " + exception_str(e)
         wait_save = True
         
 HTMLEdit = Editor
 
-class HTMLParserd(HTMLParser.HTMLParser):
+class HTMLParserd(HTMLParser.HTMLParser):  # todo: Parsed is misspelled
     def __init__(self):
         HTMLParser.HTMLParser.__init__(self)
         self.open_tags = []
@@ -166,7 +177,7 @@ class HTMLParserd(HTMLParser.HTMLParser):
     def handle_endtag(self, tag):
         try:
             self.open_tags.remove(tag)
-        except:
+        except:  # PEP8: Too broad exception clause
             pass
         
     def handle_startendtag(self, tag, attr):
@@ -304,8 +315,7 @@ NO OPEN FILE
                 time.sleep(self.auto_save_wait)
             except IndexError as e:
                 if DEBUG:
-                    print "IndexError"
-                    print e
+                    print exception_str(e)
         print "Saver Thread Stoped"
         
     def save(self):
@@ -325,8 +335,7 @@ NO OPEN FILE
                 print "Save function disabled"
         except NameError as e:
             if DEBUG:
-                print "NameError"
-                print e
+                print exception_str(e)
         
     def add_file(self, file_path, file_contents):
         global wait_save
@@ -362,7 +371,6 @@ NO OPEN FILE
         for page in self.pagecontrol.segments:
             self.pagecontrol.selected_index = self.pagecontrol.segments.indexof(page)
             self.select_page(None)
-            
         self.pagecontrol.segments = tuple()
         
         
@@ -379,8 +387,7 @@ NO OPEN FILE
             else:
                 print "Error opening file"
         except Exception as e:
-            print "Error loading file"
-            print e
+            print "Error loading file " + exception_str(e)
             
     def select_page(self, sender):
         global wait_save
@@ -421,17 +428,15 @@ class PropertiesView(ui.View):
         ui.View.__init__(self, *args, **kwargs)
     
 
-def load_editor(file_manager = None, file_viewer = ui.View(), frame=(0, 0, 540, 600)):#575)):
+def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 600)): #  575)):
     try:
         view = ui.load_view("HTMLEditor/__init__")
     except ValueError as e:
-        print "Attempt 1 'HTMLEditor/__init__' failed"
-        print e
+        print "Attempt 1 'HTMLEditor/__init__' failed " + exception_str(e)
         try:
             view = ui.load_view("__init__")
         except ValueError as e:
-            print "Attempt 2 '__init__' failed"
-            print e
+            print "Attempt 2 '__init__' failed " + exception_str(e)
             view = ui.Editor()
     view.frame = frame
     view.set_fv_fm(file_manager, file_viewer)
