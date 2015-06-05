@@ -1,20 +1,22 @@
 JAVASCRIPT = '''function hello_world() {
-    alert('hello world @file_name');
-}\n'''
+    alert('hello {}');
+}'''
                 
 HTML = '''<html>
-\t<head>
-\t\t<title> Hello World </title>
-\t</head>
-\t<body>
-\t\t<p> Hello World </p>
-\t</body>
+    <head>
+        <title> Hello {} </title>
+    </head>
+    <body>
+        <p> Hello World </p>
+    </body>
 </html>'''
           
 CSS = '''p {
     color: #000000;
 }\n'''
-         
+
+
+## TODO - Update the request handler to work for this setup.
 REQUEST_HANDLER = '''class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_GET(self):
         print self.path
