@@ -217,7 +217,7 @@ class TextEditorView(ui.View):
         self.textview.delegate = self
         
         self.set_browser = False
-        
+        # todo: move the following html code into a constant at the top of the script
         self.textview.load_html('''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -316,7 +316,7 @@ NO OPEN FILE
             except IndexError as e:
                 if DEBUG:
                     print exception_str(e)
-        print "Saver Thread Stoped"
+        print "Saver Thread Stopped"
         
     def save(self):
         global DEBUG
