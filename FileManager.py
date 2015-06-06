@@ -1,7 +1,13 @@
 import os
-import ui
 import copy
-import console
+try:
+    import ui
+    import console
+except ImportError:
+    print "Using Dummy UI"
+    import dummyUI as ui
+    import dummyConsole as console
+
 import templates
 reload(templates)
 

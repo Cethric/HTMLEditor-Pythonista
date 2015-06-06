@@ -1,10 +1,11 @@
 #coding: utf-8
 try:
     import ui
+    import console
 except ImportError:
     print "Using Dummy UI"
     import dummyUI as ui
-import console
+    import dummyConsole as console
     
 @ui.in_background    
 def show_hide_file_viewer(sender):

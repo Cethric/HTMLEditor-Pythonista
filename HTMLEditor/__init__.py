@@ -7,16 +7,17 @@
 
 import sys      # todo: is this used?
 import random   # todo: is this used?
-import socket   # todo: is this used?
+import socket   # todo: is this used?q
 import time
 import HTMLParser
 import threading
 try:
     import ui
+    import console
 except ImportError:
     print "Using Dummy UI"
     import dummyUI as ui
-import console  # todo: see https://github.com/Cethric/HTMLEditor-Pythonista/issues/14
+    import dummyConsole as console
 
 DEBUG = True
 
