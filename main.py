@@ -73,3 +73,7 @@ if __name__ == "__main__":
     #view.right_button_items = [ui.ButtonItem("TEST")]
     #view.left_button_items = [ui.ButtonItem("HI")]
     view.present("sheet" if DEBUG else "fullscreen", hide_title_bar=not DEBUG)
+    view.wait_modal()
+    print "Goodbye"
+    raise KeyboardInterrupt("TODO Change this to be a safe exit of the save thread")
+    print "??"

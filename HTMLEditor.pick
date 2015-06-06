@@ -14,7 +14,7 @@ p9
 (dp11
 S'test.txt'
 p12
-V<html>\u000a    <head>\u000a        <title> Hello test.html </title>\u000a    </head>\u000a    <body>\u000a        <p> Hello World </p>\u000a    </body>\u000a</html>
+VBassus victrix saepe imperiums galatae est.
 p13
 sa(dp14
 asasS'dir'
@@ -26,9 +26,18 @@ S'folder'
 p19
 (lp20
 (dp21
-S'test.html'
-p22
-VNO OPEN FILE\u000a
+a(dp22
+S'path'
 p23
-sa(dp24
-asasas.
+(lp24
+(dp25
+S'test1.html'
+p26
+VNO OPEN FILE\u000a
+p27
+sS'test2.html'
+p28
+VNO OPEN FILE\u000a
+p29
+sa(dp30
+asasasas.
