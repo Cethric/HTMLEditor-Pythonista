@@ -84,7 +84,7 @@ def show_hide_file_viewer(sender):
     ss_view = sender.superview.superview
     old_width = ss_view["fileViewContainer"].width
     show = old_width == 0
-    width = 150 if show else 0
+    width = 188 if show else 0
     x_mod = 8 if show else 0
     ss_view["fileViewContainer"].width = width
     ss_view["fileViewContainer"].set_needs_display()
@@ -248,13 +248,15 @@ class Parser(HTMLParser.HTMLParser):
             
 class SaverThread(threading.Thread):
     can_save = False
-    def __init__(self, webview_eval, file_system, pages):
+    def __init__(self, webview_eval, file_system, pages, view):
         threading.Thread.__init__(self)
         self.webview_eval = webview_eval
         self.file_system = file_system
         self.pages = pages
         self.active = True
         self.wait_time = 1.0 # seconds to wait befor execution
+        self.html_parser = Parser()
+        self.view = view
         
     def setCanSave(self, can_save):
         print "Save mode changed. %s" % can_save
@@ -268,6 +270,19 @@ class SaverThread(threading.Thread):
         while self.active:
             if self.can_save:
                 self.save()
+                
+                sindex = self.pages.selected_index
+                page = self.pages.segments[sindex]
+                
+                if page.endswith(".html"):
+                    self.html_parser.feed(self.getContents())
+                    self.pages.segments = ()
+                    self.view.add_page(page)
+                    for file in self.html_parser.files_list:
+                        self.view.add_page(file)
+                    self.pages.selected_index = 0
+                    print self.html_parser.open_tags
+                
             else:
                 print "Cannot Save"
             time.sleep(self.wait_time)
@@ -309,7 +324,6 @@ class TextEditorView(ui.View):
         self.textview.delegate = self
         
         self.set_browser = False
-        # todo: move the following html code into a constant at the top of the script
         self.textview.load_html(EDITOR_VIEW)
         self.can_update = False
     
@@ -340,7 +354,8 @@ class TextEditorView(ui.View):
         
         self.threader = SaverThread(self.textview.evaluate_javascript,
                                     self.superview.fileManager,
-                                    self.pagecontrol)
+                                    self.pagecontrol,
+                                    self)
         self.threader.daemon = False
         self.active = True
         self.threader.start()
@@ -412,18 +427,44 @@ class TextEditorView(ui.View):
             elif name.endswith(".css"):
                 self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/css');")
             
-            print "Opened File"
             
             self.textview.evaluate_javascript("get_editor().setCursor(0, 0);")
-            self.textview.evaluate_javascript("get_editor().setValue(%r)" % file_data)
-            time.sleep(0.5)
-            if file_data == self.threader.getContents():
-                print self.threader.can_save
-                self.threader.setCanSave(True)
-            else:
-                print "ERROR LOADING FILE..."
+            
+            self.set_editor_value(file_data)
         else:
-            self.textview.text = "Error loading file.\nFileManager not found"
+            self.set_editor_value("Error loading file.\nFileManager not found")
+    
+    @ui.in_background        
+    def set_editor_value(self, text):
+        attempts = 0
+        MAX_ATTEMPTS = 10
+        while True:
+            self.textview.evaluate_javascript("get_editor().setValue(%r)" % str(text))
+            if text == self.threader.getContents():
+                print "=" * 20
+                print "File Loaded"
+                print "Contents:"
+                print self.threader.getContents()
+                print "=" * 20
+                self.threader.setCanSave(True)
+                break
+            else:
+                self.textview.evaluate_javascript("get_editor().setValue(%r)" % "ERROR LOADING FILE...\nWill try again in one (1) second\n%i Trys left" % MAX_ATTEMPTS - attempts)
+                print "=" * 20
+                print "ERROR LOADING FILE... Will try again in one (1) second"
+                print "%i Trys left" % MAX_ATTEMPTS - attempts
+                print "File Should be:"
+                print text
+                print "But is:"
+                print self.threader.getContents()
+                print "=" * 20
+                
+                time.sleep(1.0)
+            if attempts == MAX_ATTEMPTS:
+                print "Failed to load file in time. Please try again"
+                self.textview.evaluate_javascript("get_editor().setValue(%r)" % "Failed to load file in time. Please try again")
+                break
+            attempts+=1
             
 class Delegate(object):
     pass

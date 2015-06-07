@@ -14,7 +14,7 @@ p9
 (dp11
 S'test.txt'
 p12
-VBassus victrix saepe imperiums galatae est.
+S'Bassus victrix saepe imperiums galatae est.'
 p13
 sa(dp14
 asasS'dir'
@@ -33,11 +33,11 @@ p23
 (dp25
 S'test1.html'
 p26
-VNO OPEN FILE\u000a
+V<html>\u000a    <head>\u000a        <title> Hello test1.html </title>\u000a    </head>\u000a    <body>\u000a        <p> Hello World </p>\u000a    </body>\u000a</html>
 p27
 sS'test2.html'
 p28
-VNO OPEN FILE\u000a
+V<html>\u000a    <head>\u000a        <title> Hello test2.html </title>\u000a    </head>\u000a    <body>\u000a        <p> Hello World </p>\u000a    </body>\u000a</html>
 p29
 sa(dp30
 asasasas.

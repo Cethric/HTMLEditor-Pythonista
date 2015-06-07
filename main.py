@@ -13,7 +13,7 @@ reload(ServerEditor)
 import ConfigManager
 reload(ConfigManager)
 
-DEBUG = True
+DEBUG = False
 
 fm = FileManager.Manager()
 fv = FileManager.FileViewer(fm)
@@ -33,20 +33,14 @@ class MainView(ui.View):
     
     def did_load(self):
         print "%r did load" % self
-        print self.config_view
         
     def present(self, *args, **kwargs):
         ui.View.present(self, *args, **kwargs)
-        print "Present"
-        print self.frame
         self.htmlEditorView = HTMLEditor.load_editor(fm, fv, (0, 0, self.frame[2], self.frame[3]))
         self.add_subview(self.htmlEditorView)
-        #self.htmlEditorView.bring_to_front()
         
         self.serverEditorView = ServerEditor.load_editor(fm, fv, (0, 0, self.frame[2], self.frame[3]))
         self.add_subview(self.serverEditorView)
-        #self.serverEditorView.send_to_back()
-        
         self.set_html_editor()
         
         self.htmlEditorView.update_config(self.config_view)
@@ -65,15 +59,13 @@ class MainView(ui.View):
         
     def on_close_file(self):
         print "Closing File"
+        
+    def will_close(self):
+        print "Goodbye"
+        view.htmlEditorView["contentContainer"].threader.terminate()
 
 
 if __name__ == "__main__":
-    #cv.present("sheet")
     view = ui.load_view()
-    #view.right_button_items = [ui.ButtonItem("TEST")]
-    #view.left_button_items = [ui.ButtonItem("HI")]
+    print(dir(view))
     view.present("sheet" if DEBUG else "fullscreen", hide_title_bar=not DEBUG)
-    view.wait_modal()
-    print "Goodbye"
-    raise KeyboardInterrupt("TODO Change this to be a safe exit of the save thread")
-    print "??"
