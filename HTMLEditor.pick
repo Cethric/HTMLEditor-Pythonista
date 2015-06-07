@@ -31,13 +31,5 @@ S'path'
 p23
 (lp24
 (dp25
-S'test1.html'
-p26
-V<html>\u000a    <head>\u000a        <title> Hello test1.html </title>\u000a    </head>\u000a    <body>\u000a        <p> Hello World </p>\u000a    </body>\u000a</html>
-p27
-sS'test2.html'
-p28
-V<html>\u000a    <head>\u000a        <title> Hello test2.html </title>\u000a    </head>\u000a    <body>\u000a        <p> Hello World </p>\u000a    </body>\u000a</html>
-p29
-sa(dp30
+a(dp26
 asasasas.

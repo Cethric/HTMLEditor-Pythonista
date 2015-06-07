@@ -331,7 +331,7 @@ class FileViewer(ui.View):
         self.fileManager = fileManager
         self.file_load_callback = dummy_file_callback
         self.listview = ui.TableView()
-        #self.listview.flex = "WH"
+        self.listview.flex = "WH"
         self.listview.frame = self.frame
         self.listview.name = "root"
         self.listview.delegate = self
@@ -353,7 +353,7 @@ class FileViewer(ui.View):
             data = {
                     "title": file_name,
                     "image": "ionicons-document-text-24",
-                    "accessory_type": "none",
+                    "accessory_type": "detail_disclosure_button",
                     "d_type": FILE,
                     "d_data": file_data,
                     "d_path": "/" + file_name
@@ -363,7 +363,7 @@ class FileViewer(ui.View):
             data = {
                     "title": dir_name,
                     "image": "ionicons-folder-24",
-                    "accessory_type": "none",
+                    "accessory_type": "detail_disclosure_button",
                     "d_type": FOLDER,
                     "d_data": dir_data,
                     "d_path": "/" + dir_name
@@ -387,7 +387,7 @@ class FileViewer(ui.View):
             data = {
                     "title": file_name,
                     "image": "ionicons-document-text-24",
-                    "accessory_type": "none",
+                    "accessory_type": "detail_disclosure_button",
                     "d_type": FILE,
                     "d_data": file_data,
                     "d_path": d_path + "/" + file_name
@@ -397,15 +397,16 @@ class FileViewer(ui.View):
             data = {
                     "title": dir_name,
                     "image": "ionicons-folder-24",
-                    "accessory_type": "none",
+                    "accessory_type": "detail_disclosure_button",
                     "d_type": FOLDER,
                     "d_data": dir_data,
-                    "d_path": d_path + "/" + dir_name
+                    "d_path": d_path + "/" + dir_name,
                     }
             fdlist.append(data)
         
         listview = ui.TableView()
         listview.data_source = ui.ListDataSource(fdlist)
+        listview.data_source.move_enabled = True
         listview.reload()
         listview.delegate = self
         listview.name = path

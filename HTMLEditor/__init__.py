@@ -27,6 +27,7 @@ EDITOR_VIEW = '''<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <title>Editor</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ace.js" type="text/javascript" charset="utf-8"></script>
   <style type="text/css" media="screen">
     body {
         overflow: scroll;
@@ -47,17 +48,15 @@ EDITOR_VIEW = '''<!DOCTYPE html>
     }
   </style>
 </head>
-<body <!--ontouchmove="event.preventDefault()-->">
+<body>
 
 <pre id="editor">
 NO OPEN FILE
 </pre>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/kuroir");
-    //editor.getSession().setMode("ace/mode/python");
     
     editor.setAutoScrollEditorIntoView(true);
     editor.setOption("maxLines", 4096);
@@ -69,6 +68,8 @@ NO OPEN FILE
         return editor;
     }
     document.getElementById('editor').style.fontSize='13px';
+    
+    editor.setReadOnly(false);
 </script>
 
 </body>
@@ -194,6 +195,20 @@ class Editor(ui.View):
         self.fileViewer.frame =(0, 0, w, h)
         self.fileViewer.bring_to_front()
         self.fileViewer.size_to_fit()
+        
+        ss_view = self
+        old_width = ss_view["fileViewContainer"].width
+        show = True
+        width = 188 if show else 0
+        x_mod = 8 if show else 0
+        ss_view["fileViewContainer"].width = width
+        ss_view["fileViewContainer"].set_needs_display()
+        ss_view.set_needs_display()
+        
+        for subview in ("contentContainer", "toolsContainer"):
+            ss_view[subview].x = width + x_mod
+            ss_view[subview].width = ss_view.width - width - x_mod
+        
         self.set_needs_display()
         
     def update_config(self, config_view):
@@ -203,7 +218,6 @@ class Editor(ui.View):
         self["fileViewContainer"].add_subview(self.fileViewer)
         
     def load_file(self, *args):
-        print "load_file(%r)" % str(args)
         self["contentContainer"].add_file(*args)
         
     def on_close_file(self):
@@ -211,6 +225,11 @@ class Editor(ui.View):
             self["contentContainer"].on_close_file()
         except Exception as e:  # todo: this should be a qualified exception
             print "Error Closing File. " + exception_str(e)
+            
+    def will_close(self):
+        self["contentContainer"].threader.terminate()
+    
+        print "CLOSE"
         
 HTMLEdit = Editor
 
@@ -267,24 +286,29 @@ class SaverThread(threading.Thread):
         self.active = False
     
     def run(self):
+        last_save = ""
         while self.active:
             if self.can_save:
-                self.save()
-                
-                sindex = self.pages.selected_index
-                page = self.pages.segments[sindex]
-                
-                if page.endswith(".html"):
-                    self.html_parser.feed(self.getContents())
-                    self.pages.segments = ()
-                    self.view.add_page(page)
-                    for file in self.html_parser.files_list:
-                        self.view.add_page(file)
-                    self.pages.selected_index = 0
-                    print self.html_parser.open_tags
+                c = self.getContents()
+                if c != last_save:
+                    self.save()
+                    
+                    sindex = self.pages.selected_index
+                    page = self.pages.segments[sindex]
+                    
+                    if page.endswith(".html"):
+                        self.html_parser.feed(c)
+                        self.pages.segments = ()
+                        self.view.add_page(page)
+                        for file in self.html_parser.files_list:
+                            self.view.add_page(file)
+                        self.pages.selected_index = 0
+                        print self.html_parser.open_tags
+                last_save = c
                 
             else:
-                print "Cannot Save"
+                #print "Cannot Save"
+                pass
             time.sleep(self.wait_time)
     
     def getContents(self):
@@ -412,8 +436,6 @@ class TextEditorView(ui.View):
         if self.superview.fileManager:
             name = self.pagecontrol.segments[self.pagecontrol.selected_index]
             file_data = self.superview.fileManager.get_file(name)[1]
-            print "Opening file %s with contents\n %s" % (name, file_data)
-        
             if name.endswith(".html"):
                 self.html_parser.feed(file_data)
                 self.pagecontrol.segments = ()
@@ -427,9 +449,6 @@ class TextEditorView(ui.View):
             elif name.endswith(".css"):
                 self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/css');")
             
-            
-            self.textview.evaluate_javascript("get_editor().setCursor(0, 0);")
-            
             self.set_editor_value(file_data)
         else:
             self.set_editor_value("Error loading file.\nFileManager not found")
@@ -441,30 +460,34 @@ class TextEditorView(ui.View):
         while True:
             self.textview.evaluate_javascript("get_editor().setValue(%r)" % str(text))
             if text == self.threader.getContents():
-                print "=" * 20
+                print ("=" * 10) + "LOAD" + ("=" * 10)
                 print "File Loaded"
                 print "Contents:"
                 print self.threader.getContents()
-                print "=" * 20
                 self.threader.setCanSave(True)
+                self.textview.evaluate_javascript("get_editor().setReadOnly(false);")
+                print ("=" * 10) + "LOAD" + ("=" * 10)
+                break
+            elif attempts == MAX_ATTEMPTS:
+                print ("=" * 10) + "ERROR" + ("=" * 10)
+                print "Failed to load file in time. Please try again"
+                self.textview.evaluate_javascript("get_editor().setValue(%r)" % "Failed to load file in time. Please try again")
+                print ("=" * 10) + "ERROR" + ("=" * 10)
                 break
             else:
+                print ("=" * 10) + "ERROR" + ("=" * 10)
                 self.textview.evaluate_javascript("get_editor().setValue(%r)" % "ERROR LOADING FILE...\nWill try again in one (1) second\n%i Trys left" % MAX_ATTEMPTS - attempts)
-                print "=" * 20
                 print "ERROR LOADING FILE... Will try again in one (1) second"
                 print "%i Trys left" % MAX_ATTEMPTS - attempts
                 print "File Should be:"
                 print text
                 print "But is:"
                 print self.threader.getContents()
-                print "=" * 20
+                print ("=" * 10) + "ERROR" + ("=" * 10)
                 
                 time.sleep(1.0)
-            if attempts == MAX_ATTEMPTS:
-                print "Failed to load file in time. Please try again"
-                self.textview.evaluate_javascript("get_editor().setValue(%r)" % "Failed to load file in time. Please try again")
-                break
             attempts+=1
+        self.textview.evaluate_javascript("get_editor().setCursor(0, 0);")
             
 class Delegate(object):
     pass
@@ -496,7 +519,3 @@ if __name__ == "__main__":
     DEBUG = True
     view = load_editor()
     view.present("sheet" if DEBUG else "fullscreen", hide_title_bar=not DEBUG)
-    view.wait_modal()
-    view["contentContainer"].threader.terminate()
-    
-    print "CLOSE"
