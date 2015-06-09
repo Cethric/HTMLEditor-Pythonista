@@ -5,9 +5,6 @@
 #  from __future__ import (absolute_import, division, print_function, unicode_literals)
 # todo: uncomment the line above and then fix up all the print commands
 
-import sys      # todo: is this used?
-import random   # todo: is this used?
-import socket   # todo: is this used?q
 import time
 import HTMLParser
 import threading
@@ -382,7 +379,7 @@ class TextEditorView(ui.View):
                                     self)
         self.threader.daemon = False
         self.active = True
-        self.threader.start()
+        #self.threader.start()
         
     def add_file(self, file_path, file_contents):
         if file_path not in self.filecontrol.segments:
@@ -481,8 +478,6 @@ class TextEditorView(ui.View):
                 print "%i Trys left" % MAX_ATTEMPTS - attempts
                 print "File Should be:"
                 print text
-                print "But is:"
-                print self.threader.getContents()
                 print ("=" * 10) + "ERROR" + ("=" * 10)
                 
                 time.sleep(1.0)
