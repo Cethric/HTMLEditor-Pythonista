@@ -65,8 +65,6 @@ NO OPEN FILE
         return editor;
     }
     document.getElementById('editor').style.fontSize='13px';
-    
-    editor.setReadOnly(false);
 </script>
 
 </body>
@@ -189,10 +187,17 @@ class Editor(ui.View):
         self.fileViewer = file_viewer
         self.fileViewer.flex = "WH"
         _, _, w, h = self["fileViewContainer"].frame
-        self.fileViewer.frame =(0, 0, w, h)
+        self.fileViewer.frame =(0, 0, 188, h)
         self.fileViewer.bring_to_front()
         self.fileViewer.size_to_fit()
         
+        self.set_needs_display()
+        
+    def update_config(self, config_view):
+        self["contentContainer"].update_from_config(config_view)
+    
+    def apply_fileview(self):
+        self["fileViewContainer"].add_subview(self.fileViewer)
         ss_view = self
         old_width = ss_view["fileViewContainer"].width
         show = True
@@ -205,14 +210,6 @@ class Editor(ui.View):
         for subview in ("contentContainer", "toolsContainer"):
             ss_view[subview].x = width + x_mod
             ss_view[subview].width = ss_view.width - width - x_mod
-        
-        self.set_needs_display()
-        
-    def update_config(self, config_view):
-        self["contentContainer"].update_from_config(config_view)
-    
-    def apply_fileview(self):
-        self["fileViewContainer"].add_subview(self.fileViewer)
         
     def load_file(self, *args):
         self["contentContainer"].add_file(*args)
@@ -246,8 +243,8 @@ class Parser(HTMLParser.HTMLParser):
     def handle_endtag(self, tag):
         try:
             self.open_tags.remove(tag)
-        except:  # PEP8: Too broad exception clause
-            pass
+        except ValueError as e:
+            print exception_str(e)
         
     def handle_startendtag(self, tag, attr):
         if tag == "link":
@@ -270,7 +267,7 @@ class SaverThread(threading.Thread):
         self.file_system = file_system
         self.pages = pages
         self.active = True
-        self.wait_time = 1.0 # seconds to wait befor execution
+        self.wait_time = 0.2 # seconds to wait befor execution
         self.html_parser = Parser()
         self.view = view
         
@@ -283,6 +280,7 @@ class SaverThread(threading.Thread):
         self.active = False
     
     def run(self):
+        print ("="*10) + "SAVE THREAD BEGIN" + ("="*10)
         last_save = ""
         while self.active:
             if self.can_save:
@@ -302,12 +300,11 @@ class SaverThread(threading.Thread):
                         self.pages.selected_index = 0
                         print self.html_parser.open_tags
                 last_save = c
-                
             else:
-                #print "Cannot Save"
-                pass
+                if DEBUG:
+                    print "Saving has been disable will try again in %f seconds" % self.wait_time
             time.sleep(self.wait_time)
-    
+        print ("="*10) + "SAVE THREAD END" + ("="*10)
     def getContents(self):
         return self.webview_eval("get_editor().getValue();")
                 
@@ -341,7 +338,6 @@ class TextEditorView(ui.View):
         self.filecontrol.segments = ()
         self.pagecontrol.segments = ()
         
-        print self.textview
         self.textview.delegate = self
         
         self.set_browser = False
@@ -370,8 +366,6 @@ class TextEditorView(ui.View):
         
     def webview_did_finish_load(self, textview):
         self.can_update = True
-        self.auto_save_wait = 0.5 # Seconds to wait before saving
-        self.force_save = False
         
         self.threader = SaverThread(self.textview.evaluate_javascript,
                                     self.superview.fileManager,
@@ -379,7 +373,7 @@ class TextEditorView(ui.View):
                                     self)
         self.threader.daemon = False
         self.active = True
-        #self.threader.start()
+        self.threader.start()
         
     def add_file(self, file_path, file_contents):
         if file_path not in self.filecontrol.segments:
@@ -452,6 +446,8 @@ class TextEditorView(ui.View):
     
     @ui.in_background        
     def set_editor_value(self, text):
+        print "get_editor(); = %r" % self.textview.evaluate_javascript("editor")
+        
         attempts = 0
         MAX_ATTEMPTS = 10
         while True:
@@ -462,7 +458,7 @@ class TextEditorView(ui.View):
                 print "Contents:"
                 print self.threader.getContents()
                 self.threader.setCanSave(True)
-                self.textview.evaluate_javascript("get_editor().setReadOnly(false);")
+                print self.textview.evaluate_javascript("get_editor().getReadOnly();")
                 print ("=" * 10) + "LOAD" + ("=" * 10)
                 break
             elif attempts == MAX_ATTEMPTS:
@@ -479,10 +475,9 @@ class TextEditorView(ui.View):
                 print "File Should be:"
                 print text
                 print ("=" * 10) + "ERROR" + ("=" * 10)
-                
                 time.sleep(1.0)
             attempts+=1
-        self.textview.evaluate_javascript("get_editor().setCursor(0, 0);")
+        #self.textview.evaluate_javascript("get_editor().setCursor(0, 0);")
             
 class Delegate(object):
     pass

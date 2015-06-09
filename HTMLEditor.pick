@@ -14,7 +14,7 @@ p9
 (dp11
 S'test.txt'
 p12
-S'Bassus victrix saepe imperiums galatae est.'
+VBassus victrix saepe imperiums galatae est.\u000aabcd\u000aabcd\u000a\u000a\u000aergrfer\u000ag\u000aerg\u000areg\u000atr\u000ag\u000ae\u000ag\u000art\u000ag\u000art\u000agrt\u000ag
 p13
 sa(dp14
 asasS'dir'
@@ -31,5 +31,13 @@ S'path'
 p23
 (lp24
 (dp25
-a(dp26
+S'test.html'
+p26
+V\u000a\u000a\u000a\u000a\u000a
+p27
+sS'test1.html'
+p28
+V\u000a\u000a
+p29
+sa(dp30
 asasasas.

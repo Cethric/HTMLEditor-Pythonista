@@ -13,7 +13,7 @@ reload(ServerEditor)
 import ConfigManager
 reload(ConfigManager)
 
-DEBUG = False
+DEBUG = True
 
 fm = FileManager.Manager()
 fv = FileManager.FileViewer(fm)

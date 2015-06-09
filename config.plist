@@ -3,15 +3,15 @@
 <plist version="1.0">
 <dict>
 	<key>editor.font.size</key>
-	<integer>16</integer>
+	<integer>13</integer>
 	<key>editor.line.wrap</key>
-	<string>true</string>
+	<string>false</string>
 	<key>editor.print.margin</key>
-	<string>true</string>
+	<string>false</string>
 	<key>editor.show.gutter</key>
-	<string>true</string>
+	<string>false</string>
 	<key>editor.soft.tabs</key>
-	<string>true</string>
+	<string>false</string>
 	<key>editor.style</key>
 	<string>ace/theme/kuroir</string>
 	<key>editor.tab.size</key>
