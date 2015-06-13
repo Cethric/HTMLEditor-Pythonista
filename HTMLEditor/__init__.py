@@ -4,6 +4,7 @@
 # the following line is recommended to ease porting to Python 3
 #  from __future__ import (absolute_import, division, print_function, unicode_literals)
 # todo: uncomment the line above and then fix up all the print commands
+import os
 
 import time
 import HTMLParser
@@ -17,58 +18,6 @@ except ImportError:
     import dummyConsole as console
 
 DEBUG = True
-
-EDITOR_VIEW = '''<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>Editor</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ace.js" type="text/javascript" charset="utf-8"></script>
-  <style type="text/css" media="screen">
-    body {
-        overflow: scroll;
-        //height:1200px;
-        -webkit-overflow-scrolling: touch;
-        overflow-y:auto;
-    }
-
-    #editor {
-        margin: 0;
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height:4096px;
-        overflow: scroll;
-    }
-  </style>
-</head>
-<body>
-
-<pre id="editor">
-NO OPEN FILE
-</pre>
-
-<script>
-    var editor = ace.edit("editor");
-    editor.setTheme("ace/theme/kuroir");
-    
-    editor.setAutoScrollEditorIntoView(true);
-    editor.setOption("maxLines", 4096);
-    editor.setOption("minLines", 29);
-    
-    editor.setCursor(0, 0);
-    
-    function get_editor() {
-        return editor;
-    }
-    document.getElementById('editor').style.fontSize='13px';
-</script>
-
-</body>
-</html>'''
 
 
 def exception_str(exception):
@@ -341,7 +290,7 @@ class TextEditorView(ui.View):
         self.textview.delegate = self
         
         self.set_browser = False
-        self.textview.load_html(EDITOR_VIEW)
+        self.textview.load_url(os.path.abspath("../AceEditorView/index.html"))
         self.can_update = False
     
     def update_from_config(self, config_view):
