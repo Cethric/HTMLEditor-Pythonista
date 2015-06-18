@@ -38,6 +38,21 @@ def show_hide_file_viewer(sender):
     for subview in ("contentContainer", "toolsContainer"):
         ss_view[subview].x = width + x_mod
         ss_view[subview].width = ss_view.width - width - x_mod
+        ss_view[subview].size_to_fit()
+        ss_view[subview].set_needs_display()
+        for sub in ss_view[subview].subviews:
+            sub.size_to_fit()
+            sub.set_needs_display()
+            
+            try:
+                sub.reload()
+            except:
+                try:
+                    sub["web_view"].reload()
+                except:
+                    pass
+            
+        
     
 @ui.in_background
 def server_editor(sender):
@@ -65,7 +80,8 @@ class WebViewDelegate(object):
 @ui.in_background
 def preview(sender):
     #console.hud_alert("preview")
-    text = sender.superview.superview["contentContainer"].textview.evaluate_javascript("get_editor().getValue()")
+    print "WEBVIEW?", sender.superview.superview.subviews[2].subviews[2].subviews[0]
+    text = sender.superview.superview.subviews[2].subviews[2].subviews[0]["web_view"].evaluate_javascript("editor.getValue()")
     wv = ui.WebView()
     wv.delegate = WebViewDelegate()
     wv.load_html(text)
@@ -89,8 +105,6 @@ def quitter(sender):
                 sender.superview.superview.superview.close()
             else:
                 sender.superview.superview.close()
-            if sender.superview.superview["contentContainer"].threader:
-                sender.superview.superview["contentContainer"].threader.terminate()
     except KeyboardInterrupt as e:
         print "User canceled the input. " + exception_str(e)
         
@@ -159,6 +173,11 @@ class Editor(ui.View):
         for subview in ("contentContainer", "toolsContainer"):
             ss_view[subview].x = width + x_mod
             ss_view[subview].width = ss_view.width - width - x_mod
+            ss_view[subview].size_to_fit()
+            ss_view[subview].set_needs_display()
+            for sub in ss_view[subview].subviews:
+                sub.size_to_fit()
+                sub.set_needs_display()
         
     def load_file(self, *args):
         self["contentContainer"].add_file(*args)
@@ -168,11 +187,6 @@ class Editor(ui.View):
             self["contentContainer"].on_close_file()
         except Exception as e:  # todo: this should be a qualified exception
             print "Error Closing File. " + exception_str(e)
-            
-    def will_close(self):
-        self["contentContainer"].threader.terminate()
-    
-        print "CLOSE"
         
 HTMLEdit = Editor
 
@@ -207,78 +221,28 @@ class Parser(HTMLParser.HTMLParser):
         HTMLParser.HTMLParser.feed(self, *args, **kwargs)
         if not self.open_tags == []:
             print "Not all tag/s have been closed.\nOpen tag/s %r" % self.open_tags
-            
-class SaverThread(threading.Thread):
-    can_save = False
-    def __init__(self, webview_eval, file_system, pages, view):
-        threading.Thread.__init__(self)
-        self.webview_eval = webview_eval
-        self.file_system = file_system
-        self.pages = pages
-        self.active = True
-        self.wait_time = 0.2 # seconds to wait befor execution
-        self.html_parser = Parser()
-        self.view = view
-        
-    def setCanSave(self, can_save):
-        print "Save mode changed. %s" % can_save
-        self.can_save = can_save
-        
-    def terminate(self):
-        print "Termination called."
-        self.active = False
     
-    def run(self):
-        print ("="*10) + "SAVE THREAD BEGIN" + ("="*10)
-        last_save = ""
-        while self.active:
-            if self.can_save:
-                c = self.getContents()
-                if c != last_save:
-                    self.save()
-                    
-                    sindex = self.pages.selected_index
-                    page = self.pages.segments[sindex]
-                    
-                    if page.endswith(".html"):
-                        self.html_parser.feed(c)
-                        self.pages.segments = ()
-                        self.view.add_page(page)
-                        for file in self.html_parser.files_list:
-                            self.view.add_page(file)
-                        self.pages.selected_index = 0
-                        print self.html_parser.open_tags
-                last_save = c
-            else:
-                if DEBUG:
-                    print "Saving has been disable will try again in %f seconds" % self.wait_time
-            time.sleep(self.wait_time)
-        print ("="*10) + "SAVE THREAD END" + ("="*10)
-    def getContents(self):
-        return self.webview_eval("get_editor().getValue();")
                 
-    def save(self):
-        try:
-            if self.can_save:
-                sindex = self.pages.selected_index
-                page = self.pages.segments[sindex]
-                contents = self.getContents()
-                self.file_system.add_file(page, contents)
-                print "File saved"
-                print "%s saved with contents\n%s" % (page, contents)
-            else:
-                print "Save Disabled"
-        except Exception as e:
-            print "Failed to save. " + exception_str(e)
+def save(page_contents, tev):
+    try:
+        sindex = tev.pagecontrol.selected_index
+        page = tev.pagecontrol.segments[sindex]
+        tev.superview.fileManager.add_file(page, page_contents)
+        print "File saved"
+        print "%s saved with contents\n%s" % (page, page_contents)
+    except Exception as e:
+        print "Failed to save. " + exception_str(e)
 
 class TextEditorView(ui.View):
     def __init__(self, *args, **kwargs):
         ui.View.__init__(self, *args, **kwargs)
-        
         self.html_parser = Parser()
         
     def did_load(self):
-        self.textview = self["text_control"]
+        print "DID LOAD %r" % self
+        self.textview = self["editor_view"]
+        print "self.textview = %r" % self.textview
+        print self.textview.subviews
         self.filecontrol = self["file_control"]
         self.filecontrol.action = self.select_file
         self.pagecontrol = self["page_control"]
@@ -287,14 +251,8 @@ class TextEditorView(ui.View):
         self.filecontrol.segments = ()
         self.pagecontrol.segments = ()
         
-        self.textview.delegate = self
-        
-        self.set_browser = False
-        self.textview.load_url(os.path.abspath("../AceEditorView/index.html"))
-        self.can_update = False
-    
     def update_from_config(self, config_view):
-        tv = self.textview
+        tv = self.textview["web_view"]
         config = config_view.config
         
         font_size = config.get_value("editor.font.size")
@@ -312,17 +270,6 @@ class TextEditorView(ui.View):
         tv.evaluate_javascript("get_editor().getSession().setShowPrintMargin(%s);" % margin)
         tv.evaluate_javascript("get_editor().getSession().setShowInvisibles(%s);" % gutter)
         tv.evaluate_javascript("get_editor().getSession().setTheme(%s);" % style)
-        
-    def webview_did_finish_load(self, textview):
-        self.can_update = True
-        
-        self.threader = SaverThread(self.textview.evaluate_javascript,
-                                    self.superview.fileManager,
-                                    self.pagecontrol,
-                                    self)
-        self.threader.daemon = False
-        self.active = True
-        self.threader.start()
         
     def add_file(self, file_path, file_contents):
         if file_path not in self.filecontrol.segments:
@@ -350,7 +297,6 @@ class TextEditorView(ui.View):
     
     def close_file(self, file):
         print "Closing file: %s" % (file)
-        self.threader.setCanSave(False)
         for page in self.pagecontrol.segments:
             self.pagecontrol.selected_index = self.pagecontrol.segments.indexof(page)
             self.select_page(None)
@@ -372,7 +318,6 @@ class TextEditorView(ui.View):
         
             
     def select_page(self, sender):
-        self.threader.setCanSave(False)
         if self.superview.fileManager:
             name = self.pagecontrol.segments[self.pagecontrol.selected_index]
             file_data = self.superview.fileManager.get_file(name)[1]
@@ -383,11 +328,13 @@ class TextEditorView(ui.View):
                 for file in self.html_parser.files_list:
                     self.add_page(file)
                 self.pagecontrol.selected_index = 0
-                self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/html');")
+                #self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/html');")
             elif name.endswith(".js"):
-                self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/javascript');")
+                pass
+                #self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/javascript');")
             elif name.endswith(".css"):
-                self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/css');")
+                pass
+                #self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/css');")
             
             self.set_editor_value(file_data)
         else:
@@ -395,41 +342,9 @@ class TextEditorView(ui.View):
     
     @ui.in_background        
     def set_editor_value(self, text):
-        print "get_editor(); = %r" % self.textview.evaluate_javascript("editor")
-        
-        attempts = 0
-        MAX_ATTEMPTS = 10
-        while True:
-            self.textview.evaluate_javascript("get_editor().setValue(%r)" % str(text))
-            if text == self.threader.getContents():
-                print ("=" * 10) + "LOAD" + ("=" * 10)
-                print "File Loaded"
-                print "Contents:"
-                print self.threader.getContents()
-                self.threader.setCanSave(True)
-                print self.textview.evaluate_javascript("get_editor().getReadOnly();")
-                print ("=" * 10) + "LOAD" + ("=" * 10)
-                break
-            elif attempts == MAX_ATTEMPTS:
-                print ("=" * 10) + "ERROR" + ("=" * 10)
-                print "Failed to load file in time. Please try again"
-                self.textview.evaluate_javascript("get_editor().setValue(%r)" % "Failed to load file in time. Please try again")
-                print ("=" * 10) + "ERROR" + ("=" * 10)
-                break
-            else:
-                print ("=" * 10) + "ERROR" + ("=" * 10)
-                self.textview.evaluate_javascript("get_editor().setValue(%r)" % "ERROR LOADING FILE...\nWill try again in one (1) second\n%i Trys left" % MAX_ATTEMPTS - attempts)
-                print "ERROR LOADING FILE... Will try again in one (1) second"
-                print "%i Trys left" % MAX_ATTEMPTS - attempts
-                print "File Should be:"
-                print text
-                print ("=" * 10) + "ERROR" + ("=" * 10)
-                time.sleep(1.0)
-            attempts+=1
-        #self.textview.evaluate_javascript("get_editor().setCursor(0, 0);")
-            
-class Delegate(object):
-    pass
+        tv = self["editor_view"].subviews[0]["web_view"]
+        print "get_editor(); = %r" % tv.evaluate_javascript("editor")
+        tv.evaluate_javascript("editor.setValue(%r)" % str(text))
         
 
 class PropertiesView(ui.View):
@@ -437,7 +352,7 @@ class PropertiesView(ui.View):
         ui.View.__init__(self, *args, **kwargs)
     
 
-def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 600)): #  575)):
+def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 600), webdelegate=None):
     try:
         view = ui.load_view("HTMLEditor/__init__")
     except ValueError as e:
@@ -449,12 +364,48 @@ def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 600)
             view = ui.Editor()
     view.frame = frame
     view.set_fv_fm(file_manager, file_viewer)
+    view.size_to_fit()
+    view.set_needs_display()
+    
+    vx,vy,vw,vh = view["contentContainer"]["editor_view"].frame
+    width = vw-vx
+    height = vh-vy
+    
+    if webdelegate:
+        def save_func(contents):
+            save(contents, view["contentContainer"])
+        edit_view = webdelegate.load_console()
+        edit_view["console_input"].delegate = webdelegate.WebViewInputDelegate(edit_view["web_view"])
+        edit_view["web_view"].delegate = webdelegate.WebViewDelegate(save_func, edit_view)
+        edit_view["web_view"].load_url(webdelegate.load_html_editor_view())
+        
+    else:
+        edit_view = ui.WebView()
+        edit_view.name = "web_view"
+        edit_view.flex = "WH"
+        edit_view.load_url("file://%s"%os.path.abspath("../EditView/index.html"))
+        
+    edit_view.size_to_fit()
+    edit_view.frame = (0, 0, width, height)
+    edit_view.set_needs_display()
+    
+    view["contentContainer"]["editor_view"].add_subview(edit_view)
+    view["contentContainer"]["editor_view"].size_to_fit()
+    view["contentContainer"]["editor_view"].set_needs_display()
+
     return view
 
 
 __all__ = ["load_editor", "Editor", "HTMLEdit", "TextEditorView", "PropertiesView"]
 
 if __name__ == "__main__":
-    DEBUG = True
+    DEBUG = False
     view = load_editor()
     view.present("sheet" if DEBUG else "fullscreen", hide_title_bar=not DEBUG)
+    
+    #console_view = WebDelegate.load_console()
+    #console_view["console_input"].delegate = WebDelegate.WebViewInputDelegate(console_view["web_view"])
+    #view = console_view["web_view"]
+    #view.delegate = WebDelegate.WebViewDelegate(WebDelegate.dummy_save, console_view)
+    #view.load_url(WebDelegate.load_html_editor_view())
+    #console_view.present("sheet")

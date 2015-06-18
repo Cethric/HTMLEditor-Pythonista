@@ -311,7 +311,7 @@ class PropertiesView(ui.View):
 ServerEditor = Editor
         
         
-def load_editor(file_manager = None, file_viewer = ui.View(), frame=(0, 0, 540, 575)):
+def load_editor(file_manager = None, file_viewer = ui.View(), frame=(0, 0, 540, 575), webdelegate=None):
     try:
         view = ui.load_view("ServerEditor/__init__")
     except ValueError as e:

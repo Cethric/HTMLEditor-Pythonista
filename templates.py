@@ -1,23 +1,30 @@
-JAVASCRIPT = '''function hello_world() {
+JAVASCRIPT = '''
+function hello_world() {
     alert('hello {}');
-}'''
+}
+'''
                 
-HTML = '''<html>
+HTML = '''
+<html>
     <head>
         <title> Hello {} </title>
     </head>
     <body>
         <p> Hello World </p>
     </body>
-</html>'''
+</html>
+'''
           
-CSS = '''p {
+CSS = '''
+p {
     color: #000000;
-}\n'''
+}
+'''
 
 
 ## TODO - Update the request handler to work for this setup.
-REQUEST_HANDLER = '''class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+REQUEST_HANDLER = '''
+class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_GET(self):
         print self.path
         if self.path in ['', '/', '/index.html']:
@@ -37,4 +44,5 @@ REQUEST_HANDLER = '''class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(file_system['data'][name][0])
             except:
-                pass'''
+                pass
+'''

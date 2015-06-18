@@ -29,7 +29,6 @@ class Config(object):
             print "Config Default"
             
     def save_config(self):
-        #print "saving config %r" % self.config_dict
         plistlib.writePlist(self.config_dict, "config.plist")
         
     def get_value(self, key, default="FAILED_TO_LOAD_PROPERTY"):

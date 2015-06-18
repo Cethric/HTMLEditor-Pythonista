@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <script src="main.js"></script>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=100, initial-scale=1"> 
+        <title>Editor</title>
+        
+        <!-- <link rel=stylesheet href="CodeMirror-5.3.0/lib/codemirror.css">
+        <link rel=stylesheet href="CodeMirror-5.3.0/doc/docs.css"> -->
+        <link rel=stylesheet href="CodeMirror-5.3.0/lib/*.css">
+        <link rel=stylesheet href="CodeMirror-5.3.0/doc/*.css">
+        <script src="CodeMirror-5.3.0/lib/codemirror.js"></script>
+        <script src="CodeMirror-5.3.0/mode/*/*.js"></script>
+        <!-- <script src="CodeMirror-5.3.0/mode/xml/xml.js"></script>
+        <script src="CodeMirror-5.3.0/mode/javascript/javascript.js"></script>
+        <script src="CodeMirror-5.3.0/mode/css/css.js"></script>
+        <script src="CodeMirror-5.3.0/mode/htmlmixed/htmlmixed.js"></script>
+        <script src="CodeMirror-5.3.0/addon/edit/matchbrackets.js"></script> -->
+        <script src="require.js"></script>
+        <script src="JSONStringify/stringify.js"></script>
+        <style type="text/css" media="screen">
+            body {
+                overflow: hidden;
+                -webkit-overflow-scrolling: touch;
+                overflow-y:auto;
+            }
+            .CodeMirror {
+                border: 1px solid #eee;
+                height: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <textarea id="textCTRL"></textarea>
+        <script>
+            var editor = CodeMirror.fromTextArea(document.getElementById("textCTRL"),
+                                                 {
+                                                    value: "",
+                                                    mode: "text/html",
+                                                    theme: "default",
+                                                    indentUnit: 4,
+                                                    smartIndent: true,
+                                                    tabSize: 4,
+                                                    indentWithTabs: false,
+                                                    electricChars: true,
+                                                    //spceialChars: \[]\,
+                                                    //specialCharPlaceholder: function() {},
+                                                    rtlMoveVissually: false,
+                                                    keyMap: "default",
+                                                    //extraKeys: {},
+                                                    lineWrapping: false,
+                                                    lineNumbers: true,
+                                                    firstLineNumber: 1,
+                                                    //lineNumberFormatter: function(line) {return ""},
+                                                    //gutters: {},
+                                                    fixedGutter: true,
+                                                    scrollbarStyle: "native",
+                                                    coverGutterNextToScrollbar: false,
+                                                    inputStyle: "contenteditable",
+                                                    readOnly: false,
+                                                    showCursorWhenSelecting: true,
+                                                    lineWiseCopyCut: true,
+                                                    undoDepth: 250,
+                                                    historyEventDelay: 1250,
+                                                    //tabIndex: 0,
+                                                    autofocus: true,
+                                                    dragDrop: true,
+                                                    cursorBlinkRate: 530,
+                                                    cursorScrollMargin: 0,
+                                                    cursorHeight: 1,
+                                                    resetSelctionOnContextMenu: true,
+                                                    workTime: 200,
+                                                    workDelay: 300,
+                                                    pollInterval: 100,
+                                                    flattenSpans: true,
+                                                    addModeClass: true,
+                                                    maxHighlightLength: 10000,
+                                                    viewportMargin: 100,
+                                                    matchBrackets: true,
+                                                });
+            editor.on("change", function(e, a) {
+                send_to_python("ios-save", "SAVE");
+                console.debug("saving file...")
+            });
+        </script>
+    </body>
+</html>

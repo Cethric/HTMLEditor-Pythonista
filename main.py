@@ -12,8 +12,10 @@ import ServerEditor
 reload(ServerEditor)
 import ConfigManager
 reload(ConfigManager)
+from EditorView import WebDelegate
+reload(WebDelegate)
 
-DEBUG = True
+DEBUG = False
 
 fm = FileManager.Manager()
 fv = FileManager.FileViewer(fm)
@@ -36,14 +38,22 @@ class MainView(ui.View):
         
     def present(self, *args, **kwargs):
         ui.View.present(self, *args, **kwargs)
-        self.htmlEditorView = HTMLEditor.load_editor(fm, fv, (0, 0, self.frame[2], self.frame[3]))
+        print WebDelegate
+        self.htmlEditorView = HTMLEditor.load_editor(fm, fv,
+                                                         (0, 0, self.frame[2], self.frame[3]),
+                                                         WebDelegate
+                                                         )
+        
         self.add_subview(self.htmlEditorView)
         
-        self.serverEditorView = ServerEditor.load_editor(fm, fv, (0, 0, self.frame[2], self.frame[3]))
+        self.serverEditorView = ServerEditor.load_editor(fm, fv,
+                                                         (0, 0, self.frame[2], self.frame[3]),
+                                                          WebDelegate
+                                                          )
         self.add_subview(self.serverEditorView)
         self.set_html_editor()
         
-        self.htmlEditorView.update_config(self.config_view)
+        #self.htmlEditorView.update_config(self.config_view)
         
     def set_html_editor(self):
         self.htmlEditorView.bring_to_front()
@@ -62,10 +72,9 @@ class MainView(ui.View):
         
     def will_close(self):
         print "Goodbye"
-        view.htmlEditorView["contentContainer"].threader.terminate()
+        #view.htmlEditorView["contentContainer"].threader.terminate()
 
 
 if __name__ == "__main__":
     view = ui.load_view()
-    print(dir(view))
     view.present("sheet" if DEBUG else "fullscreen", hide_title_bar=not DEBUG)
