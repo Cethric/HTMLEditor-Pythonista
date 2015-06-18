@@ -64,7 +64,8 @@ class WebViewDelegate(object):
                     contents = f.read()
                     self.webview.eval_js("editor.setValue(%r)" % str(contents))
             else:
-                self.alert(*["error", "Could not open file\n%s" % filename])
+                #self.alert(*["error", "Could not open file\n%s" % filename])
+                print "could not open file: %r" % filename
         except Exception as e:
             print e
     
