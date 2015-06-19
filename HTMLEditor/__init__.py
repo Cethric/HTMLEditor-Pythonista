@@ -406,10 +406,3 @@ if __name__ == "__main__":
     DEBUG = False
     view = load_editor()
     view.present("sheet" if DEBUG else "fullscreen", hide_title_bar=not DEBUG)
-    
-    #console_view = WebDelegate.load_console()
-    #console_view["console_input"].delegate = WebDelegate.WebViewInputDelegate(console_view["web_view"])
-    #view = console_view["web_view"]
-    #view.delegate = WebDelegate.WebViewDelegate(WebDelegate.dummy_save, console_view)
-    #view.load_url(WebDelegate.load_html_editor_view())
-    #console_view.present("sheet")
