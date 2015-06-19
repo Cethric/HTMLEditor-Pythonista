@@ -3,17 +3,17 @@ A basic html editor for the pythonista app
 This is a complete rewrite of the code paying attention to the suggestions and improvements by cclauss
 
 ### Features to include
-+ [] Builtin Customizable lan server
++ [ ] Builtin Customizable lan server
 + [x] ~~Code checker for html, css and js (HTML, JS, CSS are done)~~ this is done by ~~ACE~~ CodeMirror
 + [x] ~~Builtin page previewer~~ Finished for HTML only
-+ [] Dropbox, Onedrive, GoogleDrive, FPT and other cloud based file management services to be incoorperated.
-+ [] Ability to save to zipfile
-+ [] Send webfiles from iDevice to a computer (possibly as a zip and intergrated HTTP server).
++ [ ] Dropbox, Onedrive, GoogleDrive, FPT and other cloud based file management services to be incoorperated.
++ [ ] Ability to save to zipfile
++ [ ] Send webfiles from iDevice to a computer (possibly as a zip and intergrated HTTP server).
 
 ### TODO
-+ [] Code clean up
-+ [] Work on the server side (Thank you [Gerzer][https://github.com/Gerzer])
-+ [] Make the editor a litle but more reliable
++ [ ] Code clean up
++ [ ] Work on the server side (Thank you [Gerzer][https://github.com/Gerzer])
++ [ ] Make the editor a litle but more reliable
 
 ### HTML Editor Features
 + ~~HTML tag completions~~ CodeMirror might not do this...
