@@ -12,7 +12,7 @@ This is a complete rewrite of the code paying attention to the suggestions and i
 
 ### TODO
 + [ ] Code clean up
-+ [ ] Work on the server side (Thank you [Gerzer][https://github.com/Gerzer])
++ [ ] Work on the server side (Thank you [Gerzer](https://github.com/Gerzer))
 + [ ] Make the editor a litle but more reliable
 
 ### HTML Editor Features
