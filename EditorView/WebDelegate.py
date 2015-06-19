@@ -5,18 +5,7 @@ import os
 
 def exception_str(exception):
     return '{}: {}'.format(exception.__class__.__name__, exception)
-
-DUMMY_TEXT = '''
-<!-- Create a simple CodeMirror instance -->
-<link rel="stylesheet" href="lib/codemirror.css">
-<script src="lib/codemirror.js"></script>
-<script>
-  var editor = CodeMirror.fromTextArea(myTextarea, {
-    lineNumbers: true
-  });
-</script>
-'''
-
+    
 def dummy_save(file_contents):
     #print "Saving file with contents %s" % file_contents
     pass
@@ -27,6 +16,7 @@ class WebViewDelegate(object):
         self.console_view = console_view
         self.webview = None
     def webview_should_start_load(self, webview, url, nav_type):
+        self.webview = webview
         if url.startswith('ios'):
             url = urllib.unquote(url)
             url = url.replace("ios-", "")
@@ -44,30 +34,52 @@ class WebViewDelegate(object):
                 self.save(webview)
             elif url.startswith("alert"):
                 self.alert(*url.replace("alert:", "").split(":"))
-            
             return False
+        print "Loading File: ", url
         return True
     def webview_did_start_load(self, webview):
         pass
     def webview_did_finish_load(self, webview):
-        self.webview = webview
+        pass
     def webview_did_fail_load(self, webview, error_code, error_msg):
         print "Webview Error %r %s" % (error_code, error_msg)
         
     def save(self, wv):
         self.save_func(str(wv.eval_js('''editor.getValue();''')))
         
-    def open(self, filename):
+    def open(self, filename, contents):
         try:
             if self.webview:
-                with open(filename, "rb") as f:
-                    contents = f.read()
-                    self.webview.eval_js("editor.setValue(%r)" % str(contents))
+                self.webview.eval_js("editor.setValue(%r)" % str(contents))
+                mode = self.get_mode(filename)
+                self.webview.eval_js("editor.setOption('mode', %r);" % str(mode))
+                self.webview.eval_js("loadMode(%r)" % str(mode))
+                print mode
             else:
                 #self.alert(*["error", "Could not open file\n%s" % filename])
                 print "could not open file: %r" % filename
         except Exception as e:
             print e
+    
+    def get_mode(self,filename):
+        '''return style name used by change_syntax, based on file extension.  '''
+        syntaxes={'css':'css',
+                 'html':'htmlmixed',
+                 'js':'javascript',
+                 'php':'php',
+                 'py':'python',
+                 'vb':'vb',
+                 'xml':'xml',
+                 'sql':'sql',
+                 'pas':'pas',
+                 'pl':'perl',
+                 'md':'markdown'}
+        try:
+            ext=os.path.splitext(filename)[1][1:]
+            syntax=syntaxes[ext]
+        except(KeyError):
+            syntax='html'
+        return syntax
     
     @ui.in_background
     def alert(self, *args):
@@ -137,4 +149,5 @@ if __name__ == "__main__":
     view.delegate = WebViewDelegate(dummy_save, console_view)
     view.load_url(load_html_editor_view())
     console_view.present("sheet")
-    view.delegate.open(load_html_editor_view())
+    with open(os.path.abspath("main.js"), "rb") as f:
+        view.delegate.open(os.path.abspath("main.js"), str(f.read()))

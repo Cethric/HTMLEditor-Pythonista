@@ -5,31 +5,27 @@ function send_to_python(name, param) {
     iframe.parentNode.removeChild(iframe);
     iframe = null;
 }
-
 console.log = function(log) {
-    send_to_python("ios-log", stringify(log));
+    send_to_python("ios-log", log);
 }
 console.debug = function(log) {
-    send_to_python("ios-debug", stringify(log));
+    send_to_python("ios-debug", log);
 }
 console.info = function(log) {
-    send_to_python("ios-info", stringify(log));
+    send_to_python("ios-info", log);
 }
 console.warn = function(log) {
-    send_to_python("ios-warn", stringify(log));
+    send_to_python("ios-warn", log);
 }
 console.error = function(log) {
-    send_to_python("ios-error", stringify(log));
+    send_to_python("ios-error", log);
 }
 console.alert = function(prompt, msg) {
     send_to_python("ios-alert", prompt + ":" + stringify(msg));
 }
-
 window.onerror = (function(error, url, line, col, errorobj) {
    console.error(error + " at " + line + ":" + col);
-   console.error(errorobj)
    console.error(stringify(errorobj));
 });
-
 console.log("logging activated");
-console.log(stringify);
+//console.log(stringify);
