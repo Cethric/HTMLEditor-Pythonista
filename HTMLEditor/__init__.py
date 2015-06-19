@@ -228,6 +228,9 @@ def save(page_contents, tev):
         sindex = tev.pagecontrol.selected_index
         page = tev.pagecontrol.segments[sindex]
         tev.superview.fileManager.add_file(page, page_contents)
+        if page.endswith(".html"):
+            tev.parse_page(None, page, page_contents)
+        
         print "File saved"
         print "%s saved with contents\n%s" % (page, page_contents)
     except Exception as e:
@@ -322,29 +325,28 @@ class TextEditorView(ui.View):
             name = self.pagecontrol.segments[self.pagecontrol.selected_index]
             file_data = self.superview.fileManager.get_file(name)[1]
             if name.endswith(".html"):
-                self.html_parser.feed(file_data)
-                self.pagecontrol.segments = ()
-                self.add_page(name)
-                for file in self.html_parser.files_list:
-                    self.add_page(file)
-                self.pagecontrol.selected_index = 0
-                #self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/html');")
-            elif name.endswith(".js"):
-                pass
-                #self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/javascript');")
-            elif name.endswith(".css"):
-                pass
-                #self.textview.evaluate_javascript("get_editor().getSession().setMode('ace/mode/css');")
+                self.parse_page(sender, name, file_data)
             
             self.set_editor_value(file_data)
         else:
             self.set_editor_value("Error loading file.\nFileManager not found")
     
     @ui.in_background        
+    def parse_page(self, sender, page, file_data):
+        self.html_parser.feed(file_data)
+        self.pagecontrol.segments = ()
+        self.add_page(page)
+        for file in self.html_parser.files_list:
+            self.add_page(file)
+        self.pagecontrol.selected_index = 0
+    
+    @ui.in_background        
     def set_editor_value(self, text):
-        tv = self["editor_view"].subviews[0]["web_view"]
-        print "get_editor(); = %r" % tv.evaluate_javascript("editor")
-        tv.evaluate_javascript("editor.setValue(%r)" % str(text))
+        we = self.subviews[2].subviews[0].subviews[1]
+        print self.subviews[2].subviews[0].subviews[1]
+        name = self.pagecontrol.segments[self.pagecontrol.selected_index]
+        we.delegate.open(name, text)
+        
         
 
 class PropertiesView(ui.View):
@@ -375,10 +377,12 @@ def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 600)
         def save_func(contents):
             save(contents, view["contentContainer"])
         edit_view = webdelegate.load_console()
+        edit_view.name = "WebEditor"
         edit_view["console_input"].delegate = webdelegate.WebViewInputDelegate(edit_view["web_view"])
         edit_view["web_view"].delegate = webdelegate.WebViewDelegate(save_func, edit_view)
         edit_view["web_view"].load_url(webdelegate.load_html_editor_view())
         
+        edit_view["web_view"].delegate.open
     else:
         edit_view = ui.WebView()
         edit_view.name = "web_view"
