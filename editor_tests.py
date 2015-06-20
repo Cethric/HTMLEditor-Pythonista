@@ -1,6 +1,10 @@
 from nose import with_setup
-# {'folder_name': [{'file_name':'data'}, {'folder_name':'contents'}]}
 
+print '''
+############################
+#    FILE MANAGER TESTS    #
+############################
+'''
 Manager = None
 def setup_manager():
     import FileManager
@@ -23,7 +27,6 @@ def teardown_manager():
 def test_manager_add_file():
     m = Manager()
     m.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")
-    return True
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_get_file():
@@ -33,7 +36,7 @@ def test_manager_get_file():
 @with_setup(setup_manager, teardown_manager)
 def test_manager_new_folder():
     m = Manager()
-    print m.new_folder("dir/folder/path")
+    m.new_folder("dir/folder/path")
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_get_folder():
@@ -53,29 +56,72 @@ def test_manager_current_dir():
 @with_setup(setup_manager, teardown_manager)
 def test_manager_walk_directory():
     m = Manager()
-    print m.walk_directory("")
+    m.walk_directory("")
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_set_current_dir():
     m = Manager()
-    print m.set_current_dir("dir1/dir1")
+    m.set_current_dir("dir1/dir1")
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_walk_directory2():
     m = Manager()
-    print m.walk_directory("")
+    m.walk_directory("")
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_go_down_one_level():
     m = Manager()
-    print m.go_down_one_level()
+    m.go_down_one_level()
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_go_to_home():
     m = Manager()
-    print m.go_to_home()
+    m.go_to_home()
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_walk_directory_3():
     m = Manager()
-    print m.walk_directory("")
+    m.walk_directory("")
+
+print '''
+##############################
+#    CONFIG MANAGER TESTS    #
+##############################
+'''
+Config = None
+def setup_config():
+    import ConfigManager
+    global Config
+    Config = ConfigManager.Config
+    
+def setup_config_first():
+    import os
+    os.remove("config.plist")
+    del os
+    import ConfigManager
+    global Config
+    Config = ConfigManager.Config
+    
+def teardown_config():
+    global Config
+    Config = None
+
+@with_setup(setup_config_first, teardown_config)
+def test_config_load_config():
+    c = Config()
+    c.load_config()
+    
+@with_setup(setup_config, teardown_config) 
+def test_config_save_config():
+    c = Config()
+    c.save_config()
+
+@with_setup(setup_config, teardown_config)
+def test_config_set_value():
+    c = Config()
+    c.set_value("editor.font.size", 13)
+
+@with_setup(setup_config, teardown_config)
+def test_config_get_value():
+    c = Config()
+    assert c.get_value("editor.font.size") == 13

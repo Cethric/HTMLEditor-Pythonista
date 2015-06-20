@@ -101,10 +101,6 @@ def load_view(config):
     view = ui.load_view("ConfigManager")
     view.set_config(config)
     return view
-    
-def test():
-    c = Config()
-    c.set_value("editor.font.size", 13)
         
 #if __name__ == "__main__":
 #    c = Config()
