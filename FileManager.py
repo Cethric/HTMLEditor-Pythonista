@@ -420,34 +420,6 @@ class FileViewer(ui.View):
         elif item["d_type"] == FILE:
             self.file_load_callback(item["d_path"], item["d_data"])
         else: raise FileManagerException("Unknow object descriptor %s" % hex(item["d_type"]))
-
-
-def test():
-    m = Manager()
-    print 'm.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")'
-    m.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")
-    print 'print m.get_file("dir1/dir1/test.txt")'
-    print m.get_file("dir1/dir1/test.txt")
-    print 'm.new_folder("dir/folder/path")'
-    m.new_folder("dir/folder/path")
-    print 'm.get_folder("dir/folder/path")'
-    print m.get_folder("dir/folder/path")
-    print 'm.get_folder("dir1/dir1")'
-    print m.get_folder("dir1/dir1")
-    print 'm.current_dir'
-    print m.current_dir
-    print 'm.walk_directory("")'
-    m.walk_directory("")
-    print 'm.set_current_dir("dir1/dir1")'
-    m.set_current_dir("dir1/dir1")
-    print 'm.walk_directory("")'
-    m.walk_directory("")
-    print "m.go_down_one_level()"
-    m.go_down_one_level()
-    print 'm.go_to_home()'
-    m.go_to_home()
-    print 'm.walk_directory("")'
-    m.walk_directory("")
     
 # Simple testing
 #if __name__ == "__main__":
