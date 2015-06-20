@@ -33,7 +33,7 @@ def test_manager_get_file():
 @with_setup(setup_manager, teardown_manager)
 def test_manager_new_folder():
     m = Manager()
-    m.new_folder("dir/folder/path")
+    print m.new_folder("dir/folder/path")
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_get_folder():
@@ -48,34 +48,34 @@ def test_manager_get_folder2():
 @with_setup(setup_manager, teardown_manager)
 def test_manager_current_dir():
     m = Manager()
-    print m.current_dir
+    assert m.current_dir == [{},{'dir1': [{}, {'dir1': [{'test.txt': 'Bassus victrix saepe imperiums galatae est.'}, {}]}], 'dir': [{}, {'folder': [{}, {'path': [{}, {}]}]}]}]
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_walk_directory():
     m = Manager()
-    m.walk_directory("")
+    print m.walk_directory("")
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_set_current_dir():
     m = Manager()
-    m.set_current_dir("dir1/dir1")
+    print m.set_current_dir("dir1/dir1")
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_walk_directory2():
     m = Manager()
-    m.walk_directory("")
+    print m.walk_directory("")
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_go_down_one_level():
     m = Manager()
-    m.go_down_one_level()
+    print m.go_down_one_level()
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_go_to_home():
     m = Manager()
-    m.go_to_home()
+    print m.go_to_home()
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_walk_directory_3():
     m = Manager()
-    m.walk_directory("")
+    print m.walk_directory("")
