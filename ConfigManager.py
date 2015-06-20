@@ -18,7 +18,7 @@ class Config(object):
     def load_config(self):
         try:
             self.config_dict = plistlib.readPlist("config.plist")
-            print "Config Loaded From File"
+            #print "Config Loaded From File"
         except:
             self.config_dict = {
                                 "editor.font.size": 13,
@@ -26,7 +26,7 @@ class Config(object):
                                 "editor.show.gutter": "true",
                                 
                                 }
-            print "Config Default"
+            #print "Config Default"
             
     def save_config(self):
         plistlib.writePlist(self.config_dict, "config.plist")

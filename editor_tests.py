@@ -1,10 +1,6 @@
 from nose import with_setup
 
-print '''
-############################
-#    FILE MANAGER TESTS    #
-############################
-'''
+
 Manager = None
 def setup_manager():
     import FileManager
@@ -12,6 +8,12 @@ def setup_manager():
     Manager = FileManager.Manager
     
 def setup_manager_first():
+    print '''
+############################
+#    FILE MANAGER TESTS    #
+############################
+'''
+
     import os
     os.remove("HTMLEditor.pick")
     del os
@@ -83,11 +85,7 @@ def test_manager_walk_directory_3():
     m = Manager()
     m.walk_directory("")
 
-print '''
-##############################
-#    CONFIG MANAGER TESTS    #
-##############################
-'''
+
 Config = None
 def setup_config():
     import ConfigManager
@@ -95,6 +93,11 @@ def setup_config():
     Config = ConfigManager.Config
     
 def setup_config_first():
+    print '''
+##############################
+#    CONFIG MANAGER TESTS    #
+##############################
+'''
     import os
     os.remove("config.plist")
     del os
