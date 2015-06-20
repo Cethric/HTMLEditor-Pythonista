@@ -1,16 +1,23 @@
 from nose import with_setup
 # {'folder_name': [{'file_name':'data'}, {'folder_name':'contents'}]}
+
+Manager = None
 def setup_manager():
-    from FileManager import Manager
+    import FileManager.Manager
+    global Manager
+    Manager = FileManager.Manager
     
 def setup_manager_first():
     import os
     os.remove("HTMLEditor.pick")
     del os
-    from FileManager import Manager
+    import FileManager.Manager
+    global Manager
+    Manager = FileManager.Manager
     
 def teardown_manager():
-    del Manager
+    global Manager
+    Manager = None
     
 @with_setup(setup_manager_first, teardown_manager)
 def test_manager_add_file():
