@@ -329,6 +329,6 @@ def load_editor(file_manager = None, file_viewer = ui.View(), frame=(0, 0, 540, 
     
 __all__ = ["load_editor", "ServerEditor"]
     
-if __name__ == "__main__":
-    view = load_editor()
-    view.present("fullscreen", hide_title_bar=True)
+#if __name__ == "__main__":
+#    view = load_editor()
+#    view.present("fullscreen", hide_title_bar=True)

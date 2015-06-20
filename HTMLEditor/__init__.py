@@ -402,7 +402,7 @@ def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 600)
 
 __all__ = ["load_editor", "Editor", "HTMLEdit", "TextEditorView", "PropertiesView"]
 
-if __name__ == "__main__":
-    DEBUG = False
-    view = load_editor()
-    view.present("sheet" if DEBUG else "fullscreen", hide_title_bar=not DEBUG)
+#if __name__ == "__main__":
+#    DEBUG = False
+#    view = load_editor()
+#    view.present("sheet" if DEBUG else "fullscreen", hide_title_bar=not DEBUG)

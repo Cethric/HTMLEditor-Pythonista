@@ -101,11 +101,15 @@ def load_view(config):
     view = ui.load_view("ConfigManager")
     view.set_config(config)
     return view
-        
-if __name__ == "__main__":
+    
+def testConfig():
     c = Config()
     c.set_value("editor.font.size", 13)
-    
-    cv = load_view(c)
-    cv.present("sheet")
+        
+#if __name__ == "__main__":
+#    c = Config()
+#    c.set_value("editor.font.size", 13)
+#    
+#    cv = load_view(c)
+#    cv.present("sheet")
 

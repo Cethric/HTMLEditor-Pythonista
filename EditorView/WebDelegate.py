@@ -147,12 +147,12 @@ def load_html_editor_view():
     else:
         return os.path.abspath("EditorView/index.html")
         
-if __name__ == "__main__":
-    console_view = load_console()
-    console_view["console_input"].delegate = WebViewInputDelegate(console_view["web_view"])
-    view = console_view["web_view"]
-    view.delegate = WebViewDelegate(dummy_save, console_view)
-    view.load_url(load_html_editor_view())
-    console_view.present("sheet")
-    with open(os.path.abspath("main.js"), "rb") as f:
-        view.delegate.open(os.path.abspath("main.js"), str(f.read()))
+#if __name__ == "__main__":
+#    console_view = load_console()
+#    console_view["console_input"].delegate = WebViewInputDelegate(console_view["web_view"])
+#    view = console_view["web_view"]
+#    view.delegate = WebViewDelegate(dummy_save, console_view)
+#    view.load_url(load_html_editor_view())
+#    console_view.present("sheet")
+#    with open(os.path.abspath("main.js"), "rb") as f:
+#        view.delegate.open(os.path.abspath("main.js"), str(f.read()))

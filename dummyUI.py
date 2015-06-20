@@ -95,10 +95,3 @@ class ListDataSource(object):
 
 class Image(object):
     pass
-
-if __name__ == "__main__":
-    view = load_view()
-    view.present()
-    print view.width
-    view.width += 100
-    print view.width
