@@ -1,3 +1,4 @@
+from nose import with_setup
 # {'folder_name': [{'file_name':'data'}, {'folder_name':'contents'}]}
 def setup_manager():
     from FileManager import Manager
