@@ -43,7 +43,7 @@ def test_manager_get_folder():
 @with_setup(setup_manager, teardown_manager)
 def test_manager_get_folder2():
     m = Manager()
-    assert m.get_folder("dir1/dir1") == ("dir1", [{}, {}])
+    assert m.get_folder("dir1/dir1") == ("dir1", [{"test.txt": "Bassus victrix saepe imperiums galatae est."}, {}])
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_current_dir():

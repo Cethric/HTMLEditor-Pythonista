@@ -3,4 +3,4 @@ python:
      - "2.6"
      - "2.7"
 
-script: nosetests -v editor_tests.py
+script: nosetests -vs editor_tests.py
