@@ -102,7 +102,7 @@ def load_view(config):
     view.set_config(config)
     return view
     
-def testConfig():
+def test():
     c = Config()
     c.set_value("editor.font.size", 13)
         

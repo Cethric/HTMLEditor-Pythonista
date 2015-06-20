@@ -422,7 +422,7 @@ class FileViewer(ui.View):
         else: raise FileManagerException("Unknow object descriptor %s" % hex(item["d_type"]))
 
 
-def testFileManager():
+def test():
     m = Manager()
     print 'm.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")'
     m.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")
