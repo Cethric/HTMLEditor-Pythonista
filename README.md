@@ -1,4 +1,4 @@
-![[Travis.CI-BuildStatus](https://travis-ci.org/Cethric/HTMLEditor-Pythonista/builds)](https://travis-ci.org/Cethric/HTMLEditor-Pythonista.svg?branch=master)
+[![Travis.CI-BuildStatus](https://travis-ci.org/Cethric/HTMLEditor-Pythonista.svg?branch=master)]((https://travis-ci.org/Cethric/HTMLEditor-Pythonista/builds))
 # HTMLEditor-Pythonista
 A basic html editor for the pythonista app
 This is a complete rewrite of the code paying attention to the suggestions and improvements by cclauss
