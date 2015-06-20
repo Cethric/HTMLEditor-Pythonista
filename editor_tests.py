@@ -3,7 +3,7 @@ from nose import with_setup
 
 Manager = None
 def setup_manager():
-    import FileManager.Manager
+    import FileManager
     global Manager
     Manager = FileManager.Manager
     
@@ -11,7 +11,7 @@ def setup_manager_first():
     import os
     os.remove("HTMLEditor.pick")
     del os
-    import FileManager.Manager
+    import FileManager
     global Manager
     Manager = FileManager.Manager
     
