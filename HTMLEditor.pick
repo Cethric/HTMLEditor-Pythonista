@@ -14,34 +14,30 @@ p9
 (dp11
 S'test.txt'
 p12
-S'Bassus victrix saepe imperiums galatae est.\n'
+S'Bassus victrix saepe imperiums galatae est.'
 p13
 sa(dp14
 asasS'dir'
 p15
 (lp16
 (dp17
-S'test.css'
-p18
-S'\np {\n    color: #000000;\n}\n'
-p19
-sa(dp20
-S'folder'
-p21
-(lp22
-(dp23
-a(dp24
-S'path'
-p25
-(lp26
-(dp27
 S'test.html'
-p28
-S'<html>\n    <head>\n        <title> Hello test.html </title>\n        <script src=\'/dir/folder/path/main.js\'></script>\n        <script>\n            var a = "test";\n        </script>\n    </head>\n    <body>\n    \t<p> Hello World </p>\n    \t<p> Test </p>\n        \n        <script>\n            alert(a);\n            hello_world();\n        </script>\n  \t</body>\n</html>\n'
-p29
-sS'main.js'
-p30
-S"\nfunction hello_world() {\n    alert('hello main.js');\n}\n"
-p31
-sa(dp32
+p18
+S'\n<html>\n    <head>\n        <title> Hello test.html </title>\n        <link href="/dir/test.css" />\n    </head>\n    <body>\n        <p> Hello World </p>\n    </body>\n</html>\n'
+p19
+sS'test.css'
+p20
+S'\np {\n    color: #000000;\n}\n'
+p21
+sa(dp22
+S'folder'
+p23
+(lp24
+(dp25
+a(dp26
+S'path'
+p27
+(lp28
+(dp29
+a(dp30
 asasasas.

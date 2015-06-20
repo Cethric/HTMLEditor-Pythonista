@@ -72,7 +72,6 @@ class MainView(ui.View):
         
     def will_close(self):
         print "Goodbye"
-        #view.htmlEditorView["contentContainer"].threader.terminate()
 
 
 if __name__ == "__main__":

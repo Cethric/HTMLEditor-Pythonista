@@ -1,5 +1,6 @@
 import os
 import copy
+import zipfile
 try:
     import ui
     import console
@@ -27,12 +28,16 @@ def pickle_load(filename):        # reads data out of filename
     with open(filename) as in_file:
         return pickle.load(in_file)
 
+
 # File Data format
 # {'folder_name': [{'file_name':'data'}, {'folder_name':'contents'}]}
 
-
 class FileManagerException(Exception):
     pass
+
+
+FILE = 0x01
+FOLDER = 0x02
 
 
 class Manager(object):
@@ -87,11 +92,8 @@ class Manager(object):
             
     def go_down_one_level(self):
         l = self.current_root.split("/")[0:-2]
-        #print l
         new_dir = "/".join(l)
-        #print new_dir
         if new_dir:
-            #print "reset path"
             self._cd(new_dir, self.current_dir, new_dir, self.current_root)
         
     def go_to_home(self):
@@ -109,7 +111,32 @@ class Manager(object):
         
     def get_current_dir(self):
         return self.current_dir
-
+        
+    def save_as_zip(self, zip_name, path, type=FOLDER):
+        c = self.current_dir
+        if type==FOLDER:
+            d = self.get_folder(path)
+            self._save_zip_data(zip_name, d[1], path)
+        elif type==FILE:
+            f = self.get_file(path)
+            self._save_as_zip(zip_name, [path, f[1]], "w")
+            
+    def _save_zip_data(self, zip_name, base, path):
+        #print "DIR"
+        for dir in base[1]:
+            p = os.path.join(path, dir)
+            self._save_zip_data(zip_name, base[1][dir], p)
+        #print "FILE"
+        for file in base[0]:
+            #print file
+            self._save_as_zip(zip_name, [os.path.join(path, file), base[0][file]])
+        #print base
+        
+    def _save_as_zip(self, zip_name, data, mode="a"):
+        zip_file = zipfile.ZipFile(zip_name, mode, zipfile.ZIP_DEFLATED, True)
+        zip_file.writestr(data[0], data[1])
+        zip_file.close()
+        
     def _add_file(self, name, contents, last):
         name = name.split("/")
         head = name[0]
@@ -146,7 +173,7 @@ class Manager(object):
         head = path[0]
         path.remove(head)
         if head == "":
-            head = name[0]
+            head = path[0]
             path.remove(head)
         tail = path
         if not tail:
@@ -161,7 +188,7 @@ class Manager(object):
         head = path[0]
         path.remove(head)
         if head == "":
-            head = name[0]
+            head = path[0]
             path.remove(head)
         tail = path
         if not tail:
@@ -226,10 +253,7 @@ class Manager(object):
         ncd = self._get_folder(path, last)
         self.current_root = new_cd
         self.current_dir = ncd[1]
-
-FILE = 0x01
-FOLDER = 0x02
-
+        
 
 class AddAction(object):
     def __init__(self, tableview, tableview_data, fileManager):
@@ -274,9 +298,18 @@ class EditAction(object):
         self.tableview.editing = False
         self.tableview.data_source.edit_action = self.edit
         
+        self.tableview.allows_selection_during_editing = True
+        self.tableview.allows_multiple_selection_during_editing = True
+        
     @ui.in_background
     def invoke(self, sender):
         self.tableview.editing = not self.tableview.editing
+        if self.tableview.editing:
+            zipper = ui.ButtonItem(action=self.zipup, image=ui.Image.named("ionicons-ios7-photos-outline-24"))
+            self.tableview.left_button_items = [zipper]
+            
+        else:
+            self.tableview.left_button_items = []
         
     @ui.in_background
     def edit(self, datasource, *args, **kwargs):
@@ -308,6 +341,33 @@ class EditAction(object):
         self.fileManager.save_data()
         self.tableview.reload_data()
         
+    def zipup(self, sender):
+        print "Zipping Data"
+        si = self.tableview.delegate.selected_items
+        if len(si) < 1:
+            self.error_alert("No Selections Made")
+        else:
+            self.zip(si)
+    
+    @ui.in_background
+    def error_alert(self, msg):
+        console.alert("ERROR", msg)
+        
+    @ui.in_background
+    def zip(self, si):
+        try:
+            zn = console.input_alert("Enter the zip file name")
+            if not zn.endswith(".zip"):
+                zn += ".zip"
+            print "Saving contents to the zip %r" % zn
+            for i in si:
+                self.fileManager.save_as_zip(zn, i["d_path"], i["d_type"])
+            
+            print "Saved contents to the zip %r" % zn
+            console.hud_alert("Zipped", "success")
+        except KeyboardInterrupt as e:
+            print "User cancled the procces"
+        
 
 def dummy_file_callback(file_name, file_data):
     print "The file %r was loaded\nContents:\n%s" % (file_name, file_data)
@@ -336,6 +396,8 @@ class FileViewer(ui.View):
         self.navview.set_needs_display()
         self.set_needs_display()
         self.init_list()
+        
+        self.selected_items = []
         
     def init_list(self):
         d = self.fileManager.get_current_dir()
@@ -415,41 +477,52 @@ class FileViewer(ui.View):
     def tableview_did_select(self, tableview, section, row):
         items = tableview.data_source.items
         item = items[row]
-        if item["d_type"] == FOLDER:
-            self.populate_list(item["title"], item["d_path"], item["d_data"])
-        elif item["d_type"] == FILE:
-            self.file_load_callback(item["d_path"], item["d_data"])
-        else: raise FileManagerException("Unknow object descriptor %s" % hex(item["d_type"]))
+        if tableview.editing:
+            self.selected_items.append(item)
+        else:
+            self.selected_items = []
+            if item["d_type"] == FOLDER:
+                self.populate_list(item["title"], item["d_path"], item["d_data"])
+            elif item["d_type"] == FILE:
+                self.file_load_callback(item["d_path"], item["d_data"])
+            else: raise FileManagerException("Unknow object descriptor %s" % hex(item["d_type"]))
+    
+    def tableview_did_deselect(self, tableview, section, row):
+        items = tableview.data_source.items
+        item = items[row]
+        if tableview.editing:
+            self.selected_items.remove(item)
     
 # Simple testing
-#if __name__ == "__main__":
-#    print "running simple file manager tests"
-#    m = Manager()
-#    print 'm.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")'
-#    m.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")
-#    print 'print m.get_file("dir1/dir1/test.txt")'
-#    print m.get_file("dir1/dir1/test.txt")
-#    print 'm.new_folder("dir/folder/path")'
-#    m.new_folder("dir/folder/path")
-#    print 'm.get_folder("dir/folder/path")'
-#    print m.get_folder("dir/folder/path")
-#    print 'm.get_folder("dir1/dir1")'
-#    print m.get_folder("dir1/dir1")
-#    print 'm.current_dir'
-#    print m.current_dir
-#    print 'm.walk_directory("")'
-#    m.walk_directory("")
-#    print 'm.set_current_dir("dir1/dir1")'
-#    m.set_current_dir("dir1/dir1")
-#    print 'm.walk_directory("")'
-#    m.walk_directory("")
-#    print "m.go_down_one_level()"
-#    m.go_down_one_level()
-#    print 'm.go_to_home()'
-#    m.go_to_home()
-#    print 'm.walk_directory("")'
-#    m.walk_directory("")
-#    
-#    print "running file viewer tests"
-#    fv = FileViewer(m)
-#    fv.present("sheet")
+if __name__ == "__main__":
+    print "running simple file manager tests"
+    m = Manager()
+    print 'm.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")'
+    m.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")
+    print 'print m.get_file("dir1/dir1/test.txt")'
+    print m.get_file("dir1/dir1/test.txt")
+    print 'm.new_folder("dir/folder/path")'
+    m.new_folder("dir/folder/path")
+    print 'm.get_folder("dir/folder/path")'
+    print m.get_folder("dir/folder/path")
+    print 'm.get_folder("dir1/dir1")'
+    print m.get_folder("dir1/dir1")
+    print 'm.current_dir'
+    print m.current_dir
+    print 'm.walk_directory("")'
+    m.walk_directory("")
+    print 'm.set_current_dir("dir1/dir1")'
+    m.set_current_dir("dir1/dir1")
+    print 'm.walk_directory("")'
+    m.walk_directory("")
+    print "m.go_down_one_level()"
+    m.go_down_one_level()
+    print 'm.go_to_home()'
+    m.go_to_home()
+    print 'm.walk_directory("")'
+    print m.walk_directory("")
+    print "m.save_as_zip('test.zip', 'dir1/dir1', FOLDER)"
+    m.save_as_zip('test.zip', 'dir1/dir1', FOLDER)
+    print "running file viewer tests"
+    fv = FileViewer(m)
+    fv.present("sheet")

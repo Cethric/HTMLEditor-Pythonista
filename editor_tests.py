@@ -15,7 +15,11 @@ def setup_manager_first():
 '''
 
     import os
-    os.remove("HTMLEditor.pick")
+    try:
+        os.remove("HTMLEditor.pick")
+        os.remove("test.zip")
+    except OSError:
+        pass
     del os
     import FileManager
     global Manager
@@ -85,6 +89,15 @@ def test_manager_walk_directory_3():
     m = Manager()
     m.walk_directory("")
 
+@with_setup(setup_manager, teardown_manager)
+def test_manager_save_zip_dir():
+    m = Manager()
+    m.save_as_zip('test.zip', 'dir1/dir1', 0x02)
+    
+@with_setup(setup_manager, teardown_manager)
+def test_manager_save_zip_file():
+    m = Manager()
+    m.save_as_zip('test.zip', 'dir1/dir1/test.txt', 0x01)
 
 Config = None
 def setup_config():
