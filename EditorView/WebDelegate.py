@@ -91,6 +91,34 @@ class WebViewDelegate(object):
         console.alert(args[0], args[1], "ok")
         
 class WebViewConsole(ui.View):
+    def did_load(self):
+        print "set up"
+        if "EditorView" in os.path.abspath("CodeMirror-5.3.0/addon"):
+            base = os.path.abspath("CodeMirror-5.3.0/addon")
+        else:
+            base = os.path.abspath("EditorView/CodeMirror-5.3.0/addon")
+            
+        for dir in os.listdir(base):
+            d = os.path.join(base, dir)
+            for file in os.listdir(d):
+                if file.endswith(".css"):
+                    self["web_view"].eval_js('''
+                                             var link = document.createElement("LINK");
+                                             link.setAttribute("href", "%s");
+                                             link.setAttribute("type", "text/css");
+                                             link.setAttribute("rel", "stylesheet");
+                                             document.getElementsByTagName("head")[0].appendChild(link);
+                                             ''' % os.path.join(d, file))
+                    print "loaded addon style %r" % file
+                elif file.endswith(".js"):
+                    self["web_view"].eval_js('''
+                                             var script = document.createElement("SCRIPT");
+                                             script.setAttribute("src", "%s");
+                                             script.setAttribute("type", "text/javascript");
+                                             document.getElementsByTagName("head")[0].appendChild(script);
+                                             ''' % os.path.join(d, file))
+                    print "loaded addon script %r" % file
+        
     def log(self, wv, msg):
         self["log_view"].text += "%s\n" % msg
         print "LOGGING MESSAGE ---> " + msg
@@ -147,12 +175,12 @@ def load_html_editor_view():
     else:
         return os.path.abspath("EditorView/index.html")
         
-#if __name__ == "__main__":
-#    console_view = load_console()
-#    console_view["console_input"].delegate = WebViewInputDelegate(console_view["web_view"])
-#    view = console_view["web_view"]
-#    view.delegate = WebViewDelegate(dummy_save, console_view)
-#    view.load_url(load_html_editor_view())
-#    console_view.present("sheet")
-#    with open(os.path.abspath("main.js"), "rb") as f:
-#        view.delegate.open(os.path.abspath("main.js"), str(f.read()))
+if __name__ == "__main__":
+    console_view = load_console()
+    console_view["console_input"].delegate = WebViewInputDelegate(console_view["web_view"])
+    view = console_view["web_view"]
+    view.delegate = WebViewDelegate(dummy_save, console_view)
+    view.load_url(load_html_editor_view())
+    console_view.present("sheet")
+    with open(os.path.abspath("main.js"), "rb") as f:
+        view.delegate.open(os.path.abspath("main.js"), str(f.read()))

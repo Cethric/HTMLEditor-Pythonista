@@ -97,6 +97,8 @@ class Editor(ui.View):
         
     def apply_fileview(self):
         self["fileViewContainer"].add_subview(self.fileViewer)
+        show_hide_file_viewer(self["contentContainer"].subviews[0])
+        show_hide_file_viewer(self["contentContainer"].subviews[0])
         
     def load_file(self, *args):
         self["contentContainer"].add_file(*args)
