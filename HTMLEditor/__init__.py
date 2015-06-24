@@ -5,7 +5,7 @@
 #  from __future__ import (absolute_import, division, print_function, unicode_literals)
 # todo: uncomment the line above and then fix up all the print commands
 import os
-
+import json
 import time
 import HTMLParser
 import threading
@@ -115,7 +115,7 @@ def configure(sender):
     if sss_view:
         sss_view.config_view.present("sheet")
         sss_view.config_view.wait_modal()
-        tv = sender.superview.superview["contentContainer"].textview
+        tv = sender.superview.superview["contentContainer"].subviews[2].subviews[0].subviews[1]
         config = sss_view.config_view.config
 
         font_size = config.get_value("editor.font.size")
@@ -125,19 +125,71 @@ def configure(sender):
         wrap = config.get_value("editor.line.wrap")
         soft_tab = config.get_value("editor.soft.tabs")
         tab_size = config.get_value("editor.tab.size")
-
-        tv.evaluate_javascript("document.getElementById('editor').style.fontSize='%ipx'" % font_size)
-        tv.evaluate_javascript("get_editor().getSession().setTabSize(%s);" % tab_size)
-        tv.evaluate_javascript("get_editor().getSession().setUseSoftTabs(%s);" % soft_tab)
-        tv.evaluate_javascript("get_editor().getSession().setUseWrapMode(%s);" % wrap)
-        tv.evaluate_javascript("get_editor().getSession().setShowPrintMargin(%s);" % margin)
-        tv.evaluate_javascript("get_editor().getSession().setShowInvisibles(%s);" % gutter)
-        tv.evaluate_javascript("get_editor().getSession().setTheme(%s);" % style)
+        
+        fs = '''for (var elm in document.getElementsByClass('.CodeMirror')) {
+    elm.style.font_size = '%ipt';"
+}''' % font_size
+        print fs
+        tv.eval_js(fs)
+        #tv.eval_js("get_editor().getSession().setTabSize(%s);" % tab_size)
+        #tv.eval_js("get_editor().getSession().setUseSoftTabs(%s);" % soft_tab)
+        #tv.eval_js("get_editor().getSession().setUseWrapMode(%s);" % wrap)
+        #tv.eval_js("get_editor().getSession().setShowPrintMargin(%s);" % margin)
+        #tv.eval_js("get_editor().getSession().setShowInvisibles(%s);" % gutter)
+        #tv.eval_js("get_editor().getSession().setTheme(%s);" % style)
+        
+        '''
+            value: "",
+            mode: "htmlmixed",
+            theme: "default",
+            indentUnit: 4,
+            smartIndent: true,
+            tabSize: 4,
+            indentWithTabs: false,
+            electricChars: true,
+            //spceialChars: \[]\,
+            //specialCharPlaceholder: function() {},
+            rtlMoveVissually: false,
+            keyMap: "default",
+            //extraKeys: {},
+            lineWrapping: false,
+            lineNumbers: true,
+            firstLineNumber: 1,
+            //lineNumberFormatter: function(line) {return ""},
+            //gutters: {},
+            fixedGutter: true,
+            scrollbarStyle: "native",
+            coverGutterNextToScrollbar: false,
+            inputStyle: "contenteditable",
+            readOnly: false,
+            showCursorWhenSelecting: true,
+            lineWiseCopyCut: true,
+            undoDepth: 250,
+            historyEventDelay: 1250,
+            //tabIndex: 0,
+            autofocus: true,
+            dragDrop: true,
+            cursorBlinkRate: 530,
+            cursorScrollMargin: 0,
+            cursorHeight: 1,
+            resetSelctionOnContextMenu: true,
+            workTime: 200,
+            workDelay: 300,
+            pollInterval: 100,
+            flattenSpans: true,
+            addModeClass: true,
+            maxHighlightLength: 10000,
+            viewportMargin: 100,
+            matchBrackets: true,
+        '''
     else:
         console.alert("Configuration is only available through the Main View")
 
 
 class TagDelegate (object):
+    def __init__(self, js_eval):
+        self.js_eval = js_eval
+        
     def tableview_did_select(self, tableview, section, row):
         value = tableview.data_source.items[row]
         tableview.close()
@@ -148,18 +200,31 @@ class TagDelegate (object):
         opts.name = "Add Tag: %r" % value["title"]
         y = 10
         for k,v in value["options"].iteritems():
+            print type(v) == type("str")
+            if type(v) == type("str"):
+                t = v
+                v = ui.Label()
+                v.text = t
+            print "NEXT"
             v.name = k
             v.y = y
             v.x = 150
-            v.height = 25
             l = ui.Label()
             l.text = "%s:" % k.title()
             l.y = y
             l.height = 25
             l.x = 20
+            
+            if k=="content":
+                v.width = 350
+                v.height = 300
+                y+=305
+            else:
+                v.width = 200
+                v.height = 25
+                y+=30
             opts.add_subview(l)
             opts.add_subview(v)
-            y+=30
         
         ok_btn = ui.Button()
         ok_btn.title = "Ok"
@@ -170,7 +235,9 @@ class TagDelegate (object):
         ok_btn.action = self.add
         print ok_btn.frame
         opts.add_subview(ok_btn)
-            
+        opts.size_to_fit()
+        w,h = opts.content_size
+        opts.content_size = (w, y+50)
         opts.present("sheet")
         
     @ui.in_background
@@ -178,16 +245,16 @@ class TagDelegate (object):
         try:
             i = sender.superview.subviews
             sender.superview.close()
-            data = {"tag": sender.superview.name[9:].replace("'","")}
+            data = {"type": sender.superview.name[9:].replace("'","")}
             for item in i:
                 try:
                     if item.name:
                         data[item.name] = item.text
                 except AttributeError as e:
                     print exception_str(e)
-            print data
-            
-            self.get_element(data)
+            out = json.dumps(self.get_element(data))
+            print "editor.replaceSelection(%s);" % out
+            self.js_eval("editor.replaceSelection(%s);" % out)
             
             #console.alert("Added Tag at Cursor")
         except KeyboardInterrupt as e:
@@ -195,11 +262,47 @@ class TagDelegate (object):
             print exception_str(e)
     
     def get_element(self, data):
-        if data["tag"] not in ("link", "input"):
-            elm_str = "<%(tag)s id='%(id)s' class='%(class)s'> %(content)s </%(tag)s>" % data
+        print data
+        t = data["type"]
+        del data["type"]
+        tag_open = data["tag-open"]
+        del data["tag-open"]
+        if "content" in data or "tag-close" in data:
+            tag_close = data["tag-close"]
+            del data["tag-close"]
+            if "content" in data:
+                content = data["content"]
+                del data["content"]
+            else:
+                content = ""
+                
+            if tag_open=="p":
+                content = content.replace("\n", "<br/>")
+            prop_str = []
+            for k,v in data.iteritems():
+                if v:
+                    prop_str.append("%s='%s'" % (k, v))
+            if t=="comment":
+                elm_str = "%(tag-open)s %(content)s %(tag-close)s" % {
+                                                                     "tag-open":tag_open,
+                                                                     "tag-close":tag_close,
+                                                                     "content": content,
+                                                                     }
+            else:
+                elm_str = "<%(tag-open)s %(data)s> %(content)s </%(tag-close)s>" % {"tag-open":tag_open,
+                                                                                    "tag-close":tag_close,
+                                                                                    "content":content,
+                                                                                    "data":" ".join(prop_str),
+                                                                                     }
         else:
-            elm_str = "<%(tag)s id='%(id)s' class='%(class)s' href='%(href)s' />" % data
-        print elm_str
+            prop_str = []
+            for k,v in data.iteritems():
+                if v:
+                    prop_str.append("%s='%s'" % (k, v))
+            elm_str = "<%(tag-open)s %(data)s />" % {"tag-open": tag_open,
+                                                     "data": " ".join(prop_str),
+                                                    }
+        return elm_str# + "\n"
 
     def tableview_did_deselect(self, tableview, section, row):
         # Called  when a row was de-selected (in multiple selection mode).
@@ -209,46 +312,358 @@ class TagDelegate (object):
         # Return the title for the 'swipe-to-***' button.
         return 'Delete'
 
+GLOBAL_HTML_ATTR = {
+                    "id":ui.TextField(),
+                    "class":ui.TextField(),
+                    "name":ui.TextField(),
+                    "title":ui.TextField(),
+                    }
 
 @ui.in_background
 def add_tag(sender):
     v = ui.TableView()
-    we = sender.superview.superview["contentContainer"].subviews[2].subviews[0].subviews[1]
-    print we.eval_js("editor.insert('<p>test</p>');")
     v.data_source = ui.ListDataSource([
-                                       {"title":"p", "options": {
-                                                                 "content":ui.TextField(),
-                                                                 "id":ui.TextField(),
-                                                                 "class":ui.TextField(),
-                                                                 }
-                                        },
-                                       {"title":"link", "options": {
-                                                                    "id":ui.TextField(),
-                                                                    "class":ui.TextField(),
-                                                                    "href":ui.TextField(),
-                                                                    "type":ui.TextField(),
-                                                                    "rel":ui.TextField(),
-                                                                    }
-                                        },
-                                       {"title": "script", "options": {
-                                                                       "content":ui.TextField(),
-                                                                       "id":ui.TextField(),
-                                                                       "class":ui.TextField(),
-                                                                       "src": ui.TextField(),
-                                                                       "rel": ui.TextField(),
-                                                                       "type": ui.TextField(),
-                                                                       }
-                                        },
-                                       {"title": "style", "options": {
-                                                                      "content":ui.TextField(),
-                                                                      "id":ui.TextField(),
-                                                                      "class":ui.TextField(),
-                                                                      }}
+                                       {"title": "anchor",
+                                        "options": dict({
+                                                    "tag-open":"a",
+                                                    "tag-close":"a",
+                                                    "content":ui.TextField(),
+                                                    "charset":ui.TextField(),
+                                                    "coords":ui.TextField(),
+                                                    "download":ui.TextField(),
+                                                    "href":ui.TextField(),
+                                                    "hreflang":ui.TextField(),
+                                                    "media":ui.TextField(),
+                                                    "rel":ui.TextField(),
+                                                    "rev":ui.TextField(),
+                                                    "shape":ui.TextField(),
+                                                    "target":ui.TextField(),
+                                                    "type":ui.TextField(),
+                                                    }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"abbreviation",
+                                        "options": dict({
+                                                         "tag-open":"abbr",
+                                                         "tag-close":"abbr",
+                                                         "content":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"acronym - (Not Avaliable in HTML5)",
+                                        "options": dict({
+                                                         "tag-open":"acronym",
+                                                         "tag-close":"acronym",
+                                                         "contents":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"address",
+                                        "options": dict({
+                                                         "tag-open":"address",
+                                                         "tag-close":"address",
+                                                         "content":ui.TextView(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"applet - (Not Avaliable in HTML5)",
+                                        "options": dict({
+                                                         "tag-open":"applet",
+                                                         "tag-close":"applet",
+                                                         "content":"",
+                                                         "code":ui.TextField(),
+                                                         "object":ui.TextField(),
+                                                         "align":ui.TextField(),
+                                                         "alt":ui.TextField(),
+                                                         "archive":ui.TextField(),
+                                                         "codebase":ui.TextField(),
+                                                         "height":ui.TextField(),
+                                                         "hspace":ui.TextField(),
+                                                         "vspace":ui.TextField(),
+                                                         "width":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"area",
+                                        "options": dict({
+                                                         "tag-open":"area",
+                                                         "tag-close":"area",
+                                                         "alt":ui.TextField(),
+                                                         "coords":ui.TextField(),
+                                                         "download":ui.TextField(),
+                                                         "href":ui.TextField(),
+                                                         "hreflang":ui.TextField(),
+                                                         "media":ui.TextField(),
+                                                         "nohref":ui.TextField(),
+                                                         "rel":ui.TextField(),
+                                                         "shape":ui.TextField(),
+                                                         "target":ui.TextField(),
+                                                         "type":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"article",
+                                        "options": dict({
+                                                         "tag-open":"article",
+                                                         "tag-close":"article",
+                                                         "content":ui.TextView(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"aside",
+                                        "options": dict({
+                                                         "tag-open":"aside",
+                                                         "tag-close":"aside",
+                                                         "content":ui.TextView()
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"audio",
+                                        "options": dict({
+                                                         "tag-open":"audio",
+                                                         "tag-close":"audio",
+                                                         "content":ui.TextField(),
+                                                         "preload":ui.TextField(),
+                                                         "src":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"bold",
+                                        "options": dict({
+                                                         "tag-open":"b",
+                                                         "tag-close":"b",
+                                                         "content":ui.TextView(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"base",
+                                        "options": dict({
+                                                         "tag-open":"base",
+                                                         "tag-close":"base",
+                                                         "href":ui.TextField(),
+                                                         "target":ui.TextField(),
+                                                         "content":"",
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"basefont - (Not Avaliable in HTML5)",
+                                        "options": dict({
+                                                         "tag-open":"basefont",
+                                                         "tag-close":"basefont",
+                                                         "content":"",
+                                                         "color":ui.TextField(),
+                                                         "face":ui.TextField(),
+                                                         "size":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"Bi-directional Isolation",
+                                        "options": dict({
+                                                         "tag-open":"bdi",
+                                                         "tag-close":"bdi",
+                                                         "content":ui.TextView(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"Bi-directional Override",
+                                        "options": dict({
+                                                         "tag-open":"bdo",
+                                                         "tag-close":"bdo",
+                                                         "content":ui.TextView(),
+                                                         "dir":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"big - (Not Avaliable in HTML5)",
+                                        "options": dict({
+                                                         "tag-open":"big",
+                                                         "tag-close":"big",
+                                                         "content":ui.TextView(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"blockquote",
+                                        "options": dict({
+                                                         "tag-open":"blockquote",
+                                                         "tag-close":"blockquote",
+                                                         "content":ui.TextView(),
+                                                         "cite":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"body",
+                                        "options": dict({
+                                                         "tag-open":"body",
+                                                         "tag-close":"body",
+                                                         "content":ui.TextView(),
+                                                         "alink":ui.TextField(),
+                                                         "background":ui.TextField(),
+                                                         "bgcolor":ui.TextField(),
+                                                         "link":ui.TextField(),
+                                                         "text":ui.TextField(),
+                                                         "vlink":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"line break",
+                                        "options": dict({
+                                                         "tag-open":"br",
+                                                         "tag-close":"br",
+                                                         "content":ui.TextView(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"button",
+                                        "options": dict({
+                                                         "tag-open":"button",
+                                                         "tag-close":"button",
+                                                         "content":ui.TextField(),
+                                                         "autofocus":ui.TextField(),
+                                                         "disabled":ui.TextField(),
+                                                         "form":ui.TextField(),
+                                                         "formaction":ui.TextField(),
+                                                         "formenctype":ui.TextField(),
+                                                         "formmethod":ui.TextField(),
+                                                         "formnovalidate":ui.TextField(),
+                                                         "formtarget":ui.TextField(),
+                                                         "name":ui.TextField(),
+                                                         "type":ui.TextField(),
+                                                         "value":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"canvas",
+                                        "options": dict({
+                                                         "tag-open":"canvas",
+                                                         "tag-close":"canvas",
+                                                         "content":ui.TextField(),
+                                                         "height":ui.TextField(),
+                                                         "width":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"caption",
+                                        "options": dict({
+                                                         "tag-open":"caption",
+                                                         "tag-close":"caption",
+                                                         "content":ui.TextView(),
+                                                         "align":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"center",
+                                        "options": dict({
+                                                         "tag-open":"center",
+                                                         "tag-close":"center",
+                                                         "content":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"cite",
+                                        "options": dict({
+                                                         "tag-open":"cite",
+                                                         "tag-close":"cite",
+                                                         "content":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"code - (CSS Provides Richer Effects)",
+                                        "options": dict({
+                                                         "tag-open":"code",
+                                                         "tag-close":"code",
+                                                         "content":ui.TextView(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"col",
+                                        "options": dict({
+                                                         "tag-open":"col",
+                                                         "align":ui.TextField(),
+                                                         "char":ui.TextField(),
+                                                         "charoff":ui.TextField(),
+                                                         "span":ui.TextField(),
+                                                         "valign":ui.TextField(),
+                                                         "width":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"colgroup",
+                                        "options": dict({
+                                                         "tag-open":"colgroup",
+                                                         "tag-close":"colgroup",
+                                                         "content":ui.TextField(),
+                                                         "align":ui.TextField(),
+                                                         "char":ui.TextField(),
+                                                         "charoff":ui.TextField(),
+                                                         "span":ui.TextField(),
+                                                         "valign":ui.TextField(),
+                                                         "width":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"datalist",
+                                        "options": dict({
+                                                         "tag-open":"datalist",
+                                                         "tag-close":"datalist",
+                                                         "content":ui.TextView(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"Description (dd)",
+                                        "options": dict({
+                                                         "tag-open":"dd",
+                                                         "tag-close":"dd",
+                                                         "content":ui.TextView(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"delete (del)",
+                                        "options": dict({
+                                                         "tag-open":"del",
+                                                         "tag-close":"del",
+                                                         "content":ui.TextView(),
+                                                         "cite":ui.TextField(),
+                                                         "datetime":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"details",
+                                        "options": dict({
+                                                         "tag-open":"details",
+                                                         "tag-close":"details",
+                                                         "content":ui.TextView(),
+                                                         "open":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"definition (dfn)",
+                                        "options": dict({
+                                                         "tag-open":"dfn",
+                                                         "tag-close":"dfn",
+                                                         "content":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"dialog",
+                                        "options": dict({
+                                                         "tag-open":"dialog",
+                                                         "tag-close":"dialog",
+                                                         "content":ui.TextView(),
+                                                         "open":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"dir - (Not Avaliable in HTML5)",
+                                        "options": dict({
+                                                         "tag-open":"dir",
+                                                         "tag-close":"dir",
+                                                         "content":ui.TextField(),
+                                                         "compact":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"div",
+                                        "options": dict({
+                                                         "tag-open":"div",
+                                                         "tag-close":"div",
+                                                         "content":ui.TextView(),
+                                                         "align":ui.TextField(),
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"description list (dl)",
+                                        "options": dict({
+                                                         "tag-open":"dl",
+                                                         "tag-close":"dl",
+                                                         "content":ui.TextField(),
+                                                         ""
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"description term (dt)",
+                                        "options": dict({
+                                                         "tag-open":"dt",
+                                                         "tag-close":"dt",
+                                                         "content":ui.TextField(),
+                                                         ""
+                                                         }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"link",
+                                        "options": dict({
+                                                    "tag-open":"link",
+                                                    "href":ui.TextField(),
+                                                    "type":ui.TextField(),
+                                                    "rel":ui.TextField(),
+                                                    }, **GLOBAL_HTML_ATTR)},
+                                       {"title":"paragraph",
+                                        "options": dict({
+                                                    "tag-open":"p",
+                                                    "tag-close":"p",
+                                                    "content":ui.TextView(),
+                                                    }, **GLOBAL_HTML_ATTR)},
+                                       {"title": "script",
+                                        "options": dict({
+                                                    "tag-open":"script",
+                                                    "tag-close":"script",
+                                                    "content":ui.TextView(),
+                                                    "src": ui.TextField(),
+                                                    "rel": ui.TextField(),
+                                                    "type": ui.TextField(),
+                                                    }, **GLOBAL_HTML_ATTR)},
+                                       {"title": "style",
+                                        "options": dict({
+                                                    "tag-open":"style",
+                                                    "tag-close":"style",
+                                                    "content":ui.TextView(),
+                                                    }, **GLOBAL_HTML_ATTR)},
+                                        {"title": "comment",
+                                         "options": {
+                                                     "tag-open":"<!--",
+                                                     "tag-close":"-->",
+                                                     "content":ui.TextView(),
+                                                     }},
                                        ])
-    v.delegate = TagDelegate()
+    try:
+        we = sender.superview.superview["contentContainer"].subviews[2].subviews[0].subviews[1]
+    except IndexError as e:
+        print exception_str(e)
+        we = ui.WebView()
+    v.delegate = TagDelegate(we.eval_js)
+    v.name = "Add Tag"
+    v.width = 350
+    v.height = 500
     v.present("popover", popover_location=(sender.superview.x, sender.superview.y))
     v.wait_modal()
-
+    
 
 class Editor(ui.View):
     def __init__(self, *args, **kwargs):
@@ -433,11 +848,15 @@ class TextEditorView(ui.View):
     @ui.in_background
     def parse_page(self, sender, page, file_data):
         self.html_parser.feed(file_data)
-        self.pagecontrol.segments = ()
-        self.add_page(page)
-        for file in self.html_parser.files_list:
-            self.add_page(file)
-        self.pagecontrol.selected_index = 0
+        print self.html_parser.files_list
+        print list(self.pagecontrol.segments[1:])
+        if self.html_parser.files_list != list(self.pagecontrol.segments[1:]):
+            self.pagecontrol.segments = ()
+            self.add_page(page)
+            for file in self.html_parser.files_list:
+                if file:
+                    self.add_page(file)
+            self.pagecontrol.selected_index = 0
 
     @ui.in_background
     def set_editor_value(self, text):

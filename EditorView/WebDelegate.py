@@ -59,9 +59,7 @@ class WebViewDelegate(object):
                 mode = self.get_mode(filename)
                 self.webview.eval_js("editor.setOption('mode', %r);" % str(mode))
                 self.webview.eval_js("loadMode(%r)" % str(mode))
-                print mode
             else:
-                #self.alert(*["error", "Could not open file\n%s" % filename])
                 print "could not open file: %r" % filename
         except Exception as e:
             print e
@@ -182,5 +180,5 @@ if __name__ == "__main__":
     view.delegate = WebViewDelegate(dummy_save, console_view)
     view.load_url(load_html_editor_view())
     console_view.present("sheet")
-    with open(os.path.abspath("main.js"), "rb") as f:
-        view.delegate.open(os.path.abspath("main.js"), str(f.read()))
+    with open(os.path.abspath("CodeMirror-5.3.0/lib/codemirror.js"), "rb") as f:
+        view.delegate.open(os.path.abspath("CodeMirror-5.3.0/lib/codemirror.js"), str(f.read()))
