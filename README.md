@@ -7,7 +7,7 @@ This is a complete rewrite of the code paying attention to the suggestions and i
 + [ ] Builtin Customizable lan server
 + [x] ~~Code checker for html, css and js (HTML, JS, CSS are done)~~ this is done by ~~ACE~~ CodeMirror
 + [x] ~~Builtin page previewer~~ Finished for HTML only
-+ [ ] Dropbox, Onedrive, GoogleDrive, FPT and other cloud based file management services to be incoorperated.
++ [ ] Dropbox, Onedrive, GoogleDrive, FTP and other cloud based file management services to be incoorperated.
 + [x] Ability to save to zipfile
 + [ ] Send webfiles from iDevice to a computer (possibly as a zip and intergrated HTTP server).
 
