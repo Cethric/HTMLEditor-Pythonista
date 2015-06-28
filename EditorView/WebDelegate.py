@@ -16,10 +16,11 @@ def dummy_save(file_contents):
     pass
 
 class WebViewDelegate(object):
-    def __init__(self, save_func, console_view):
+    def __init__(self, save_func, console_view, load_callback=None):
         self.save_func = save_func
         self.console_view = console_view
         self.webview = None
+        self.load_callback = load_callback
     def webview_should_start_load(self, webview, url, nav_type):
         self.webview = webview
         if url.startswith('ios'):
@@ -45,12 +46,14 @@ class WebViewDelegate(object):
     def webview_did_start_load(self, webview):
         pass
     def webview_did_finish_load(self, webview):
-        pass
+        if self.load_callback:
+            self.load_callback()
     def webview_did_fail_load(self, webview, error_code, error_msg):
         print "Webview Error %r %s" % (error_code, error_msg)
         
     def save(self, wv):
-        self.save_func(str(wv.eval_js('''editor.getValue();''')))
+        if self.save_func:
+            self.save_func(str(wv.eval_js('''editor.getValue();''')))
         
     def open(self, filename, contents):
         try:
@@ -89,7 +92,7 @@ class WebViewDelegate(object):
         console.alert(args[0], args[1], "ok")
         
 class WebViewConsole(ui.View):
-    def did_load(self):
+    def load_addons(self):
         print "set up"
         if "EditorView" in os.path.abspath("CodeMirror-5.3.0/addon"):
             base = os.path.abspath("CodeMirror-5.3.0/addon")
@@ -138,7 +141,7 @@ class WebViewInputDelegate(object):
         textfield.text = ""
         return True
 
-def load_console(frame=(0, 0, 540, 575)):
+def load_console(frame=(0, 0, 540, 575), load_addons=True):
     try:
         view = ui.load_view("EditorView/EditorViewConsole")
     except ValueError as e:
@@ -148,6 +151,8 @@ def load_console(frame=(0, 0, 540, 575)):
         except ValueError as e:
             print "Attempt 2 'EditorViewConsole' failed " + exception_str(e)
             view = WebViewConsole()
+    if load_addons:
+        view.load_addons()
     print "Setting Frame"
     view.frame = frame
     print "Done"
@@ -172,6 +177,12 @@ def load_html_editor_view():
         return os.path.abspath("index.html")
     else:
         return os.path.abspath("EditorView/index.html")
+        
+def load_html_preview_template():
+    if "EditorView" in os.path.abspath("template.html"):
+        return os.path.abspath("template.html")
+    else:
+        return os.path.abspath("EditorView/template.html")
         
 if __name__ == "__main__":
     console_view = load_console()

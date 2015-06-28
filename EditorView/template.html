@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=100, initial-scale=1"> 
+        <title>Preview</title>
+        
+        <script src="require.js" type="text/javascript" rel="javascript"></script>
+        <script src="JSONStringify/stringify.js" type="text/javascript" rel="javascript"></script>
+        <script src="main.js" type="text/javascript" rel="javascript"></script>
+        
+    </head>
+    <body>
+        <div id='preview'> </div>
+        <script>
+            function load(contents) {
+                var v = document.getElementById('preview');
+                v.innerHTML = contents
+            }
+        </script>
+    </body>
+</html>

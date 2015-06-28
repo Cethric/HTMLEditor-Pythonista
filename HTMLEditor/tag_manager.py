@@ -1,4 +1,20 @@
 import ui
+import json
+
+
+OPTION_FIELD_TEXT = 0x01
+OPTION_FIELD_DROPDOWN = 0x02
+OPTION_FIELD_NUMBER = 0x04
+OPTION_FIELD_NONE = 0x08
+
+class OptionField(ui.View):
+    def __init__(self,
+                 input_type=OPTION_FIELD_TEXT,
+                 placeholder="",
+                 description="",
+                 html5compat=False,
+                 *args, **kwargs):
+        ui.View.__init__(self, *args, **kwargs)
 
 GLOBAL_HTML_ATTR = {
                     "accesskey":ui.TextField(),
@@ -18,6 +34,10 @@ GLOBAL_HTML_ATTR = {
                     "translate":ui.TextField(),
                     "name":ui.TextField(),
                     }
+                    
+MISC_HTML_ATTR = {
+                  "newlinechar":ui.TextField(),
+                  }
 
 WINDOW_EVENTS = {
                  "onafterprint":ui.TextField(),
@@ -113,69 +133,61 @@ MISC_EVENTS = {
                "onshow":ui.TextField(),
                "ontoggle":ui.TextField(),
                }
-               
-ALL_EVENTS = dict(WINDOW_EVENTS,
-                  **dict(FORM_EVENTS,
-                         **dict(KEYBOARD_EVENTS,
-                                **dict(MOUSE_EVENTS,
-                                       **dict(CLIPBOARD_EVENTS,
-                                              **dict(MEDIA_EVENTS,
-                                                     **MISC_EVENTS))))))
 
 TAGS = [
         {"title": "anchor",
-         "options": dict({
-                     "tag-open":"a",
-                     "tag-close":"a",
-                     "content":ui.TextField(),
-                     "charset":ui.TextField(),
-                     "coords":ui.TextField(),
-                     "download":ui.TextField(),
-                     "href":ui.TextField(),
-                     "hreflang":ui.TextField(),
-                     "media":ui.TextField(),
-                     "rel":ui.TextField(),
-                     "rev":ui.TextField(),
-                     "shape":ui.TextField(),
-                     "target":ui.TextField(),
-                     "type":ui.TextField(),
-                     }, **GLOBAL_HTML_ATTR)},
+         "options": {
+                         "tag-open":"a",
+                         "tag-close":"a",
+                         "content":ui.TextField(),
+                         "charset":ui.TextField(),
+                         "coords":ui.TextField(),
+                         "download":ui.TextField(),
+                         "href":ui.TextField(),
+                         "hreflang":ui.TextField(),
+                         "media":ui.TextField(),
+                         "rel":ui.TextField(),
+                         "rev":ui.TextField(),
+                         "shape":ui.TextField(),
+                         "target":ui.TextField(),
+                         "type":ui.TextField(),
+                         }},
         {"title":"abbreviation",
-         "options": dict({
+         "options": {
                           "tag-open":"abbr",
                           "tag-close":"abbr",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"acronym - (Not Avaliable in HTML5)",
-         "options": dict({
+         "options": {
                           "tag-open":"acronym",
                           "tag-close":"acronym",
                           "contents":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"address",
-         "options": dict({
+         "options": {
                           "tag-open":"address",
                           "tag-close":"address",
                           "content":ui.TextView(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"applet - (Not Avaliable in HTML5)",
-         "options": dict({
-                          "tag-open":"applet",
-                          "tag-close":"applet",
-                          "content":"",
-                          "code":ui.TextField(),
-                          "object":ui.TextField(),
-                          "align":ui.TextField(),
-                          "alt":ui.TextField(),
-                          "archive":ui.TextField(),
-                          "codebase":ui.TextField(),
-                          "height":ui.TextField(),
-                          "hspace":ui.TextField(),
-                          "vspace":ui.TextField(),
-                          "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+         "options": {
+                    "tag-open":"applet",
+                    "tag-close":"applet",
+                    "content":"",
+                    "code":ui.TextField(),
+                    "object":ui.TextField(),
+                    "align":ui.TextField(),
+                    "alt":ui.TextField(),
+                    "archive":ui.TextField(),
+                    "codebase":ui.TextField(),
+                    "height":ui.TextField(),
+                    "hspace":ui.TextField(),
+                    "vspace":ui.TextField(),
+                    "width":ui.TextField(),
+                    }},
         {"title":"area",
-         "options": dict({
+         "options": {
                           "tag-open":"area",
                           "tag-close":"area",
                           "alt":ui.TextField(),
@@ -189,78 +201,78 @@ TAGS = [
                           "shape":ui.TextField(),
                           "target":ui.TextField(),
                           "type":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"article",
-         "options": dict({
+         "options": {
                           "tag-open":"article",
                           "tag-close":"article",
                           "content":ui.TextView(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"aside",
-         "options": dict({
+         "options": {
                           "tag-open":"aside",
                           "tag-close":"aside",
                           "content":ui.TextView()
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"audio",
-         "options": dict({
+         "options": {
                           "tag-open":"audio",
                           "tag-close":"audio",
                           "content":ui.TextField(),
                           "preload":ui.TextField(),
                           "src":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"bold",
-         "options": dict({
+         "options": {
                           "tag-open":"b",
                           "tag-close":"b",
                           "content":ui.TextView(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"base",
-         "options": dict({
+         "options": {
                           "tag-open":"base",
                           "tag-close":"base",
                           "href":ui.TextField(),
                           "target":ui.TextField(),
                           "content":"",
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"basefont - (Not Avaliable in HTML5)",
-         "options": dict({
+         "options": {
                           "tag-open":"basefont",
                           "tag-close":"basefont",
                           "content":"",
                           "color":ui.TextField(),
                           "face":ui.TextField(),
                           "size":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"Bi-directional Isolation",
-         "options": dict({
+         "options": {
                           "tag-open":"bdi",
                           "tag-close":"bdi",
                           "content":ui.TextView(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"Bi-directional Override",
-         "options": dict({
+         "options": {
                           "tag-open":"bdo",
                           "tag-close":"bdo",
                           "content":ui.TextView(),
                           "dir":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"big - (Not Avaliable in HTML5)",
-         "options": dict({
+         "options": {
                           "tag-open":"big",
                           "tag-close":"big",
                           "content":ui.TextView(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"blockquote",
-         "options": dict({
+         "options": {
                           "tag-open":"blockquote",
                           "tag-close":"blockquote",
                           "content":ui.TextView(),
                           "cite":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"body",
-         "options": dict({
+         "options": {
                           "tag-open":"body",
                           "tag-close":"body",
                           "content":ui.TextView(),
@@ -270,15 +282,15 @@ TAGS = [
                           "link":ui.TextField(),
                           "text":ui.TextField(),
                           "vlink":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"line break",
-         "options": dict({
+         "options": {
                           "tag-open":"br",
                           "tag-close":"br",
                           "content":ui.TextView(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"button",
-         "options": dict({
+         "options": {
                           "tag-open":"button",
                           "tag-close":"button",
                           "content":ui.TextField(),
@@ -293,42 +305,42 @@ TAGS = [
                           "name":ui.TextField(),
                           "type":ui.TextField(),
                           "value":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"canvas",
-         "options": dict({
+         "options": {
                           "tag-open":"canvas",
                           "tag-close":"canvas",
                           "content":ui.TextField(),
                           "height":ui.TextField(),
                           "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"caption",
-         "options": dict({
+         "options": {
                           "tag-open":"caption",
                           "tag-close":"caption",
                           "content":ui.TextView(),
                           "align":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"center",
-         "options": dict({
+         "options": {
                           "tag-open":"center",
                           "tag-close":"center",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"cite",
-         "options": dict({
+         "options": {
                           "tag-open":"cite",
                           "tag-close":"cite",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"code - (CSS Provides Richer Effects)",
-         "options": dict({
+         "options": {
                           "tag-open":"code",
                           "tag-close":"code",
                           "content":ui.TextView(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"col",
-         "options": dict({
+         "options": {
                           "tag-open":"col",
                           "align":ui.TextField(),
                           "char":ui.TextField(),
@@ -336,9 +348,9 @@ TAGS = [
                           "span":ui.TextField(),
                           "valign":ui.TextField(),
                           "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"colgroup",
-         "options": dict({
+         "options": {
                           "tag-open":"colgroup",
                           "tag-close":"colgroup",
                           "content":ui.TextField(),
@@ -348,81 +360,81 @@ TAGS = [
                           "span":ui.TextField(),
                           "valign":ui.TextField(),
                           "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"datalist",
-         "options": dict({
+         "options": {
                           "tag-open":"datalist",
                           "tag-close":"datalist",
                           "content":ui.TextView(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"Description (dd)",
-         "options": dict({
+         "options": {
                           "tag-open":"dd",
                           "tag-close":"dd",
                           "content":ui.TextView(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"delete (del)",
-         "options": dict({
+         "options": {
                           "tag-open":"del",
                           "tag-close":"del",
                           "content":ui.TextView(),
                           "cite":ui.TextField(),
                           "datetime":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"details",
-         "options": dict({
+         "options": {
                           "tag-open":"details",
                           "tag-close":"details",
                           "content":ui.TextView(),
                           "open":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"definition (dfn)",
-         "options": dict({
+         "options": {
                           "tag-open":"dfn",
                           "tag-close":"dfn",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"dialog",
-         "options": dict({
+         "options": {
                           "tag-open":"dialog",
                           "tag-close":"dialog",
                           "content":ui.TextView(),
                           "open":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"dir - (Not Avaliable in HTML5)",
-         "options": dict({
+         "options": {
                           "tag-open":"dir",
                           "tag-close":"dir",
                           "content":ui.TextField(),
                           "compact":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"div",
-         "options": dict({
+         "options": {
                           "tag-open":"div",
                           "tag-close":"div",
                           "content":ui.TextView(),
                           "align":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"description list (dl)",
-         "options": dict({
+         "options": {
                           "tag-open":"dl",
                           "tag-close":"dl",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"description term (dt)",
-         "options": dict({
+         "options": {
                           "tag-open":"dt",
                           "tag-close":"dt",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"emphasis - em (Richer effects attained with CSS)",
-         "options": dict({
+         "options": {
                           "tag-open":"em",
                           "tag-close":"em",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"embed",
-         "options": dict({
+         "options": {
                           "tag-open":"embed",
                           "tag-close":"embed",
                           "content":ui.TextField(),
@@ -430,46 +442,46 @@ TAGS = [
                           "src":ui.TextField(),
                           "type":ui.TextField(),
                           "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"fieldset",
-         "options": dict({
+         "options": {
                           "tag-open":"fieldset",
                           "tag-close":"fieldset",
                           "content":ui.TextView(),
                           "disabled":ui.TextField(),
                           "form_id":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"figcaption",
-         "options": dict({
+         "options": {
                           "tag-open":"figcaption",
                           "tag-close":"figcaption",
                           "content":ui.TextField(),
         
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"figure",
-         "options": dict({
+         "options": {
                           "tag-open":"figure",
                           "tag-close":"figure",
                           "content":ui.TextField(),
         
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"font - (Not Avaliable in HTML5)",
-         "options": dict({
+         "options": {
                           "tag-open":"font",
                           "tag-close":"font",
                           "content":ui.TextField(),
                           "color":ui.TextField(),
                           "face":ui.TextField(),
                           "size":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"footer",
-         "options": dict({
+         "options": {
                           "tag-open":"footer",
                           "tag-close":"footer",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"form",
-         "options": dict({
+         "options": {
                           "tag-open":"form",
                           "tag-close":"form",
                           "content":ui.TextView(),
@@ -481,9 +493,9 @@ TAGS = [
                           "method":ui.TextField(),
                           "novalidate":ui.TextField(),
                           "target":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"frame - (Not Avaliable in HTML5)",
-         "options": dict({
+         "options": {
                           "tag-open":"frame",
                           "tag-close":"frame",
                           "content":ui.TextField(),
@@ -494,95 +506,95 @@ TAGS = [
                           "noresize":ui.TextField(),
                           "scrolling":ui.TextField(),
                           "src":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"frameset - (Not Avaliable in HTML5)",
-         "options": dict({
+         "options": {
                           "tag-open":"frameset",
                           "tag-close":"frameset",
                           "content":ui.TextField(),
                           "cols":ui.TextField(),
                           "rows":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"heading 1",
-         "options": dict({
+         "options": {
                           "tag-open":"h1",
                           "tag-close":"h1",
                           "conent":ui.TextField(),
                           "align":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"heading 2",
-         "options": dict({
+         "options": {
                           "tag-open":"h2",
                           "tag-close":"h2",
                           "conent":ui.TextField(),
                           "align":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"heading 3",
-         "options": dict({
+         "options": {
                           "tag-open":"h3",
                           "tag-close":"h3",
                           "conent":ui.TextField(),
                           "align":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"heading 4",
-         "options": dict({
+         "options": {
                           "tag-open":"h4",
                           "tag-close":"h4",
                           "conent":ui.TextField(),
                           "align":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"heading 5",
-         "options": dict({
+         "options": {
                           "tag-open":"h5",
                           "tag-close":"h5",
                           "conent":ui.TextField(),
                           "align":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"heading 6",
-         "options": dict({
+         "options": {
                           "tag-open":"h6",
                           "tag-close":"h6",
                           "conent":ui.TextField(),
                           "align":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"head",
-         "options": dict({
+         "options": {
                           "tag-open":"head",
                           "tag-close":"head",
                           "content":ui.TextField(),
                           "profile":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"header",
-         "options": dict({
+         "options": {
                           "tag-open":"header",
                           "tag-close":"header",
                           "content":ui.TextView(),
         
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"hr",
-         "options": dict({
+         "options": {
                           "tag-open":"hr",
                           "align":ui.TextField(),
                           "noshade":ui.TextField(),
                           "size":ui.TextField(),
                           "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"html",
-         "options": dict({
+         "options": {
                           "tag-open":"html",
                           "tag-close":"html",
                           "content":ui.TextField(),
                           "manifest":ui.TextField(),
                           "xmlns":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"i",
-         "options": dict({
+         "options": {
                           "tag-open":"i",
                           "tag-close":"i",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"iframe",
-         "options": dict({
+         "options": {
                           "tag-open":"iframe",
                           "tag-close":"iframe",
                           "content":ui.TextField(),
@@ -598,9 +610,9 @@ TAGS = [
                           "src":ui.TextField(),
                           "srcdoc":ui.TextField(),
                           "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"image",
-         "options": dict({
+         "options": {
                           "tag-open":"img",
                           "tag-close":"img",
                           "content":"",
@@ -616,9 +628,9 @@ TAGS = [
                           "usemap":ui.TextField(),
                           "vspace":ui.TextField(),
                           "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"input",
-         "options": dict({
+         "options": {
                           "tag-open":"input",
                           "accept":ui.TextField(),
                           "align":ui.TextField(),
@@ -648,55 +660,55 @@ TAGS = [
                           "type":ui.TextField(),
                           "value":ui.TextField(),
                           "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"insert - (ins)",
-         "options": dict({
+         "options": {
                           "tag-open":"ins",
                           "tag-close":"ins",
                           "content":ui.TextField(),
                           "cite":ui.TextField(),
                           "datetime":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"keyboard (kbd)",
-         "options": dict({
+         "options": {
                           "tag-open":"kbd",
                           "tag-close":"kbd",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"keygen",
-         "options": dict({
+         "options": {
                           "tag-open":"keygen",
                           "autofocus":ui.TextField(),
                           "challenge":ui.TextField(),
                           "disabled":ui.TextField(),
                           "form":ui.TextField(),
                           "keytype":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"label",
-         "options": dict({
+         "options": {
                           "tag-open":"label",
                           "tag-close":"label",
                           "content":ui.TextField(),
                           "for":ui.TextField(),
                           "form":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"legend",
-         "options": dict({
+         "options": {
                           "tag-open":"legend",
                           "tag-close":"legend",
                           "content":ui.TextField(),
                           "align":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"list item (li)",
-         "options": dict({
+         "options": {
                           "tag-open":"li",
                           "tag-close":"li",
                           "content":ui.TextField(),
                           "type":ui.TextField(),
                           "value":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"link",
-         "options": dict({
+         "options": {
                      "tag-open":"link",
                      "charset":ui.TextField(),
                      "crossorigin":ui.TextField(),
@@ -708,35 +720,35 @@ TAGS = [
                      "sizes":ui.TextField(),
                      "target":ui.TextField(),
                      "type":ui.TextField(),
-                     }, **GLOBAL_HTML_ATTR)},
+                     }},
         {"title":"main",
-         "options": dict({
+         "options": {
                           "tag-open":"main",
                           "tag-close":"main",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"map",
-         "options": dict({
+         "options": {
                           "tag-open":"map",
                           "tag-close":"map",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"mark",
-         "options": dict({
+         "options": {
                           "tag-open":"mark",
                           "tag-close":"mark",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"menu",
-         "options": dict({
+         "options": {
                           "tag-open":"menu",
                           "tag-close":"menu",
                           "content":ui.TextField(),
                           "label":ui.TextField(),
                           "type":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"menuitem",
-         "options": dict({
+         "options": {
                           "tag-open":"menuitem",
                           "tag-close":"menuitem",
                           "content":ui.TextField(),
@@ -748,18 +760,18 @@ TAGS = [
                           "label":ui.TextField(),
                           "radiogroup":ui.TextField(),
                           "type":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"metadata",
-         "options": dict({
+         "options": {
                           "tag-open":"meta",
                           "tag-close":"meta",
                           "content":ui.TextField(),
                           "charset":ui.TextField(),
                           "http-equiv":ui.TextField(),
                           "scheme":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"meter",
-         "options": dict({
+         "options": {
                           "tag-open":"meter",
                           "tag-close":"meter",
                           "content":ui.TextField(),
@@ -770,27 +782,27 @@ TAGS = [
                           "min":ui.TextField(),
                           "optimum":ui.TextField(),
                           "value":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"navigation block - (nav)",
-         "options": dict({
+         "options": {
                           "tag-open":"nav",
                           "tag-close":"nav",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"noframes - (Not Avaliable in HTML5)",
-         "options": dict({
+         "options": {
                           "tag-open":"noframes",
                           "tag-close":"noframes",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"noscript",
-         "options": dict({
+         "options": {
                           "tag-open":"noscript",
                           "tag-close":"noscript",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"object",
-         "options": dict({
+         "options": {
                           "tag-open":"object",
                           "tag-close":"object",
                           "content":ui.TextField(),
@@ -810,9 +822,9 @@ TAGS = [
                           "usemap":ui.TextField(),
                           "vspace":ui.TextField(),
                           "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"ordered list (ol)",
-         "options": dict({
+         "options": {
                           "tag-open":"ol",
                           "tag-close":"ol",
                           "content":ui.TextField(),
@@ -820,17 +832,17 @@ TAGS = [
                           "reversed":ui.TextField(),
                           "start":ui.TextField(),
                           "type":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"option group (optgroup)",
-         "options": dict({
+         "options": {
                           "tag-open":"optgroup",
                           "tag-close":"optgroup",
                           "content":ui.TextView(),
                           "disabled":ui.TextField(),
                           "label":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"option",
-         "options": dict({
+         "options": {
                           "tag-open":"option",
                           "tag-close":"option",
                           "content":ui.TextField(),
@@ -838,83 +850,83 @@ TAGS = [
                           "label":ui.TextField(),
                           "selected":ui.TextField(),
                           "value":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"output",
-         "options": dict({
+         "options": {
                           "tag-open":"output",
                           "tag-close":"output",
                           "content":ui.TextField(),
                           "for":ui.TextField(),
                           "form":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"paragraph",
-         "options": dict({
+         "options": {
                      "tag-open":"p",
                      "tag-close":"p",
                      "content":ui.TextView(),
                      "align":ui.TextField(),
-                     }, **GLOBAL_HTML_ATTR)},
+                     }},
         {"title":"parameter (param)",
-         "options": dict({
+         "options": {
                           "tag-open":"param",
                           "type":ui.TextField(),
                           "value":ui.TextField(),
                           "valuetype":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"preformatted text",
-         "options": dict({
+         "options": {
                           "tag-open":"pre",
                           "tag-close":"pre",
                           "content":ui.TextView(),
                           "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"progress",
-         "options": dict({
+         "options": {
                           "tag-open":"progress",
                           "tag-close":"progress",
                           "content":ui.TextField(),
                           "max":ui.TextField(),
                           "value":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"quotation (q)",
-         "options": dict({
+         "options": {
                           "tag-open":"q",
                           "tag-close":"q",
                           "content":ui.TextField(),
                           "cite":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"rp",
-         "options": dict({
+         "options": {
                           "tag-open":"rp",
                           "tag-close":"rp",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"rt",
-         "options": dict({
+         "options": {
                           "tag-open":"rt",
                           "tag-close":"rt",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"ruby",
-         "options": dict({
+         "options": {
                           "tag-open":"ruby",
                           "tag-close":"ruby",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"s",
-         "options": dict({
+         "options": {
                           "tag-open":"s",
                           "tag-close":"s",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"samp",
-         "options": dict({
+         "options": {
                           "tag-open":"samp",
                           "tag-close":"samp",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title": "script",
-         "options": dict({
+         "options": {
                      "tag-open":"script",
                      "tag-close":"script",
                      "content":ui.TextView(),
@@ -924,15 +936,15 @@ TAGS = [
                      "src": ui.TextField(),
                      "type": ui.TextField(),
                      "xml:space":ui.TextField(),
-                     }, **GLOBAL_HTML_ATTR)},
+                     }},
         {"title":"section",
-         "options": dict({
+         "options": {
                           "tag-open":"section",
                           "tag-close":"section",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"select",
-         "options": dict({
+         "options": {
                           "tag-open":"select",
                           "tag-close":"select",
                           "content":ui.TextField(),
@@ -942,69 +954,69 @@ TAGS = [
                           "multiple":ui.TextField(),
                           "required":ui.TextField(),
                           "size":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"small",
-         "options": dict({
+         "options": {
                           "tag-open":"small",
                           "tag-close":"small",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"source",
-         "options": dict({
+         "options": {
                           "tag-open":"source",
                           "tag-close":"source",
                           "content":ui.TextField(),
                           "media":ui.TextField(),
                           "src":ui.TextField(),
                           "type":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"span",
-         "options": dict({
+         "options": {
                           "tag-open":"span",
                           "tag-close":"span",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"strike - (Not Avaliable in HTML5)",
-         "options": dict({
+         "options": {
                           "tag-open":"strike",
                           "tag-close":"strike",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"strong",
-         "options": dict({
+         "options": {
                           "tag-open":"strong",
                           "tag-close":"strong",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title": "style",
-         "options": dict({
+         "options": {
                      "tag-open":"style",
                      "tag-close":"style",
                      "content":ui.TextView(),
                      "media":ui.TextField(),
                      "scoped":ui.TextField(),
                      "type":ui.TextField(),
-                     }, **GLOBAL_HTML_ATTR)},
+                     }},
         {"title":"subscript - (sub)",
-         "options": dict({
+         "options": {
                           "tag-open":"sub",
                           "tag-close":"sub",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"summary",
-         "options": dict({
+         "options": {
                           "tag-open":"summary",
                           "tag-close":"summary",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"superscript - (sup)",
-         "options": dict({
+         "options": {
                           "tag-open":"sup",
                           "tag-close":"sup",
                           "content":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"table",
-         "options": dict({
+         "options": {
                           "tag-open":"table",
                           "tag-close":"table",
                           "content":ui.TextField(),
@@ -1017,9 +1029,9 @@ TAGS = [
                           "sortable":ui.TextField(),
                           "summary":ui.TextField(),
                           "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"table body (tbody)",
-         "options": dict({
+         "options": {
                           "tag-open":"tbody",
                           "tag-close":"tbody",
                           "content":ui.TextField(),
@@ -1027,9 +1039,9 @@ TAGS = [
                           "char":ui.TextField(),
                           "charoff":ui.TextField(),
                           "valign":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"tablecell (td)",
-         "options": dict({
+         "options": {
                           "tag-open":"td",
                           "tag-close":"td",
                           "content":ui.TextField(),
@@ -1047,9 +1059,9 @@ TAGS = [
                           "scope":ui.TextField(),
                           "valign":ui.TextField(),
                           "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"textarea",
-         "options": dict({
+         "options": {
                           "tag-open":"textarea",
                           "tag-close":"textarea",
                           "content":ui.TextField(),
@@ -1063,9 +1075,9 @@ TAGS = [
                           "required":ui.TextField(),
                           "rows":ui.TextField(),
                           "wrap":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"table footer (tfoot)",
-         "options": dict({
+         "options": {
                           "tag-open":"tfoot",
                           "tag-close":"tfoot",
                           "content":ui.TextField(),
@@ -1073,9 +1085,9 @@ TAGS = [
                           "char":ui.TextField(),
                           "charoff":ui.TextField(),
                           "valign":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"table header cell (th)",
-         "options": dict({
+         "options": {
                           "tag-open":"th",
                           "tag-close":"th",
                           "content":ui.TextField(),
@@ -1094,9 +1106,9 @@ TAGS = [
                           "sorted":ui.TextField(),
                           "valign":ui.TextField(),
                           "width":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"table header (thead)",
-         "options": dict({
+         "options": {
                           "tag-open":"thead",
                           "tag-close":"thead",
                           "content":ui.TextField(),
@@ -1104,22 +1116,22 @@ TAGS = [
                           "char":ui.TextField(),
                           "charoff":ui.TextField(),
                           "valign":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
         {"title":"time",
-         "options": dict({
+         "options": {
                           "tag-open":"time",
                           "tag-close":"time",
                           "content":ui.TextField(),
                           "datetime":ui.TextField(),
-                          }, **GLOBAL_HTML_ATTR)},
+                          }},
          {"title":"title",
-          "options": dict({
+          "options": {
                            "tag-open":"title",
                            "tag-close":"title",
                            "content":ui.TextField(),
-                           }, **GLOBAL_HTML_ATTR)},
+                           }},
          {"title":"table row (tr)",
-          "options": dict({
+          "options": {
                            "tag-open":"tr",
                            "tag-close":"tr",
                            "content":ui.TextField(),
@@ -1128,44 +1140,44 @@ TAGS = [
                            "char":ui.TextField(),
                            "charoff":ui.TextField(),
                            "valign":ui.TextField(),
-                           }, **GLOBAL_HTML_ATTR)},
+                           }},
          {"title":"track",
-          "options": dict({
+          "options": {
                            "tag-open":"track",
                            "default":ui.TextField(),
                            "kind":ui.TextField(),
                            "label":ui.TextField(),
                            "src":ui.TextField(),
                            "srclang":ui.TextField(),
-                           }, **GLOBAL_HTML_ATTR)},
+                           }},
          {"title":"teletype text (tt) - (Not Avaliable in HTML5)",
-          "options": dict({
+          "options": {
                            "tag-open":"tt",
                            "tag-close":"tt",
                            "content":ui.TextField(),
-                           }, **GLOBAL_HTML_ATTR)},
+                           }},
          {"title":"underline (u)",
-          "options": dict({
+          "options": {
                            "tag-open":"u",
                            "tag-close":"u",
                            "content":ui.TextField(),
-                           }, **GLOBAL_HTML_ATTR)},
+                           }},
          {"title":"unordered list (ul)",
-          "options": dict({
+          "options": {
                            "tag-open":"ul",
                            "tag-close":"ul",
                            "content":ui.TextField(),
                            "compact":ui.TextField(),
                            "type":ui.TextField(),
-                           }, **GLOBAL_HTML_ATTR)},
+                           }},
          {"title":"variable (var)",
-          "options": dict({
+          "options": {
                            "tag-open":"var",
                            "tag-close":"var",
                            "content":ui.TextField(),
-                           }, **GLOBAL_HTML_ATTR)},
+                           }},
          {"title":"video",
-          "options": dict({
+          "options": {
                            "tag-open":"video",
                            "tag-close":"video",
                            "content":ui.TextField(),
@@ -1178,13 +1190,13 @@ TAGS = [
                            "preload":ui.TextField(),
                            "src":ui.TextField(),
                            "width":ui.TextField(),
-                           }, **GLOBAL_HTML_ATTR)},
+                           }},
          {"title":"word break opportunity (wbr)",
-          "options": dict({
+          "options": {
                            "tag-open":"wbr",
                            "tag-close":"wbr",
                            "content":ui.TextField(),
-                           }, **GLOBAL_HTML_ATTR)},
+                           }},
          {"title": "comment",
           "options": {
                       "tag-open":"<!--",
@@ -1193,7 +1205,210 @@ TAGS = [
                       }},
 ]
 
+ALL_EVENTS = dict(WINDOW_EVENTS,
+                  **dict(FORM_EVENTS,
+                         **dict(KEYBOARD_EVENTS,
+                                **dict(MOUSE_EVENTS,
+                                       **dict(CLIPBOARD_EVENTS,
+                                              **dict(MEDIA_EVENTS,
+                                                     **MISC_EVENTS))))))
+
 print "%i GLOBAL_HTML_ATTR" % len(GLOBAL_HTML_ATTR)
 print "%i ALL_EVENTS" % len(ALL_EVENTS)
 print "%i TAGS" % len(TAGS)
 print "%i TOTAL" % (len(GLOBAL_HTML_ATTR) + len(ALL_EVENTS) + len(TAGS))
+
+class TagAddView(ui.View):
+    def did_load(self):
+        self.tabs = self["tab_selection"]
+        self.options = self["items"]
+        self.tabs.action = self.change_tab
+        
+        self.ok, self.cancle, self.preview = self["ok_btn"], self["cancle_btn"], self["preview_btn"]
+        self.cancle.action = self.exit
+        self.ok.action = self.set_tag
+        
+        self.pages = {}
+        
+        self.tag = ""
+        self.cancled = False
+        
+    def add_page(self, page, values):
+        p = ui.ScrollView()
+        p.frame = self.options.frame
+        p.y = 0
+        p.background_color = "#DDDDDD"
+        y = 20
+        for k,v in sorted(values.iteritems()):
+            if type(v) == type(""):
+                t=v
+                v = ui.Label()
+                v.text = t
+            t=k
+            k = ui.Button()
+            k.action = self.present_help
+            k.title = t
+            v.name = k.title
+            k.width = 200
+            v.width = 300
+            k.x = 20
+            v.x = 230
+            k.y = y
+            v.y = y
+            k.height = 25
+            v.height = 25 if type(v) != type(ui.TextView()) else 200
+            y += v.height + 15
+            p.add_subview(k)
+            p.add_subview(v)
+        p.content_size = (540, y+30)
+        self.options.add_subview(p)
+        self.pages[page] = p
+        
+    def present_help(self, sender):
+        t = sender.title
+        v = ui.WebView()
+        v.width = 600
+        v.height = 800
+        v.load_url("http://www.w3schools.com/tags/default.asp")
+        v.present("popover", popover_location=(sender.x+370, sender.y+180))
+        print "Help Shown"
+        
+    def present_page(self, page):
+        for p in self.options.subviews:
+            p.send_to_back()
+            
+        if page in self.pages:
+            p = self.pages[page]
+            p.bring_to_front()
+        
+    def exit(self, sender):
+        self.cancled = True
+        self.close()
+    
+    def change_tab(self, sender):
+        i = self.tabs.selected_index
+        if i==3:
+            x,y,w,h = self.tabs.frame
+            t = ui.TableView()
+            t.data_source = ui.ListDataSource([
+                                               {"title":"Window Events"},
+                                               {"title":"Form Events"},
+                                               {"title":"Keyboard Events"},
+                                               {"title":"Mouse Events"},
+                                               {"title":"Clipboard Events"},
+                                               {"title":"Media Events"},
+                                               {"title":"Misc Events"},
+                                               ])
+            t.delegate = self
+            
+            t.width = 200
+            t.height = 300
+            t.present("popover", popover_location=(x+w+100, y+h+125))
+            self.tabs.selected_index = -1
+        else:
+            self.present_page(self.tabs.segments[i])
+    
+    def tableview_did_select(self, tableview, section, row):
+        tableview.close()
+        i = tableview.data_source.items[row]
+        self.present_page(i["title"])
+        
+    def set_tag(self, sender):
+        self.close()
+        kv = []
+        content = None
+        tag_start = None
+        tag_end = None
+        new_line = "\n"
+        
+        for sub in self.options.subviews:
+            for elm in sub.subviews:
+                if type(elm) != type(ui.Button()):
+                    n,t = elm.name, elm.text
+                    if type(elm) != type(ui.Label()):
+                        if n == u'content':
+                            content = t
+                        elif n == u'newlinechar':
+                            new_line = t if t else "\n"
+                        else:
+                            if t:
+                                kv.append("%s=\'%s\'" % (n,t))
+                    else:
+                        if n:
+                            print "%r\t%r" % (n,t)
+                        if n == u'tag-open':
+                            tag_start = t
+                        elif n == u'tag-close':
+                            tag_end = t
+        kvstr = " ".join(kv)
+        if not tag_end:
+            tag = "<%(tag-start)s %(kvstr)s />" % {
+                                                   "tag-start":tag_start,
+                                                   "kvstr":kvstr,
+                                                   }
+        else:
+            content = content.replace("\n", new_line) if content else ""
+            tag = "<%(tag-start)s %(kvstr)s>%(content)s</%(tag-end)s>" % {
+                                                                            "tag-start":tag_start,
+                                                                            "tag-end":tag_end,
+                                                                            "kvstr":kvstr,
+                                                                            "content":content,
+                                                                            }
+        self.tag = tag
+
+
+
+class TagDelegate (object):
+    def __init__(self, js_eval):
+        self.js_eval = js_eval
+    
+    def tableview_did_select(self, tableview, section, row):
+        tableview.close()
+        
+        view = ui.load_view()
+        view.name = tableview.data_source.items[row]["title"]
+        view.add_page("General", tableview.data_source.items[row]["options"])
+        view.add_page("Global Attributes", GLOBAL_HTML_ATTR)
+        view.add_page("Misc Attributes", MISC_HTML_ATTR)
+        view.add_page("Window Events", WINDOW_EVENTS)
+        view.add_page("Form Events", FORM_EVENTS)
+        view.add_page("Keyboard Events", KEYBOARD_EVENTS)
+        view.add_page("Mouse Events", MOUSE_EVENTS)
+        view.add_page("Clipboard Events", CLIPBOARD_EVENTS)
+        view.add_page("Media Events", MEDIA_EVENTS)
+        view.add_page("Misc Events", MISC_EVENTS)
+        self.show(view)
+        
+    @ui.in_background
+    def show(self, view):
+        view.present("sheet")
+        view.present_page("General")
+        view.wait_modal()
+        if not view.cancled:
+            print "Done"
+            out = json.dumps(view.tag)
+            print "editor.replaceSelection(%s);" % out
+            self.js_eval("editor.replaceSelection(%s);" % out)
+        else:
+            print "Cancled"
+        
+        
+def add_tag(sender=None, pop_loc=None):
+    if not pop_loc:
+        pop_loc = (0,0)
+    
+    v = ui.TableView()
+    v.data_source = ui.ListDataSource(TAGS)
+    if sender:
+        pass
+    else:
+        we = ui.WebView()
+    v.delegate = TagDelegate(we.eval_js)
+    v.name = "Add Tag"
+    v.width = 350
+    v.height = 500
+    v.present("popover", popover_location=pop_loc)
+    v.wait_modal()
+
+if __name__ == "__main__":        
+    add_tag()

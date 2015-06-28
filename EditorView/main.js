@@ -28,4 +28,3 @@ window.onerror = (function(error, url, line, col, errorobj) {
    console.error(stringify(errorobj));
 });
 console.log("logging activated");
-//console.log(stringify);

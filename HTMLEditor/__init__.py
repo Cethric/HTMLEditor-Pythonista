@@ -21,10 +21,43 @@ except ImportError:
 import tag_manager
 
 DEBUG = True
+WEBDELEGATE = None
 
 
 def exception_str(exception):
     return '{}: {}'.format(exception.__class__.__name__, exception)
+    
+class Parser(HTMLParser.HTMLParser):
+    def __init__(self):
+        HTMLParser.HTMLParser.__init__(self)
+        self.open_tags = []
+        self.files_list = []
+
+    def handle_starttag(self, tag, attr):
+        if tag == "script":
+            for x in attr:
+                if "src" in x:
+                    self.files_list.append(x[1])
+        self.open_tags.append(tag)
+
+    def handle_endtag(self, tag):
+        try:
+            self.open_tags.remove(tag)
+        except ValueError as e:
+            print exception_str(e)
+
+    def handle_startendtag(self, tag, attr):
+        if tag == "link":
+            for x in attr:
+                if "href" in x:
+                    self.files_list.append(x[1])
+
+    def feed(self, *args, **kwargs):
+        self.open_tags = []
+        self.files_list = []
+        HTMLParser.HTMLParser.feed(self, *args, **kwargs)
+        if not self.open_tags == []:
+            print "Not all tag/s have been closed.\nOpen tag/s %r" % self.open_tags
 
 @ui.in_background
 def show_hide_file_viewer(sender):
@@ -65,30 +98,50 @@ def server_editor(sender):
     else:
         console.hud_alert("server_editor")
 
-
-class WebViewDelegate(object):
-    def __init__(self):
-        pass
-
-    def webview_should_start_load(self, webview, url, nav_type):
-        print "Loading %r of type %r" % (url, nav_type)
-        return True
-
-    def webview_did_finish_load(self, webview):
-        webview.name = webview.evaluate_javascript("document.title")
-
-    def webview_did_fail_load(self, webview, error_code, error_msg):
-        print "%r Failed to load. %r %r" % (webview, error_code, error_msg)
-
 @ui.in_background
 def preview(sender):
     #console.hud_alert("preview")
+    p = Parser()
     print "WEBVIEW?", sender.superview.superview.subviews[2].subviews[2].subviews[0]
+    webdelegate = WEBDELEGATE
+    fm = sender.superview.superview.fileManager
     text = sender.superview.superview.subviews[2].subviews[2].subviews[0]["web_view"].evaluate_javascript("editor.getValue()")
-    wv = ui.WebView()
-    wv.delegate = WebViewDelegate()
-    wv.load_html(text)
-    wv.present("sheet")
+    edit_view = webdelegate.load_console(load_addons=False)
+    edit_view.name = "Previewer"
+    edit_view["console_input"].delegate = webdelegate.WebViewInputDelegate(edit_view["web_view"])
+    p.feed(text)
+    def dummy(*args, **kwagrs):
+        pass
+    
+    def on_load(*args, **kwargs):
+        print "load(%s)" % json.dumps(text)
+        edit_view["web_view"].eval_js("load(%s)" % json.dumps(text))
+        
+        for i in p.files_list:
+            if i.endswith(".css"):
+                add_file = '''
+var style = document.createElement("STYLE");
+style.setAttribute("type", "text/css");
+style.innerHTML = %s;
+document.getElementsByTagName("head")[0].appendChild(style);
+''' % json.dumps(fm.get_file(i)[1])
+                
+            elif i.endswith(".js"):
+                add_file = '''
+var script = document.createElement("SCRIPT");
+script.setAttribute("type", "text/javascript");
+script.innerHTML = %s;
+document.getElementsByTagName("head")[0].appendChild(script);
+''' % json.dumps(fm.get_file(i)[1])
+            else:
+                add_file = ""
+            print add_file
+            edit_view["web_view"].eval_js(add_file)
+    
+    edit_view["web_view"].delegate = webdelegate.WebViewDelegate(dummy, edit_view, on_load)
+    edit_view["web_view"].load_url(webdelegate.load_html_preview_template())
+    edit_view.present("sheet")
+    
 
 @ui.in_background
 def quitter(sender):
@@ -187,144 +240,16 @@ def configure(sender):
     else:
         console.alert("Configuration is only available through the Main View")
 
-
-class TagDelegate (object):
-    def __init__(self, js_eval):
-        self.js_eval = js_eval
-        
-    def tableview_did_select(self, tableview, section, row):
-        value = tableview.data_source.items[row]
-        tableview.close()
-        opts = ui.ScrollView()
-        opts.bounces = True
-        opts.always_bounce_horizontal = False
-        opts.always_bounce_vertical = True
-        opts.name = "Add Tag: %r" % value["title"]
-        y = 10
-        for k,v in value["options"].iteritems():
-            print type(v) == type("str")
-            if type(v) == type("str"):
-                t = v
-                v = ui.Label()
-                v.text = t
-            print "NEXT"
-            v.name = k
-            v.y = y
-            v.x = 150
-            l = ui.Label()
-            l.text = "%s:" % k.title()
-            l.y = y
-            l.height = 25
-            l.x = 20
-            
-            if k=="content":
-                v.width = 350
-                v.height = 300
-                y+=305
-            else:
-                v.width = 200
-                v.height = 25
-                y+=30
-            opts.add_subview(l)
-            opts.add_subview(v)
-        
-        ok_btn = ui.Button()
-        ok_btn.title = "Ok"
-        ok_btn.y = y
-        ok_btn.x = 20
-        ok_btn.height = 25
-        ok_btn.width = 100
-        ok_btn.action = self.add
-        print ok_btn.frame
-        opts.add_subview(ok_btn)
-        opts.size_to_fit()
-        w,h = opts.content_size
-        opts.content_size = (w, y+50)
-        opts.present("sheet")
-        
-    @ui.in_background
-    def add(self, sender):
-        try:
-            i = sender.superview.subviews
-            sender.superview.close()
-            data = {"type": sender.superview.name[9:].replace("'","")}
-            for item in i:
-                try:
-                    if item.name:
-                        data[item.name] = item.text
-                except AttributeError as e:
-                    print exception_str(e)
-            out = json.dumps(self.get_element(data))
-            print "editor.replaceSelection(%s);" % out
-            self.js_eval("editor.replaceSelection(%s);" % out)
-            
-            #console.alert("Added Tag at Cursor")
-        except KeyboardInterrupt as e:
-            print "User Cancled the Function"
-            print exception_str(e)
-    
-    def get_element(self, data):
-        print data
-        t = data["type"]
-        del data["type"]
-        tag_open = data["tag-open"]
-        del data["tag-open"]
-        if "content" in data or "tag-close" in data:
-            tag_close = data["tag-close"]
-            del data["tag-close"]
-            if "content" in data:
-                content = data["content"]
-                del data["content"]
-            else:
-                content = ""
-                
-            if tag_open=="p":
-                content = content.replace("\n", "<br/>")
-            prop_str = []
-            for k,v in data.iteritems():
-                if v:
-                    prop_str.append("%s='%s'" % (k, v))
-            if t=="comment":
-                elm_str = "%(tag-open)s %(content)s %(tag-close)s" % {
-                                                                     "tag-open":tag_open,
-                                                                     "tag-close":tag_close,
-                                                                     "content": content,
-                                                                     }
-            else:
-                elm_str = "<%(tag-open)s %(data)s> %(content)s </%(tag-close)s>" % {"tag-open":tag_open,
-                                                                                    "tag-close":tag_close,
-                                                                                    "content":content,
-                                                                                    "data":" ".join(prop_str),
-                                                                                     }
-        else:
-            prop_str = []
-            for k,v in data.iteritems():
-                if v:
-                    prop_str.append("%s='%s'" % (k, v))
-            elm_str = "<%(tag-open)s %(data)s />" % {"tag-open": tag_open,
-                                                     "data": " ".join(prop_str),
-                                                    }
-        return elm_str# + "\n"
-
-    def tableview_did_deselect(self, tableview, section, row):
-        # Called  when a row was de-selected (in multiple selection mode).
-        pass
-
-    def tableview_title_for_delete_button(self, tableview, section, row):
-        # Return the title for the 'swipe-to-***' button.
-        return 'Delete'
-
 @ui.in_background
 def add_tag(sender):
     v = ui.TableView()
     v.data_source = ui.ListDataSource(tag_manager.TAGS)
-    print "There are %i tags" % len(v.data_source.items)
     try:
         we = sender.superview.superview["contentContainer"].subviews[2].subviews[0].subviews[1]
     except IndexError as e:
         print exception_str(e)
         we = ui.WebView()
-    v.delegate = TagDelegate(we.eval_js)
+    v.delegate = tag_manager.TagDelegate(we.eval_js)
     v.name = "Add Tag"
     v.width = 350
     v.height = 500
@@ -370,39 +295,6 @@ class Editor(ui.View):
             print "Error Closing File. " + exception_str(e)
 
 HTMLEdit = Editor
-
-class Parser(HTMLParser.HTMLParser):
-    def __init__(self):
-        HTMLParser.HTMLParser.__init__(self)
-        self.open_tags = []
-        self.files_list = []
-
-    def handle_starttag(self, tag, attr):
-        if tag == "script":
-            for x in attr:
-                if "src" in x:
-                    self.files_list.append(x[1])
-        self.open_tags.append(tag)
-
-    def handle_endtag(self, tag):
-        try:
-            self.open_tags.remove(tag)
-        except ValueError as e:
-            print exception_str(e)
-
-    def handle_startendtag(self, tag, attr):
-        if tag == "link":
-            for x in attr:
-                if "href" in x:
-                    self.files_list.append(x[1])
-
-    def feed(self, *args, **kwargs):
-        self.open_tags = []
-        self.files_list = []
-        HTMLParser.HTMLParser.feed(self, *args, **kwargs)
-        if not self.open_tags == []:
-            print "Not all tag/s have been closed.\nOpen tag/s %r" % self.open_tags
-
 
 def save(page_contents, tev):
     try:
@@ -559,6 +451,8 @@ def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 600)
     height = vh-vy
 
     if webdelegate:
+        global WEBDELEGATE
+        WEBDELEGATE = webdelegate
         def save_func(contents):
             save(contents, view["contentContainer"])
         edit_view = webdelegate.load_console()
@@ -566,8 +460,6 @@ def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 600)
         edit_view["console_input"].delegate = webdelegate.WebViewInputDelegate(edit_view["web_view"])
         edit_view["web_view"].delegate = webdelegate.WebViewDelegate(save_func, edit_view)
         edit_view["web_view"].load_url(webdelegate.load_html_editor_view())
-
-        edit_view["web_view"].delegate.open
     else:
         edit_view = ui.WebView()
         edit_view.name = "web_view"
