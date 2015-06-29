@@ -31,3 +31,4 @@ This is a complete rewrite of the code paying attention to the suggestions and i
 + ~~Opening a file usually doesn't work, the file gets overwritten before display causing major issues (issue #12)~~
 + ~~The close button sometimes hangs requiring an app restart (issue #13)~~
 + ~~Opening a file disables the ui.Webview (issue [#18](https://github.com/Cethric/HTMLEditor-Pythonista/issues/18))~~
++ Adding a tag through the tag insert system may overwrite all of the open files (issue [#24](https://github.com/Cethric/HTMLEditor-Pythonista/issues/24))

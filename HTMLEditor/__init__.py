@@ -116,7 +116,6 @@ def preview(sender):
     def on_load(*args, **kwargs):
         print "load(%s)" % json.dumps(text)
         edit_view["web_view"].eval_js("load(%s)" % json.dumps(text))
-        
         for i in p.files_list:
             if i.endswith(".css"):
                 add_file = '''

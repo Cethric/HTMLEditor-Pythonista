@@ -3,6 +3,7 @@ import webbrowser
 from dropbox import client, rest, session
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+import onedrive.api_v5 as onedrive
 import keychain
 try:
     import cPickle as pickle
@@ -16,8 +17,6 @@ except ImportError:
     print "Using Dummy UI"
     import dummyUI as ui
     import dummyConsole as console
-
-import onedrive.api_v5 as onedrive
 
 KEYS = []
 with open("security_keys", "rb") as f:
@@ -263,10 +262,10 @@ class GoogleDriveConnections(BaseConnection):
         
     def list_dir(self, dir):
         self._list_dir(dir)
-        print_dict(self.file_ids)
+        return self.file_ids
         
     def _list_dir(self, parent):
-        file_list = self.api.ListFile({'maxResults': 200}).GetList()
+        file_list = self.api.ListFile({'maxResults': 200, "q": "'%s' in parents" % parent}).GetList()
         for file in file_list:
             if file['mimeType']=='application/vnd.google-apps.folder':
                 self.file_ids[file["title"]] = ["FOLDER", file["id"]]
@@ -296,8 +295,8 @@ if __name__ == '__main__':
     #gd.write("test2.txt", "hello world this is a test")
     print "File Read"
     print gd.read("test.txt")
-    print "MK DIR"
-    print_dict(gd.mk_dir("test"))
+    #print "MK DIR"
+    #print_dict(gd.mk_dir("test"))
     print "List Dir"
-    gd.list_dir('root')
+    print_dict(gd.list_dir(u'0B51dU3wCnjZ8Y1p6REFkaTVsekE'))
     
