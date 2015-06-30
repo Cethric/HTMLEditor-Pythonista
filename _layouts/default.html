@@ -4,8 +4,8 @@
     {% include head.html %}
 
     <body>
-        {% assign header = 'header.html' %}
-        {% include 'header' %}
+        {% assign header = '{{ 'header.html' || prepend: site.git_host }}' %}
+        {% include {{header}} %}
         <div id="content">
             {{ content }}
         </div>
