@@ -4,7 +4,7 @@
     {% include head.html %}
 
     <body>
-        {% assign header = '{{ 'header.html' || prepend: site.git_host }}' %}
+        {% assign header = {{ "/header.html" || prepend: site.git_host }} %}
         {% include_relative  {{header}} %}
         <div id="content">
             {{ content }}
