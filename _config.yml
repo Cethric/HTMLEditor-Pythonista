@@ -42,7 +42,7 @@ excerpt_separator: "\n\n"
 detach:  false
 port:    4100
 host:    127.0.0.1
-baseurl: "http://Cethric.github.io/HTMLEditor-Pythonista" # does not include hostname
+baseurl: "/HTMLEditor-Pythonista" # does not include hostname
 url: "http://Cethric.github.io"
 
 # Outputting
