@@ -1,6 +1,8 @@
 echo `git config --global user.name`
 echo `git config --global user.email`
 
+git config --global user.name "Cethric"
+
 git add -A
 git commit -m "Automated Update"
 git push
