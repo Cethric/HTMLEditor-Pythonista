@@ -55,6 +55,8 @@ div#content {
     right: 0;
     bottom: 0;
     z-index: 0;
+    overflow-x: scroll;
+    overflow-y: scroll;
 }
 
 div#footer {
