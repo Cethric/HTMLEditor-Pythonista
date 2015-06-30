@@ -59,7 +59,7 @@ rdiscount:
   extensions: []
 
 redcarpet:
-  extensions: ["strikethrough", "tables", "fenced_code_blocks"]
+  extensions: ["strikethrough", "tables", "fenced_code_blocks", "autolink", "superscript", "lax_spacing"]
 
 kramdown:
   auto_ids:       true
