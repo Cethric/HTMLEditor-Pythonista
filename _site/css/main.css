@@ -45,14 +45,14 @@ div#content {
   padding-top: 3em;
   padding-left: 0.5em;
   padding-bottom: 2em;
-  width: 97%;
+  width: 95%;
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 0;
-  overflow-x: scroll;
+  overflow-x: hidden;
   overflow-y: scroll; }
 
 div#footer {
