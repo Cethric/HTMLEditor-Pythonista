@@ -6,7 +6,7 @@ body {
   background-color: #CCCCCC; }
 
 div#header {
-  width: 100%;
+  width: 99%;
   height: 2em;
   background-color: #DDDDDD;
   position: fixed;
@@ -45,7 +45,7 @@ div#content {
   padding-top: 3em;
   padding-left: 0.5em;
   padding-bottom: 2em;
-  width: 100%;
+  width: 97%;
   position: absolute;
   top: 0;
   left: 0;
@@ -59,7 +59,7 @@ div#footer {
   position: fixed;
   bottom: 0;
   background-color: red;
-  width: 100%;
+  width: 99%;
   height: 1.5em;
   color: white;
   background-color: black;
