@@ -4,14 +4,13 @@ title: HTMLEditor
 permalink: /
 ---
 
+# HTMLEditor-Pythonista
 A basic html editor for the pythonista app [![Travis.CI-BuildStatus](https://travis-ci.org/Cethric/HTMLEditor-Pythonista.svg?branch=master)](https://travis-ci.org/Cethric/HTMLEditor-Pythonista/builds)
 
 [Get Tar.GZ](https://github.com/Cethric/XGE/tarball/master)
 [Get Zip](https://github.com/Cethric/XGE/zipball/master)
 [View on GitHub](https://github.com/Cethric/HTMLEditor-Pythonista)
 
-# HTMLEditor-Pythonista
-A basic html editor for the pythonista app
 This is a complete rewrite of the code paying attention to the suggestions and improvements by cclauss
 
 ### Features to include
