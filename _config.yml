@@ -4,7 +4,6 @@ email: ""
 description: > # this means to ignore newlines until "baseurl:"
   Yet to write a description
 github_username:  "Cethric"
-timezone: "Australia/Sydney"
 
 
 # Where things are
@@ -49,7 +48,7 @@ url: "http://Cethric.github.io"
 # Outputting
 permalink:     date
 paginate_path: /page:num
-timezone:      null
+timezone: "Australia/Sydney"
 
 quiet:    false
 defaults: []
