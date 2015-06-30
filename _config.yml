@@ -4,6 +4,7 @@ email: ""
 description: > # this means to ignore newlines until "baseurl:"
   Yet to write a description
 github_username:  "Cethric"
+host: "http://Cethric.github.io/"
 
 
 # Where things are
