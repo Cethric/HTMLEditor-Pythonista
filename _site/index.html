@@ -51,19 +51,58 @@
     </table>
 </div>
         <div id="content">
-            <p>A basic html editor for the pythonista app</p>
+            <p>A basic html editor for the pythonista app <a href="https://travis-ci.org/Cethric/HTMLEditor-Pythonista/builds"><img src="https://travis-ci.org/Cethric/HTMLEditor-Pythonista.svg?branch=master" alt="Travis.CI-BuildStatus"></a></p>
 
 <p><a href="https://github.com/Cethric/XGE/tarball/master">Get Tar.GZ</a>
 <a href="https://github.com/Cethric/XGE/zipball/master">Get Zip</a>
 <a href="https://github.com/Cethric/HTMLEditor-Pythonista">View on GitHub</a></p>
 
-<h3>Features</h3>
+<h1>HTMLEditor-Pythonista</h1>
+
+<p>A basic html editor for the pythonista app
+This is a complete rewrite of the code paying attention to the suggestions and improvements by cclauss</p>
+
+<h3>Features to include</h3>
 
 <ul>
-<li>Tag completions</li>
-<li>Builtin Customizable lan server</li>
-<li>Code checker for html and css</li>
-<li>Builtin page previewer</li>
+<li>[ ] Builtin Customizable lan server</li>
+<li>[x] <del>Code checker for html, css and js (HTML, JS, CSS are done)</del> this is done by <del>ACE</del> CodeMirror</li>
+<li>[x] <del>Builtin page previewer</del> Finished for HTML only</li>
+<li>[ ] Dropbox, Onedrive, GoogleDrive, FPT and other cloud based file management services to be incoorperated.</li>
+<li>[x] Ability to save to zipfile</li>
+<li>[ ] Send webfiles from iDevice to a computer (possibly as a zip and intergrated HTTP server).</li>
+</ul>
+
+<h3>TODO</h3>
+
+<ul>
+<li>[ ] Code clean up</li>
+<li>[ ] Work on the server side (Thank you <a href="https://github.com/Gerzer">Gerzer</a>)</li>
+<li>[ ] Make the editor a litle but more reliable</li>
+</ul>
+
+<h3>HTML Editor Features</h3>
+
+<ul>
+<li><del>HTML tag completions</del> CodeMirror might not do this...</li>
+<li>HTML quick previewer</li>
+<li><del>HTML code checking</del> CodeMirror might not do this...</li>
+<li>Syntax Highlighter - Done Through <del>ACE</del> CodeMirror</li>
+</ul>
+
+<h3>Server Editor Features</h3>
+
+<ul>
+<li>Yet to be done.</li>
+</ul>
+
+<h3>KNOWN BUGS</h3>
+
+<ul>
+<li><del>Opening a file usually doesn&#39;t work, the file gets overwritten before display causing major issues (issue #12)</del></li>
+<li><del>The close button sometimes hangs requiring an app restart (issue #13)</del></li>
+<li><del>Opening a file disables the ui.Webview (issue <a href="https://github.com/Cethric/HTMLEditor-Pythonista/issues/18">#18</a>)</del></li>
+<li>Adding a tag through the tag insert system may overwrite all of the open files (issue <a href="https://github.com/Cethric/HTMLEditor-Pythonista/issues/24">#24</a>)</li>
 </ul>
 
         </div>
