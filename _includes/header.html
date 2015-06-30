@@ -12,7 +12,7 @@
         <div id="project_list" style="display:none;">
             <p> <a href="{{ '/projects' | prepend: site.baseurl }}">More Infomation</a> </p>
             <p> <a href="https://github.com/Cethric/Cethric.github.io">Cethric.github.io</a> </p>
-            <p> <a href="{{ '/HTMLEditor-Pythonista' | prepend: site.url }}">HTMLEditor Pythonista</a> </p>
+            <p> <a href="{{ '/HTMLEditor-Pythonista' | prepend: site.baseurl }}">HTMLEditor Pythonista</a> </p>
         </div>
         <td style='position:absolute;right: 1em;'>
             <a href="#" onclick="more_menu();" >Posts</a>
@@ -22,7 +22,7 @@
                 {% for post in site.posts %}
                 <li>
                     <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
-                    <a class="post-link" href="{{ post.url | prepend: {{ '/HTMLEditor-Pythonista' | prepend: site.url }} }}">{{ post.title }}</a>
+                    <a class="post-link" href="{{ post.url | prepend: site.url }}">{{ post.title }}</a>
                 </li>
                 {% endfor %}
             </ul>
