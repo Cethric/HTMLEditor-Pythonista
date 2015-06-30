@@ -56,10 +56,10 @@ div#footer {
     background-color: black;
 }
 
-a.footer_link:visited {
+a:visited {
     color: red;
 }
 
-a.footer_link:link a.footer_link:active {
+a:link a:active {
     color: deepskyblue;
 }
