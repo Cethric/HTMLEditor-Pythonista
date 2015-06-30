@@ -4,7 +4,8 @@
     {% include head.html %}
 
     <body>
-        {% include header.html %}
+        {% assign header = 'header.html' %}
+        {% include header %}
         <div id="content">
             {{ content }}
         </div>
