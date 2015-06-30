@@ -3,4 +3,4 @@ echo `git config --global user.email`
 
 git add -A
 git commit -m "Automated Update"
-git push origin master --force
+git push origin gh-pages --force
