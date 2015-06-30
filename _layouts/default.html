@@ -4,7 +4,7 @@
     {% include head.html %}
 
     <body>
-        {% include {{ 'header.html' || prepend: site.git_host }} %}
+        {% include {{{ 'header.html' || prepend: site.git_host }}} %}
         <div id="content">
             {{ content }}
         </div>
