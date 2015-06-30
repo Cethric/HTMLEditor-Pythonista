@@ -1,16 +1,16 @@
 @charset "utf-8";
 
 body {
-	background-color: #CCC;
+    background-color: #CCC;
     padding: 0%;
     margin: 0%;
 }
 
 div#mainmenu {
-	width: 15%;
-	background-color: #333;
-	height: auto;
-	position: fixed;
+    width: 15%;
+    background-color: #333;
+    height: auto;
+    position: fixed;
     float: left;
 
     border-radius: 5px;
@@ -42,16 +42,16 @@ b#projExpander {
 }
 
 p {
-	padding: 0%;
-	margin: 0%;
+    padding: 0%;
+    margin: 0%;
 }
 
 div#content {
-	width: 70%;
-	margin-left: 15%;
-	background-color: #999;
-	text-align: center;
-	border: 5px ridge #CCC;
+    width: 70%;
+    margin-left: 15%;
+    background-color: #999;
+    text-align: center;
+    border: 5px ridge #CCC;
     padding-top: 25px;
     margin-top: 3px;
 
