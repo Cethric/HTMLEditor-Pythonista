@@ -16,11 +16,11 @@ def dummy_save(file_contents):
     pass
 
 class WebViewDelegate(object):
-    def __init__(self, save_func, console_view, load_callback=None):
+    def __init__(self, save_func, console_view):
         self.save_func = save_func
         self.console_view = console_view
         self.webview = None
-        self.load_callback = load_callback
+        self.load_callback = []
     def webview_should_start_load(self, webview, url, nav_type):
         self.webview = webview
         if url.startswith('ios'):
@@ -46,26 +46,35 @@ class WebViewDelegate(object):
     def webview_did_start_load(self, webview):
         pass
     def webview_did_finish_load(self, webview):
-        if self.load_callback:
-            self.load_callback()
+        for callback in self.load_callback:
+            callback()
+            
     def webview_did_fail_load(self, webview, error_code, error_msg):
         print "Webview Error %r %s" % (error_code, error_msg)
+        
+    def add_load_callback(self, callback):
+        self.load_callback.append(callback)
         
     def save(self, wv):
         if self.save_func:
             self.save_func(str(wv.eval_js('''editor.getValue();''')))
-        
+            
     def open(self, filename, contents):
+        self._open(filename, contents)
+            
+    def _open(self, filename, contents):
         try:
             if self.webview:
                 self.webview.eval_js("editor.setValue(%r)" % str(contents))
                 mode = self.get_mode(filename)
+                print "Loading: %s with mode %r" % (filename, mode)
                 self.webview.eval_js("editor.setOption('mode', %r);" % str(mode))
-                self.webview.eval_js("loadMode(%r)" % str(mode))
+                self.webview.eval_js("CodeMirror.autoLoadMode(editor, %r);" % str(mode))
+                #self.webview.eval_js("loadMode(%r)" % str(mode))
             else:
                 print "could not open file: %r" % filename
         except Exception as e:
-            print e
+            print exception_str(e)
     
     def get_mode(self,filename):
         '''return style name used by change_syntax, based on file extension.  '''
@@ -83,8 +92,9 @@ class WebViewDelegate(object):
         try:
             ext=os.path.splitext(filename)[1][1:]
             syntax=syntaxes[ext]
-        except(KeyError):
-            syntax='html'
+        except KeyError as e:
+            print exception_str(e)
+            syntax='htmlmixed'
         return syntax
     
     @ui.in_background
@@ -92,34 +102,6 @@ class WebViewDelegate(object):
         console.alert(args[0], args[1], "ok")
         
 class WebViewConsole(ui.View):
-    def load_addons(self):
-        print "set up"
-        if "EditorView" in os.path.abspath("CodeMirror-5.3.0/addon"):
-            base = os.path.abspath("CodeMirror-5.3.0/addon")
-        else:
-            base = os.path.abspath("EditorView/CodeMirror-5.3.0/addon")
-            
-        for dir in os.listdir(base):
-            d = os.path.join(base, dir)
-            for file in os.listdir(d):
-                if file.endswith(".css"):
-                    self["web_view"].eval_js('''
-                                             var link = document.createElement("LINK");
-                                             link.setAttribute("href", "%s");
-                                             link.setAttribute("type", "text/css");
-                                             link.setAttribute("rel", "stylesheet");
-                                             document.getElementsByTagName("head")[0].appendChild(link);
-                                             ''' % os.path.join(d, file))
-                    print "loaded addon style %r" % file
-                elif file.endswith(".js"):
-                    self["web_view"].eval_js('''
-                                             var script = document.createElement("SCRIPT");
-                                             script.setAttribute("src", "%s");
-                                             script.setAttribute("type", "text/javascript");
-                                             document.getElementsByTagName("head")[0].appendChild(script);
-                                             ''' % os.path.join(d, file))
-                    print "loaded addon script %r" % file
-        
     def log(self, wv, msg):
         self["log_view"].text += "%s\n" % msg
         print "LOGGING MESSAGE ---> " + msg
@@ -131,6 +113,7 @@ class WebViewConsole(ui.View):
         self["log_view"].content_offset = (0, height-self["log_view"].height)
         self["log_view"].bounces = False
         
+        
 class WebViewInputDelegate(object):
     def __init__(self, webview):
         self.webview = webview
@@ -140,6 +123,13 @@ class WebViewInputDelegate(object):
         self.webview.eval_js(textfield.text)
         textfield.text = ""
         return True
+        
+class WebView(ui.View):
+    def log(self, wv, msg):
+        print "LOGGING MESSAGE ---> " + msg
+        
+    def will_close(self):
+        ui.cancel_delays()
 
 def load_console(frame=(0, 0, 540, 575), load_addons=True):
     try:
@@ -151,14 +141,12 @@ def load_console(frame=(0, 0, 540, 575), load_addons=True):
         except ValueError as e:
             print "Attempt 2 'EditorViewConsole' failed " + exception_str(e)
             view = WebViewConsole()
-    if load_addons:
-        view.load_addons()
     print "Setting Frame"
     view.frame = frame
     print "Done"
     return view
     
-def load_editor_view(frame=None):
+def load_editor_view(frame=None, load_addons=True):
     try:
         view = ui.load_view("EditorView/EditorView")
     except ValueError as e:
@@ -185,11 +173,16 @@ def load_html_preview_template():
         return os.path.abspath("EditorView/template.html")
         
 if __name__ == "__main__":
-    console_view = load_console()
-    console_view["console_input"].delegate = WebViewInputDelegate(console_view["web_view"])
+    #console_view = load_console()
+    #console_view["console_input"].delegate = WebViewInputDelegate(console_view["web_view"])
+    console_view = load_editor_view()
     view = console_view["web_view"]
     view.delegate = WebViewDelegate(dummy_save, console_view)
     view.load_url(load_html_editor_view())
+    
+    def load():
+        path = os.path.abspath("index.html") #os.path.abspath("CodeMirror-5.3.0/lib/codemirror.js")
+        with open(path, "rb") as f:
+            view.delegate.open(path, str(f.read()))
+    view.delegate.add_load_callback(load)
     console_view.present("sheet")
-    with open(os.path.abspath("CodeMirror-5.3.0/lib/codemirror.js"), "rb") as f:
-        view.delegate.open(os.path.abspath("CodeMirror-5.3.0/lib/codemirror.js"), str(f.read()))

@@ -365,6 +365,7 @@ class EditAction(object):
             
             print "Saved contents to the zip %r" % zn
             console.hud_alert("Zipped", "success")
+            console.open_in(os.path.abspath(zn))
         except KeyboardInterrupt as e:
             print "User cancled the procces"
         

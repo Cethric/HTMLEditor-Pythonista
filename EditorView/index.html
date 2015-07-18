@@ -1,41 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<!-- Built upon https://github.com/jsbain/CodeMirror/blob/master/demo/ed_cm.html -->
+<html>
     <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <meta name="viewport" content="width=100, initial-scale=1"> 
-        <title>Editor</title>
+        <title> CodeMirror: iPad Demo </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=0, width=150"/>
         
-        <link rel="stylesheet" href="CodeMirror-5.3.0/lib/codemirror.css" type="text/css">
-        <link rel="stylesheet" href="CodeMirror-5.3.0/doc/docs.css" type="text/css">
+        <!-- CODE MIRROR BASE -->        
+        <script src="CodeMirror-5.3.0/lib/codemirror.js"></script>
+        <link rel="stylesheet" href="CodeMirror-5.3.0/lib/codemirror.css">
         
-        <script src="CodeMirror-5.3.0/lib/codemirror.js" type="text/javascript" rel="javascript"></script>
-        <script src="CodeMirror-5.3.0/addon/edit/matchbrackets.js" type="text/javascript" rel="javascript></script>
-        <script src="require.js" type="text/javascript" rel="javascript"></script>
+        <!-- ADDONS -->
+        <script src="CodeMirror-5.3.0/addon/mode/loadmode.js"></script>
+        <script src="CodeMirror-5.3.0/addon/edit/closebrackets.js"></script>
+        <script src="CodeMirror-5.3.0/addon/edit/closetag.js"></script>
+        
+        <!-- MISC -->
         <script src="JSONStringify/stringify.js" type="text/javascript" rel="javascript"></script>
-        
-        <style type="text/css" media="screen">
-            body {
-                overflow: hidden;
-                -webkit-overflow-scrolling: touch;
-                overflow-y:auto;
-            }
-            .CodeMirror {
-                border: 1px solid #eee;
-                height: 100%;
-            }
-        </style>
         <script src="main.js" type="text/javascript" rel="javascript"></script>
         
+        <style type="text/css">
+            .CodeMirror {
+                overflow: hidden;
+                position:relative;
+                min-height:100%;
+                height:100%;
+            }
+            .CodeMirror-scroll {
+                overflow: scroll;
+                -webkit-overflow-scrolling: touch;
+            }
+            body {
+                top: 0px;
+                left: 0px;
+                position:relative;
+                overflow: hidden;
+                margin: 0;
+                padding: 0;
+                min-height:99%;
+                height:100%;
+            }
+            html {
+                padding:0px;
+                margin:0px;
+                height:100%;
+            }
+        </style>
     </head>
     <body>
-        <textarea id="textCTRL"></textarea>
+        <form>
+            <textarea id="code" name="code"></textarea>
+        </form>
         <script>
-            var CM = CodeMirror;
-            //console.log(CodeMirror);
-            var editor = CodeMirror.fromTextArea(
-                                                 document.getElementById("textCTRL"),
-                                                 {
+            var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
                                                     value: "",
                                                     mode: "htmlmixed",
                                                     theme: "default",
@@ -78,40 +95,19 @@
                                                     maxHighlightLength: 10000,
                                                     viewportMargin: 100,
                                                     matchBrackets: true,
-                                                }
-            );
+                                                    autoCloseBrackets: true,
+                                                    autoCloseTags: true,
+            });
+            CodeMirror.modeURL = "CodeMirror-5.3.0/mode/%N/%N.js";
+            CodeMirror.autoLoadMode(editor, editor.options.mode);
             
             editor.on("change", function(e, a) {
                 send_to_python("ios-save", "SAVE");
                 console.debug("saving file...");
             });
             
-            function loadMode(modename){
-                var script = document.createElement("SCRIPT");
-                script.setAttribute("src", "CodeMirror-5.3.0/mode/" + modename + "/" + modename + ".js");
-                script.setAttribute("type", "text/javascript");
-                document.getElementsByTagName("head")[0].appendChild(script);
-                console.log("MODE SET");
-            }
+            console.log("Editor setup")
             
-            function printScripts() {
-                console.log("LOADED SCRIPTS");
-                var head = document.getElementsByTagName("head")[0];
-                console.log(stringify(head));
-                for (var script in head.scripts) {
-                    console.log(script.src);
-                }
-                console.log("DONE");
-            }
-            
-            console.log(stringify(loadMode));
-
-            loadMode("xml");
-            loadMode("javascript");
-            loadMode("css");
-            loadMode("htmlmixed");
-            
-            printScripts();
         </script>
     </body>
 </html>
