@@ -5,22 +5,59 @@
         <title> CodeMirror: iPad Demo </title>
         <meta charset="utf-8">
         <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=0, width=150"/>
-        
-        <!-- CODE MIRROR BASE -->        
+        <!-- CODE MIRROR BASE -->
         <script src="CodeMirror-5.3.0/lib/codemirror.js"></script>
+        <!-- THEMES -->
         <link rel="stylesheet" href="CodeMirror-5.3.0/lib/codemirror.css">
-        
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/3024-day.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/3024-night.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/ambiance.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/base16-dark.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/base16-light.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/blackboard.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/cobalt.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/colorforth.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/eclipse.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/elegant.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/erlang-dark.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/lesser-dark.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/liquibyte.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/mbo.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/mdn-like.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/midnight.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/monokai.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/neat.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/neo.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/night.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/paraiso-dark.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/paraiso-light.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/pastel-on-dark.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/rubyblue.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/solarized.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/the-matrix.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/tomorrow-night-bright.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/tomorrow-night-eighties.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/ttcn.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/twilight.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/vibrant-ink.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/xq-dark.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/xq-light.css">
+        <link rel="stylesheet" href="CodeMirror-5.3.0/theme/zenburn.css">
         <!-- ADDONS -->
         <script src="CodeMirror-5.3.0/addon/mode/loadmode.js"></script>
         <script src="CodeMirror-5.3.0/addon/edit/closebrackets.js"></script>
         <script src="CodeMirror-5.3.0/addon/edit/closetag.js"></script>
-        
+        <script src="CodeMirror-5.3.0/addon/selection/active-line.js"></script>
+        <script src="CodeMirror-5.3.0/addon/search/searchcursor.js"></script>
+        <script src="CodeMirror-5.3.0/addon/search/match-highlighter.js"></script>
+        <script src="CodeMirror-5.3.0/addon/edit/trailingspace.js"></script>
         <!-- MISC -->
         <script src="JSONStringify/stringify.js" type="text/javascript" rel="javascript"></script>
         <script src="main.js" type="text/javascript" rel="javascript"></script>
-        
         <style type="text/css">
             .CodeMirror {
+                border-top: 1px solid black;
+                border-bottom: 1px solid black;
                 overflow: hidden;
                 position:relative;
                 min-height:100%;
@@ -29,6 +66,16 @@
             .CodeMirror-scroll {
                 overflow: scroll;
                 -webkit-overflow-scrolling: touch;
+            }
+            .CodeMirror-focused .cm-matchhighlight {
+                background-image: url(data:image/ png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVQI12NgYGBgkKzc8x9CMDAwAAAmhwSbidEoSQAAAABJRU5ErkJggg==);
+                background-position: bottom;
+                background-repeat: repeat-x;
+            }
+            .cm-trailingspace {
+                background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAACCAYAAAB/qH1jAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3QUXCToH00Y1UgAAACFJREFUCNdjPMDBUc/AwNDAAAFMTAwMDA0OP34wQgX/AQBYgwYEx4f9lQAAAABJRU5ErkJggg==);
+                background-position: bottom left;
+                background-repeat: repeat-x;
             }
             body {
                 top: 0px;
@@ -52,62 +99,68 @@
             <textarea id="code" name="code"></textarea>
         </form>
         <script>
+            // From http://stackoverflow.com/questions/10073699/pad-a-number-with-leading-zeros-in-javascript
+            function pad(n, width, z) {
+                z = z || '0';
+                n = n + '';
+                return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+            }
             var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-                                                    value: "",
-                                                    mode: "htmlmixed",
-                                                    theme: "default",
-                                                    indentUnit: 4,
-                                                    smartIndent: true,
-                                                    tabSize: 4,
-                                                    indentWithTabs: false,
-                                                    electricChars: true,
-                                                    //spceialChars: \[]\,
-                                                    //specialCharPlaceholder: function() {},
-                                                    rtlMoveVissually: false,
-                                                    keyMap: "default",
-                                                    //extraKeys: {},
-                                                    lineWrapping: false,
-                                                    lineNumbers: true,
-                                                    firstLineNumber: 1,
-                                                    //lineNumberFormatter: function(line) {return ""},
-                                                    //gutters: {},
-                                                    fixedGutter: true,
-                                                    scrollbarStyle: "native",
-                                                    coverGutterNextToScrollbar: false,
-                                                    inputStyle: "contenteditable",
-                                                    readOnly: false,
-                                                    showCursorWhenSelecting: true,
-                                                    lineWiseCopyCut: true,
-                                                    undoDepth: 250,
-                                                    historyEventDelay: 1250,
-                                                    //tabIndex: 0,
-                                                    autofocus: true,
-                                                    dragDrop: true,
-                                                    cursorBlinkRate: 530,
-                                                    cursorScrollMargin: 0,
-                                                    cursorHeight: 1,
-                                                    resetSelctionOnContextMenu: true,
-                                                    workTime: 200,
-                                                    workDelay: 300,
-                                                    pollInterval: 100,
-                                                    flattenSpans: true,
-                                                    addModeClass: true,
-                                                    maxHighlightLength: 10000,
-                                                    viewportMargin: 100,
-                                                    matchBrackets: true,
-                                                    autoCloseBrackets: true,
-                                                    autoCloseTags: true,
+                                                value: "",
+                                                mode: "htmlmixed",
+                                                theme: "default",
+                                                indentUnit: 4,
+                                                smartIndent: true,
+                                                tabSize: 4,
+                                                indentWithTabs: false,
+                                                electricChars: true,
+                                                spceialChars: /[\u0000-\u0019\u00ad\u200b-\u200f\u2028\u2029\ufeff]/,
+                                                //specialCharPlaceholder: function() {},
+                                                rtlMoveVissually: false,
+                                                keyMap: "default",
+                                                //extraKeys: {},
+                                                lineWrapping: false,
+                                                lineNumbers: true,
+                                                firstLineNumber: 0,
+                                                lineNumberFormatter: function(line) {return pad(line, 5)},
+                                                gutters: ["CodeMirror-linenumbers"],
+                                                fixedGutter: true,
+                                                scrollbarStyle: "native",
+                                                coverGutterNextToScrollbar: false,
+                                                inputStyle: "contenteditable",
+                                                readOnly: false,
+                                                showCursorWhenSelecting: true,
+                                                lineWiseCopyCut: true,
+                                                undoDepth: 250,
+                                                historyEventDelay: 1250,
+                                                //tabIndex: 0,
+                                                autofocus: true,
+                                                dragDrop: true,
+                                                cursorBlinkRate: 530,
+                                                cursorScrollMargin: 0,
+                                                cursorHeight: 1,
+                                                resetSelctionOnContextMenu: false,
+                                                workTime: 200,
+                                                workDelay: 300,
+                                                pollInterval: 100,
+                                                flattenSpans: true,
+                                                addModeClass: true,
+                                                maxHighlightLength: 10000,
+                                                viewportMargin: 250,
+                                                matchBrackets: true,
+                                                autoCloseBrackets: true,
+                                                autoCloseTags: true,
+                                                styleActiveLine: true,
+                                                highlightSelectionMatches: {showToken: /\w/},
+                                                showTrailingSpace: true,
             });
             CodeMirror.modeURL = "CodeMirror-5.3.0/mode/%N/%N.js";
             CodeMirror.autoLoadMode(editor, editor.options.mode);
-            
             editor.on("change", function(e, a) {
                 send_to_python("ios-save", "SAVE");
                 console.debug("saving file...");
             });
-            
             console.log("Editor setup")
-            
         </script>
     </body>
 </html>

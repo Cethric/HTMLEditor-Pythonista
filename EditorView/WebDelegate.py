@@ -14,6 +14,14 @@ def exception_str(exception):
 def dummy_save(file_contents):
     #print "Saving file with contents %s" % file_contents
     pass
+    
+def list_themes():
+    if "EditorView" in os.path.abspath("CodeMirror-5.3.0/theme"):
+        path = os.path.abspath("CodeMirror-5.3.0/theme")
+    else:
+        path = os.path.abspath("EditorView/CodeMirror-5.3.0/theme")
+    l = os.listdir(path)
+    return [x.replace(".css", "") for x in l]
 
 class WebViewDelegate(object):
     def __init__(self, save_func, console_view):
@@ -172,10 +180,37 @@ def load_html_preview_template():
     else:
         return os.path.abspath("EditorView/template.html")
         
+def create_mode_btn(select_func):
+    mode = ui.ButtonItem("mode")
+    def change_mode(sender):
+        v = ui.TableView()
+        v.data_source = ui.ListDataSource([{"title": x} for x in list_themes()])
+        v.delegate = v.data_source
+        def select_mode(sender):
+            i = sender.items[sender.selected_row]
+            if select_func:
+                select_func(i)
+            v.close()
+        v.width = 200
+        v.height = 500
+        v.present(style="popover", hide_title_bar=True, popover_location=(300, 100))
+        v.data_source.action = select_mode
+    mode.action = change_mode
+    
+    return mode
+        
 if __name__ == "__main__":
-    #console_view = load_console()
-    #console_view["console_input"].delegate = WebViewInputDelegate(console_view["web_view"])
-    console_view = load_editor_view()
+    import sys
+    if len(sys.argv) > 1:
+        use_console = bool(sys.argv[1])
+    else:
+        use_console = False
+    if use_console:
+        console_view = load_console()
+        console_view["console_input"].delegate = WebViewInputDelegate(console_view["web_view"])
+    else:
+        console_view = load_editor_view()
+    print list_themes()
     view = console_view["web_view"]
     view.delegate = WebViewDelegate(dummy_save, console_view)
     view.load_url(load_html_editor_view())
@@ -186,3 +221,9 @@ if __name__ == "__main__":
             view.delegate.open(path, str(f.read()))
     view.delegate.add_load_callback(load)
     console_view.present("sheet")
+    def select_func(i):
+        view.eval_js("editor.setOption('theme', '%s')" % i["title"])
+        color = view.eval_js("window.getComputedStyle(document.getElementById('code'), null).backgroundColor")
+        print "%r" % color
+    btn = create_mode_btn(select_func)
+    console_view.left_button_items = [btn]

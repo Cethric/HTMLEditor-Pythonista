@@ -20,6 +20,7 @@ except ImportError:
     import dummyConsole as console
     
 import tag_manager
+import themes
 
 DEBUG = True
 WEBDELEGATE = None
@@ -122,7 +123,7 @@ def preview(sender):
     fm = sender.superview.superview.fileManager
     text = sender.superview.superview["contentContainer"]["editor_view"]["WebEditor"]["web_view"].evaluate_javascript("editor.getValue()")
     if webdelegate:
-        edit_view = webdelegate.load_console(load_addons=False)
+        edit_view = webdelegate.load_console()
         edit_view.name = "Previewer"
         edit_view["console_input"].delegate = webdelegate.WebViewInputDelegate(edit_view["web_view"])
     else:
@@ -138,7 +139,6 @@ def preview(sender):
         pass
     
     def on_load(*args, **kwargs):
-        print "load(%s)" % json.dumps(text)
         edit_view["web_view"].eval_js("load(%s)" % json.dumps(text))
         for i in p.files_list:
             if i.endswith(".css"):
@@ -158,11 +158,11 @@ document.getElementsByTagName("head")[0].appendChild(script);
 ''' % json.dumps(fm.get_file(i)[1])
             else:
                 add_file = ""
-            print add_file
             edit_view["web_view"].eval_js(add_file)
     
     if webdelegate:
-        edit_view["web_view"].delegate = webdelegate.WebViewDelegate(dummy, edit_view, on_load)
+        edit_view["web_view"].delegate = webdelegate.WebViewDelegate(dummy, edit_view)
+        edit_view["web_view"].delegate.add_load_callback(on_load)
         edit_view["web_view"].load_url(webdelegate.load_html_preview_template())
     else:
         edit_view["web_view"].delegate = DebugDelegate(on_load)
@@ -208,14 +208,29 @@ def configure(sender):
         fs = '''for (var elm in document.getElementsByClass('.CodeMirror')) {
     elm.style.font_size = '%ipt';"
 }''' % font_size
-        print fs
-        tv.eval_js(fs)
-        #tv.eval_js("get_editor().getSession().setTabSize(%s);" % tab_size)
-        #tv.eval_js("get_editor().getSession().setUseSoftTabs(%s);" % soft_tab)
-        #tv.eval_js("get_editor().getSession().setUseWrapMode(%s);" % wrap)
-        #tv.eval_js("get_editor().getSession().setShowPrintMargin(%s);" % margin)
-        #tv.eval_js("get_editor().getSession().setShowInvisibles(%s);" % gutter)
-        #tv.eval_js("get_editor().getSession().setTheme(%s);" % style)
+        tv.eval_js("editor.setOption('theme', '%s')" % style)
+        tv.eval_js("editor.setOption('tabSize', '%s')" % tab_size)
+        tv.eval_js("editor.setOption('indentWithTabs', '%s')" % soft_tab)
+        tv.eval_js("editor.setOption('lineWrapping', '%s')" % wrap)
+        tv.eval_js("editor.setOption('lineNumbers', '%s')" % gutter)
+        
+        def recursive_style_set(root):
+            try:
+                for sub in root.subviews:
+                    if sub.name=="log_view":
+                        continue
+                    set_bg(sub)
+            except Exception as e:
+                print exception_str(e)
+        
+        themes_data = themes.get_background_color()
+        def set_bg(sub):
+            recursive_style_set(sub)
+            sub.background_color = themes_data[style]
+                
+        set_bg(sender.superview.superview.superview)
+        print sender.superview.superview.fileViewer
+        set_bg(sender.superview.superview.fileViewer)
         
         '''
             value: "",
@@ -289,6 +304,11 @@ class Editor(ui.View):
 
     def did_load(self):
         print "%r loaded" % self
+        print self.superview
+        try:
+            self.update_config(self.superview.config_view)
+        except Exception as e:
+            print exception_str(e)
 
     def set_fv_fm(self, file_manager, file_viewer):
         self.fileManager = file_manager
@@ -298,10 +318,12 @@ class Editor(ui.View):
         self.fileViewer.frame =(0, 0, 188, h)
         self.fileViewer.bring_to_front()
         self.fileViewer.size_to_fit()
-
         self.set_needs_display()
+        
+        #configure(self["menuBarContainer"]["configure"])
 
     def update_config(self, config_view):
+        print "update_config: %r" % config_view
         self["contentContainer"].update_from_config(config_view)
 
     def apply_fileview(self):
@@ -341,7 +363,6 @@ class ContentContainerView(ui.View):
     def did_load(self):
         print "DID LOAD %r" % self
         self.textview = self["editor_view"]
-        print "self.textview = %r" % self.textview
         print self.textview.subviews
         self.filecontrol = self["file_control"]
         self.filecontrol.action = self.select_file
@@ -362,14 +383,48 @@ class ContentContainerView(ui.View):
         wrap = config.get_value("editor.line.wrap")
         soft_tab = config.get_value("editor.soft.tabs")
         tab_size = config.get_value("editor.tab.size")
-
-        tv.evaluate_javascript("document.getElementById('editor').style.fontSize='%ipx'" % font_size)
-        tv.evaluate_javascript("get_editor().getSession().setTabSize(%s);" % tab_size)
-        tv.evaluate_javascript("get_editor().getSession().setUseSoftTabs(%s);" % soft_tab)
-        tv.evaluate_javascript("get_editor().getSession().setUseWrapMode(%s);" % wrap)
-        tv.evaluate_javascript("get_editor().getSession().setShowPrintMargin(%s);" % margin)
-        tv.evaluate_javascript("get_editor().getSession().setShowInvisibles(%s);" % gutter)
-        tv.evaluate_javascript("get_editor().getSession().setTheme(%s);" % style)
+        
+        fs = '''for (var elm in document.getElementsByClass('.CodeMirror')) {
+    elm.style.font_size = '%ipt';"
+}''' % font_size
+        tv.eval_js("editor.setOption('theme', '%s')" % style)
+        tv.eval_js("editor.setOption('tabSize', '%s')" % tab_size)
+        tv.eval_js("editor.setOption('indentWithTabs', '%s')" % soft_tab)
+        tv.eval_js("editor.setOption('lineWrapping', '%s')" % wrap)
+        tv.eval_js("editor.setOption('lineNumbers', '%s')" % gutter)
+        
+        def recursive_style_set(root):
+            try:
+                for sub in root.subviews:
+                    recursive_style_set(sub)
+                    if style=="3024-day":
+                        sub.background_color = "#f7f7f7"
+                    elif style=="3024-night":
+                        sub.background_color = "#090300"
+                    elif style=="3024-day":
+                        sub.background_color = "#f7f7f7"
+                    elif style=="ambiance" or style=="ambiance-mobile":
+                        sub.background_color = "#202020"
+                    elif style=="base16-dark":
+                        sub.background_color = "#151515"
+                    elif style=="base16-light":
+                        sub.background_color = "#f5f5f5"
+                    elif style=="blackboard":
+                        sub.background_color = "#0C1021"
+                    elif style=="cobolt":
+                        sub.background_color = "#002240"
+                    elif style=="colorforth":
+                        sub.background_color = "#000000"
+                    elif style=="dracular":
+                        sub.background_color = "#282a36"
+                    elif style=="erlang-dark":
+                        sub.background_color = "#002240"
+                    elif style=="icecoder":
+                        sub.background_color = "#141612"
+            except Exception as e:
+                print exception_str(e)
+                
+        recursive_style_set(self.superview)
 
     def add_file(self, file_path, file_contents):
         if file_path not in self.filecontrol.segments:

@@ -457,10 +457,12 @@ class FileViewer(ui.View):
                     "d_type": FOLDER,
                     "d_data": dir_data,
                     "d_path": d_path + "/" + dir_name,
+                    "background_color":  "#FFFF00",
                     }
             fdlist.append(data)
         
         listview = ui.TableView()
+        listview.background_color = "#FFFF00"
         listview.data_source = ui.ListDataSource(fdlist)
         listview.data_source.move_enabled = True
         listview.reload()

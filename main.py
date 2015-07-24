@@ -53,8 +53,6 @@ class MainView(ui.View):
         self.add_subview(self.serverEditorView)
         self.set_html_editor()
         
-        #self.htmlEditorView.update_config(self.config_view)
-        
     def set_html_editor(self):
         self.htmlEditorView.bring_to_front()
         self.htmlEditorView.apply_fileview()
