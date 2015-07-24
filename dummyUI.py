@@ -71,6 +71,10 @@ class TableView(View):
         
 class TextField(View):
     pass
+    
+
+class TextView(View):
+    pass
 
 
 class NavigationView(View):
