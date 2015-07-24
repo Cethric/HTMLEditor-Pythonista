@@ -68,6 +68,9 @@ class View(object):
 class TableView(View):
     def reload(self):
         pass
+        
+class TextField(View):
+    pass
 
 
 class NavigationView(View):
