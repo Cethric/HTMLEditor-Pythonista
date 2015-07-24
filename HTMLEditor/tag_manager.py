@@ -1,4 +1,8 @@
-import ui
+try:
+    import ui
+except ImportError:
+    print "Using Dummy UI"
+    import dummyUI as ui
 import json
 
 
