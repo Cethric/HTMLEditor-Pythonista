@@ -51,6 +51,8 @@
         <script src="CodeMirror-5.3.0/addon/search/searchcursor.js"></script>
         <script src="CodeMirror-5.3.0/addon/search/match-highlighter.js"></script>
         <script src="CodeMirror-5.3.0/addon/edit/trailingspace.js"></script>
+        <script src="CodeMirror-5.3.0/addon/display/fullscreen.js"></script>
+        <link rel="stylesheet" href="CodeMirror-5.3.0/addon/display/fullscreen.css">
         <!-- MISC -->
         <script src="JSONStringify/stringify.js" type="text/javascript" rel="javascript"></script>
         <script src="main.js" type="text/javascript" rel="javascript"></script>
@@ -60,8 +62,6 @@
                 border-bottom: 1px solid black;
                 overflow: hidden;
                 position:relative;
-                min-height:100%;
-                height:100%;
             }
             .CodeMirror-scroll {
                 overflow: scroll;
@@ -84,13 +84,11 @@
                 overflow: hidden;
                 margin: 0;
                 padding: 0;
-                min-height:99%;
                 height:100%;
             }
             html {
                 padding:0px;
                 margin:0px;
-                height:100%;
             }
         </style>
     </head>
@@ -153,6 +151,7 @@
                                                 styleActiveLine: true,
                                                 highlightSelectionMatches: {showToken: /\w/},
                                                 showTrailingSpace: true,
+                                                fullScreen: true,
             });
             CodeMirror.modeURL = "CodeMirror-5.3.0/mode/%N/%N.js";
             CodeMirror.autoLoadMode(editor, editor.options.mode);

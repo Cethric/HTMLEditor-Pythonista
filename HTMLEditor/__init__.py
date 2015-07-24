@@ -22,7 +22,7 @@ except ImportError:
 import tag_manager
 import themes
 
-DEBUG = True
+DEBUG = False
 WEBDELEGATE = None
 
 class DebugDelegate(object):
