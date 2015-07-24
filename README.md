@@ -5,7 +5,7 @@ This is a complete rewrite of the code paying attention to the suggestions and i
 
 ### Features to include
 + [ ] Builtin Customizable lan server
-+ [x] ~~Code checker for html, css and js (HTML, JS, CSS are done)~~ this is done by ~~ACE~~ CodeMirror
++ [x] ~~Code checker for html, css and js (HTML, JS, CSS are done)~~ this is done by CodeMirror
 + [x] ~~Builtin page previewer~~ Finished for HTML only
 + [ ] Dropbox, Onedrive, GoogleDrive, FPT and other cloud based file management services to be incoorperated.
 + [x] Ability to save to zipfile
@@ -20,7 +20,7 @@ This is a complete rewrite of the code paying attention to the suggestions and i
 + ~~HTML tag completions~~ CodeMirror might not do this...
 + HTML quick previewer
 + ~~HTML code checking~~ CodeMirror might not do this...
-+ Syntax Highlighter - Done Through ~~ACE~~ CodeMirror
++ Syntax Highlighter - Done Through CodeMirror
 
 
 ### Server Editor Features
