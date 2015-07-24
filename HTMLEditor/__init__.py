@@ -214,68 +214,12 @@ def configure(sender):
         tv.eval_js("editor.setOption('lineWrapping', '%s')" % wrap)
         tv.eval_js("editor.setOption('lineNumbers', '%s')" % gutter)
         
-        def recursive_style_set(root):
-            try:
-                for sub in root.subviews:
-                    if sub.name=="log_view":
-                        continue
-                    set_bg(sub)
-            except Exception as e:
-                print exception_str(e)
-        
-        themes_data = themes.get_background_color()
-        def set_bg(sub):
-            recursive_style_set(sub)
-            sub.background_color = themes_data[style]
-                
-        set_bg(sender.superview.superview.superview)
-        print sender.superview.superview.fileViewer
-        set_bg(sender.superview.superview.fileViewer)
-        
-        '''
-            value: "",
-            mode: "htmlmixed",
-            theme: "default",
-            indentUnit: 4,
-            smartIndent: true,
-            tabSize: 4,
-            indentWithTabs: false,
-            electricChars: true,
-            //spceialChars: \[]\,
-            //specialCharPlaceholder: function() {},
-            rtlMoveVissually: false,
-            keyMap: "default",
-            //extraKeys: {},
-            lineWrapping: false,
-            lineNumbers: true,
-            firstLineNumber: 1,
-            //lineNumberFormatter: function(line) {return ""},
-            //gutters: {},
-            fixedGutter: true,
-            scrollbarStyle: "native",
-            coverGutterNextToScrollbar: false,
-            inputStyle: "contenteditable",
-            readOnly: false,
-            showCursorWhenSelecting: true,
-            lineWiseCopyCut: true,
-            undoDepth: 250,
-            historyEventDelay: 1250,
-            //tabIndex: 0,
-            autofocus: true,
-            dragDrop: true,
-            cursorBlinkRate: 530,
-            cursorScrollMargin: 0,
-            cursorHeight: 1,
-            resetSelctionOnContextMenu: true,
-            workTime: 200,
-            workDelay: 300,
-            pollInterval: 100,
-            flattenSpans: true,
-            addModeClass: true,
-            maxHighlightLength: 10000,
-            viewportMargin: 100,
-            matchBrackets: true,
-        '''
+        sender.superview.superview.fileViewer.style = style
+        themes.set_bg(sender.superview.superview.superview, style)
+        themes.set_bg(sender.superview.superview.fileViewer, style)
+        themes.set_bg(sender.superview.superview.fileViewer.listview, style)
+        if sender.superview.superview.fileViewer.current_list:
+            themes.set_bg(sender.superview.superview.fileViewer.current_list, style)
     else:
         console.alert("Configuration is only available through the Main View")
 
@@ -304,11 +248,6 @@ class Editor(ui.View):
 
     def did_load(self):
         print "%r loaded" % self
-        print self.superview
-        try:
-            self.update_config(self.superview.config_view)
-        except Exception as e:
-            print exception_str(e)
 
     def set_fv_fm(self, file_manager, file_viewer):
         self.fileManager = file_manager
@@ -319,8 +258,6 @@ class Editor(ui.View):
         self.fileViewer.bring_to_front()
         self.fileViewer.size_to_fit()
         self.set_needs_display()
-        
-        #configure(self["menuBarContainer"]["configure"])
 
     def update_config(self, config_view):
         print "update_config: %r" % config_view
@@ -363,7 +300,6 @@ class ContentContainerView(ui.View):
     def did_load(self):
         print "DID LOAD %r" % self
         self.textview = self["editor_view"]
-        print self.textview.subviews
         self.filecontrol = self["file_control"]
         self.filecontrol.action = self.select_file
         self.pagecontrol = self["page_control"]
@@ -373,6 +309,8 @@ class ContentContainerView(ui.View):
         self.pagecontrol.segments = ()
 
     def update_from_config(self, config_view):
+        print "update_from_config(self, config_view)"
+        
         tv = self["editor_view"]["WebEditor"]["web_view"]
         config = config_view.config
 
@@ -387,44 +325,21 @@ class ContentContainerView(ui.View):
         fs = '''for (var elm in document.getElementsByClass('.CodeMirror')) {
     elm.style.font_size = '%ipt';"
 }''' % font_size
-        tv.eval_js("editor.setOption('theme', '%s')" % style)
-        tv.eval_js("editor.setOption('tabSize', '%s')" % tab_size)
-        tv.eval_js("editor.setOption('indentWithTabs', '%s')" % soft_tab)
-        tv.eval_js("editor.setOption('lineWrapping', '%s')" % wrap)
-        tv.eval_js("editor.setOption('lineNumbers', '%s')" % gutter)
+        def c(*args):
+            tv.eval_js("editor.setOption('theme', '%s')" % style)
+            tv.eval_js("editor.setOption('tabSize', '%s')" % tab_size)
+            tv.eval_js("editor.setOption('indentWithTabs', '%s')" % soft_tab)
+            tv.eval_js("editor.setOption('lineWrapping', '%s')" % wrap)
+            tv.eval_js("editor.setOption('lineNumbers', '%s')" % gutter)
+        tv.delegate.add_load_callback(c)
         
-        def recursive_style_set(root):
-            try:
-                for sub in root.subviews:
-                    recursive_style_set(sub)
-                    if style=="3024-day":
-                        sub.background_color = "#f7f7f7"
-                    elif style=="3024-night":
-                        sub.background_color = "#090300"
-                    elif style=="3024-day":
-                        sub.background_color = "#f7f7f7"
-                    elif style=="ambiance" or style=="ambiance-mobile":
-                        sub.background_color = "#202020"
-                    elif style=="base16-dark":
-                        sub.background_color = "#151515"
-                    elif style=="base16-light":
-                        sub.background_color = "#f5f5f5"
-                    elif style=="blackboard":
-                        sub.background_color = "#0C1021"
-                    elif style=="cobolt":
-                        sub.background_color = "#002240"
-                    elif style=="colorforth":
-                        sub.background_color = "#000000"
-                    elif style=="dracular":
-                        sub.background_color = "#282a36"
-                    elif style=="erlang-dark":
-                        sub.background_color = "#002240"
-                    elif style=="icecoder":
-                        sub.background_color = "#141612"
-            except Exception as e:
-                print exception_str(e)
-                
-        recursive_style_set(self.superview)
+        print style
+        self.superview.fileViewer.style = style
+        themes.set_bg(self.superview, style)
+        themes.set_bg(self.superview.fileViewer, style)
+        themes.set_bg(self.superview.fileViewer.listview, style)
+        if self.superview.fileViewer.current_list:
+            themes.set_bg(self.superview.fileViewer.current_list, style)
 
     def add_file(self, file_path, file_contents):
         if file_path not in self.filecontrol.segments:

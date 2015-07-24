@@ -1,8 +1,10 @@
 import os
 import tinycss
 
+def exception_str(exception):
+    return '{}: {}'.format(exception.__class__.__name__, exception)
+
 def theme_path():
-    print os.getcwd()
     if os.getcwd().endswith("HTMLEditor"):
         path = os.path.abspath("../EditorView/CodeMirror-5.3.0/theme")
     else:
@@ -15,7 +17,7 @@ def list_themes():
     return themes_lists
     
 def get_background_color():
-    themes = {"default":"#000000"}
+    themes = {"default":("#000000", "#FFFFFF")}
     p = theme_path()
     themes_list = list_themes()
     par = tinycss.make_parser("page3")
@@ -31,14 +33,47 @@ def get_background_color():
                     index+=1
             if index<len(style.rules):
                 decs = style.rules[index].declarations
+                background = ""
+                text = ""
                 for dec in decs:
                     if dec.name == "background":
-                        themes[file.replace(".css", "")] = dec.value.as_css()
-                        break
-                    else:
-                        themes[file.replace(".css", "")] = "#000000"
+                        background = str(dec.value.as_css())
+                    if dec.name == "color":
+                        text = str(dec.value.as_css())
+                
+                if background=="":
+                    background = "#000000"
+                if text=="":
+                    text = "#FFFFFF"
+                themes[file.replace(".css", "")] = (background, text)
     return themes
-            
     
+themes_data = get_background_color()
+def recursive_style_set(root, style):
+    try:
+        for sub in root.subviews:
+            if sub.name=="log_view":
+                continue
+            set_bg(sub, style)
+    except SystemError as e:
+        print exception_str(e)
+        
+def set_bg(sub, style):
+    recursive_style_set(sub, style)
+    sub.background_color = themes_data[style][0]
+    try:
+        sub.bar_tint_color = themes_data[style][0]
+    except AttributeError as e:
+        print exception_str(e)
+    try:
+        sub.text_color = themes_data[style][1]
+    except AttributeError as e1:
+        try:
+            sub.title_color = themes_data[style][1]
+        except AttributeError as e2:
+            print exception_str(e1)
+            print exception_str(e2)
+    print "Style set"
+
 if __name__ == "__main__":
     print get_background_color()

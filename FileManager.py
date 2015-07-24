@@ -11,6 +11,9 @@ except ImportError:
 
 import templates
 reload(templates)
+from HTMLEditor import themes
+reload(themes)
+from ConfigManager import Config
 
 try:
     import cPickle as pickle
@@ -392,6 +395,7 @@ class FileViewer(ui.View):
         self.navview = ui.NavigationView(self.listview)
         self.navview.flex = "WH"
         self.navview.frame = self.frame
+        self.navview.name = "NAME"
         self.add_subview(self.navview)
         self.listview.set_needs_display()
         self.navview.set_needs_display()
@@ -399,6 +403,26 @@ class FileViewer(ui.View):
         self.init_list()
         
         self.selected_items = []
+        
+        self.current_list = None
+        c = Config()
+        self.style = c.get_value("editor.style")
+    
+    def tableview_cell_for_row(self, tableview, section, row):
+        cell = ui.ListDataSource.tableview_cell_for_row(tableview.data_source, tableview, section, row)
+        if self.style:
+            if cell.content_view:
+                themes.set_bg(cell.content_view, self.style)
+            if cell.text_label:
+                themes.set_bg(cell.text_label, self.style)
+            if cell.detail_text_label:
+                themes.set_bg(cell.detail_text_label, self.style)
+                cell.detail_text_label.text = "test"
+            if cell.image_view:
+                themes.set_bg(cell.image_view, self.style)
+        else:
+            cell.content_view.background_color = self.listview.background_color
+        return cell
         
     def init_list(self):
         d = self.fileManager.get_current_dir()
@@ -409,7 +433,7 @@ class FileViewer(ui.View):
             data = {
                     "title": file_name,
                     "image": "ionicons-document-text-24",
-                    "accessory_type": "detail_disclosure_button",
+                    "accessory_type": "none",
                     "d_type": FILE,
                     "d_data": file_data,
                     "d_path": "/" + file_name
@@ -419,13 +443,14 @@ class FileViewer(ui.View):
             data = {
                     "title": dir_name,
                     "image": "ionicons-folder-24",
-                    "accessory_type": "detail_disclosure_button",
+                    "accessory_type": "disclosure_indicator",
                     "d_type": FOLDER,
                     "d_data": dir_data,
                     "d_path": "/" + dir_name
                     }
             fdlist.append(data)
         self.listview.data_source = ui.ListDataSource(fdlist)
+        self.listview.data_source.tableview_cell_for_row = self.tableview_cell_for_row
         self.listview.reload()
         
         add_act = AddAction(self.listview, d, self.fileManager)
@@ -436,6 +461,7 @@ class FileViewer(ui.View):
         self.listview.right_button_items = [edit_btn, add_btn]
         
     def populate_list(self, path, d_path, directory=[]):
+        print path
         files = directory[0]
         dirs = directory[1]
         fdlist = []
@@ -443,7 +469,7 @@ class FileViewer(ui.View):
             data = {
                     "title": file_name,
                     "image": "ionicons-document-text-24",
-                    "accessory_type": "detail_disclosure_button",
+                    "accessory_type": "none",
                     "d_type": FILE,
                     "d_data": file_data,
                     "d_path": d_path + "/" + file_name
@@ -453,7 +479,7 @@ class FileViewer(ui.View):
             data = {
                     "title": dir_name,
                     "image": "ionicons-folder-24",
-                    "accessory_type": "detail_disclosure_button",
+                    "accessory_type": "disclosure_indicator",
                     "d_type": FOLDER,
                     "d_data": dir_data,
                     "d_path": d_path + "/" + dir_name,
@@ -462,8 +488,9 @@ class FileViewer(ui.View):
             fdlist.append(data)
         
         listview = ui.TableView()
-        listview.background_color = "#FFFF00"
+        listview.background_color = self.listview.background_color
         listview.data_source = ui.ListDataSource(fdlist)
+        listview.data_source.tableview_cell_for_row = self.tableview_cell_for_row
         listview.data_source.move_enabled = True
         listview.reload()
         listview.delegate = self
@@ -476,6 +503,7 @@ class FileViewer(ui.View):
         edit_btn = ui.ButtonItem(action=edit_act.invoke, image=ui.Image.named("ionicons-hammer-24"))
         
         listview.right_button_items = [edit_btn, add_btn]
+        self.current_list = listview
         
     def tableview_did_select(self, tableview, section, row):
         items = tableview.data_source.items
