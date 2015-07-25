@@ -1249,7 +1249,7 @@ class TagAddView(ui.View):
         p.background_color = "#DDDDDD"
         y = 20
         for k, v in sorted(values.iteritems()):
-            if type(v) == type(""):
+            if isinstance(v, str):
                 t = v
                 v = ui.Label()
                 v.text = t
@@ -1265,7 +1265,7 @@ class TagAddView(ui.View):
             k.y = y
             v.y = y
             k.height = 25
-            v.height = 25 if type(v) != type(ui.TextView()) else 200
+            v.height = 25 if isinstance(v, ui.TextField) else 200
             y += v.height + 15
             p.add_subview(k)
             p.add_subview(v)
@@ -1332,9 +1332,9 @@ class TagAddView(ui.View):
 
         for sub in self.options.subviews:
             for elm in sub.subviews:
-                if type(elm) != type(ui.Button()):
+                if not isinstance(elm, ui.Button):
                     n, t = elm.name, elm.text
-                    if type(elm) != type(ui.Label()):
+                    if not isinstance(elm, ui.Label):
                         if n == u'content':
                             content = t
                         elif n == u'newlinechar':

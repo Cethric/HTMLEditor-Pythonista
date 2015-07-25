@@ -2,7 +2,12 @@
 # coding: utf-8
 
 # the following line is recommended to ease porting to Python 3
-#  from __future__ import (absolute_import, division, print_function, unicode_literals)
+#  from __future__ import (
+#                          absolute_import,
+#                          division,
+#                          print_function,
+#                          unicode_literals
+#                          )
 # todo: uncomment the line above and then fix up all the print commands
 import os
 import json
@@ -78,7 +83,8 @@ class Parser(HTMLParser.HTMLParser):
         self.files_list = []
         HTMLParser.HTMLParser.feed(self, *args, **kwargs)
         if not self.open_tags == []:
-            print "Not all tag/s have been closed.\nOpen tag/s %r" % self.open_tags
+            print "Not all tag/s have been closed.\n"
+            "Open tag/s %r" % self.open_tags
 
 
 @ui.in_background
@@ -399,8 +405,8 @@ class ContentContainerView(ui.View):
     def close_file(self, file):
         print "Closing file: %s" % (file)
         for page in self.pagecontrol.segments:
-            self.pagecontrol.selected_index = self.pagecontrol.segments.indexof(
-                page)
+            self.pagecontrol.selected_index =
+            self.pagecontrol.segments.indexof(page)
             self.select_page(None)
         self.pagecontrol.segments = tuple("NO OPEN FILE/s")
 
@@ -442,8 +448,10 @@ class ContentContainerView(ui.View):
                     self.add_page(file)
             self.pagecontrol.selected_index = 0
         if self.html_parser.open_tags:
-            self.superview["toolsContainer"][
-                "open_tags"].text = "Open Tags: %s" % ", ".join(self.html_parser.open_tags)
+            ot = self.superview["toolsContainer"]["open_tags"]
+            ot.text = "Open Tags: %s" % ", ".join(
+                self.html_parser.open_tags
+            )
             self.superview["toolsContainer"][
                 "open_tags"].line_break_mode = ui.LB_CHAR_WRAP
             self.superview["toolsContainer"]["open_tags"].size_to_fit()
@@ -470,7 +478,12 @@ class PropertiesView(ui.View):
         ui.View.__init__(self, *args, **kwargs)
 
 
-def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 600), webdelegate=None):
+def load_editor(
+    file_manager=None,
+    file_viewer=ui.View(),
+    frame=(0, 0, 540, 600),
+    webdelegate=None
+):
     try:
         view = ui.load_view("HTMLEditor/__init__")
     except ValueError as e:
@@ -498,8 +511,10 @@ def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 600)
         if DEBUG:
             edit_view = webdelegate.load_console()
             edit_view.name = "WebEditor"
-            edit_view["console_input"].delegate = webdelegate.WebViewInputDelegate(
-                edit_view["web_view"])
+            edit_view["console_input"].delegate =
+            webdelegate.WebViewInputDelegate(
+                edit_view["web_view"]
+            )
         else:
             edit_view = webdelegate.load_editor_view()
             edit_view.name = "WebEditor"

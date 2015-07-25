@@ -96,7 +96,12 @@ class DropBoxConection(BaseConnection):
         }
 
     def get_quota(self):
-        return "%.3fGB" % (float(self.api.account_info()[u'quota_info'][u'quota']) / (1024 * 1024 * 1024))
+        return "%.3fGB" % (
+            float(
+                self.api.account_info()
+                [u'quota_info'][u'quota']
+            ) / (1024 * 1024 * 1024)
+        )
 
     def _get_request_token(self):
         console.clear()
@@ -165,8 +170,11 @@ class OneDriveConnection(BaseConnection):
             request_token = self._get_request_token()
             self.api.auth_user_process_url(request_token)
             self.api.auth_get_token()
-            keychain.set_password('onedrive', self.app_key, pickle.dumps(
-                (self.api.auth_access_token, self.api.auth_code, self.api.auth_refresh_token)))
+            keychain.set_password('onedrive', self.app_key, pickle.dumps((
+                self.api.auth_access_token,
+                self.api.auth_code,
+                self.api.auth_refresh_token
+            )))
 
     def _get_request_token(self):
         console.clear()
@@ -252,16 +260,20 @@ class GoogleDriveConnections(BaseConnection):
             print "File not found"
 
     def write(self, file_name_path, contents):
-        file = self.api.CreateFile(
-            {"title": os.path.basename(file_name_path), "mimeType": "text/plain"})
+        file = self.api.CreateFile({
+            "title": os.path.basename(file_name_path),
+            "mimeType": "text/plain"
+        })
         file.SetContentString(contents)
         file.Upload()
         self.file_ids[file["title"]] = ["FILE", file["id"]]
         return file
 
     def mk_dir(self, path):
-        file = self.api.CreateFile(
-            {"title": path, "mimeType": "application/vnd.google-apps.folder"})
+        file = self.api.CreateFile({
+            "title": path,
+            "mimeType": "application/vnd.google-apps.folder"
+        })
         file.Upload()
         self.file_ids[file["title"]] = ["FILE", file["id"]]
         return file
@@ -297,18 +309,18 @@ class GoogleDriveConnections(BaseConnection):
 
 if __name__ == '__main__':
     # keychain.reset_keychain()
-    #db = DropBoxConection(True)
+    # db = DropBoxConection(True)
     # print len(db.list_dir("/"))
     # print db.write("/test.txt", "hello world this is a test")
     # print db.read("/test.txt")
 
-    #od = OneDriveConnection()
-    #od.write("test.txt", "hello world this is a test")
+    # od = OneDriveConnection()
+    # od.write("test.txt", "hello world this is a test")
     # od.read("test.txt")
 
     gd = GoogleDriveConnections()
     # print "File Write"
-    #gd.write("test2.txt", "hello world this is a test")
+    # gd.write("test2.txt", "hello world this is a test")
     print "File Read"
     print gd.read("test.txt")
     # print "MK DIR"

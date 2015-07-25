@@ -45,7 +45,8 @@ def test_manager_add_file():
 def test_manager_get_file():
     m = Manager()
     assert m.get_file("dir1/dir1/test.txt") == ("test.txt",
-                                                "Bassus victrix saepe imperiums galatae est.")
+                                                "Bassus victrix saepe"
+                                                " imperiums galatae est.")
 
 
 @with_setup(setup_manager, teardown_manager)
@@ -64,14 +65,16 @@ def test_manager_get_folder():
 def test_manager_get_folder2():
     m = Manager()
     assert m.get_folder(
-        "dir1/dir1") == ("dir1", [{"test.txt": "Bassus victrix saepe imperiums galatae est."}, {}])
+        "dir1/dir1") == ("dir1", [{"test.txt": "Bassus victrix saepe"
+                                   " imperiums galatae est."}, {}])
 
 
 @with_setup(setup_manager, teardown_manager)
 def test_manager_current_dir():
     m = Manager()
     assert m.current_dir == [{}, {'dir1': [{}, {'dir1': [
-        {'test.txt': 'Bassus victrix saepe imperiums galatae est.'}, {}]}], 'dir': [{}, {'folder': [{}, {'path': [{}, {}]}]}]}]
+        {'test.txt': 'Bassus victrix saepe imperiums galatae est.'}, {}]}
+    ], 'dir': [{}, {'folder': [{}, {'path': [{}, {}]}]}]}]
 
 
 @with_setup(setup_manager, teardown_manager)

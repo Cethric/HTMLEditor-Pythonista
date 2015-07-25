@@ -88,14 +88,12 @@ class WebViewDelegate(object):
                     "editor.setOption('mode', %r);" % str(mode))
                 self.webview.eval_js(
                     "CodeMirror.autoLoadMode(editor, %r);" % str(mode))
-                #self.webview.eval_js("loadMode(%r)" % str(mode))
             else:
                 print "could not open file: %r" % filename
         except Exception as e:
             print exception_str(e)
 
     def get_mode(self, filename):
-        '''return style name used by change_syntax, based on file extension.  '''
         syntaxes = {'css': 'css',
                     'html': 'htmlmixed',
                     'js': 'javascript',
@@ -159,11 +157,13 @@ def load_console(frame=(0, 0, 540, 575), load_addons=True):
     try:
         view = ui.load_view("EditorView/EditorViewConsole")
     except ValueError as e:
-        print "Attempt 1 'EditorView/EditorViewConsole' failed " + exception_str(e)
+        print "Attempt 1 'EditorView/EditorViewConsole' failed"
+        print exception_str(e)
         try:
             view = ui.load_view("EditorViewConsole")
         except ValueError as e:
-            print "Attempt 2 'EditorViewConsole' failed " + exception_str(e)
+            print "Attempt 2 'EditorViewConsole' failed"
+            print exception_str(e)
             view = WebViewConsole()
     print "Setting Frame"
     view.frame = frame
@@ -175,11 +175,13 @@ def load_editor_view(frame=None, load_addons=True):
     try:
         view = ui.load_view("EditorView/EditorView")
     except ValueError as e:
-        print "Attempt 1 'EditorView/EditorView' failed " + exception_str(e)
+        print "Attempt 1 'EditorView/EditorView' failed"
+        print exception_str(e)
         try:
             view = ui.load_view("EditorView")
         except ValueError as e:
-            print "Attempt 2 'EditorView' failed " + exception_str(e)
+            print "Attempt 2 'EditorView' failed"
+            print exception_str(e)
             view = ui.WebView()
     if frame:
         view.frame = frame
@@ -251,7 +253,10 @@ if __name__ == "__main__":
     def select_func(i):
         view.eval_js("editor.setOption('theme', '%s')" % i["title"])
         color = view.eval_js(
-            "window.getComputedStyle(document.getElementById('code'), null).backgroundColor")
+            "window.getComputedStyle("
+            "document.getElementById('code'),"
+            "null).backgroundColor"
+        )
         print "%r" % color
     btn = create_mode_btn(select_func)
     console_view.left_button_items = [btn]

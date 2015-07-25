@@ -10,9 +10,7 @@ except ImportError:
     import dummyConsole as console
 
 import templates
-reload(templates)
 from HTMLEditor import themes
-reload(themes)
 from ConfigManager import Config
 
 try:
@@ -20,6 +18,9 @@ try:
 except ImportError:
     print "cPickle is not available, using standard pickle module."
     import pickle
+
+reload(themes)
+reload(templates)
 
 
 def pickle_dump(data, filename):  # saves data into filename
@@ -315,7 +316,9 @@ class EditAction(object):
         self.tableview.editing = not self.tableview.editing
         if self.tableview.editing:
             zipper = ui.ButtonItem(
-                action=self.zipup, image=ui.Image.named("ionicons-ios7-photos-outline-24"))
+                action=self.zipup,
+                image=ui.Image.named("ionicons-ios7-photos-outline-24")
+            )
             self.tableview.left_button_items = [zipper]
 
         else:
@@ -338,7 +341,8 @@ class EditAction(object):
             for file_key in x[0]:
                 del self.tableview_data[0][file_key]
         except RuntimeError as e:
-            print "Error occured deleting file %r. refresh view to check what happend" % file_key
+            print "Error occured deleting file %r."
+            print "refresh view to check what happend" % file_key
             print e.message
 
         dir_key = ""
@@ -346,7 +350,8 @@ class EditAction(object):
             for dir_key in x[1]:
                 del self.tableview_data[1][dir_key]
         except RuntimeError as e:
-            print "Error occured deleting directory %r. refresh view to check what happend" % dir_key
+            print "Error occured deleting directory %r."
+            print "refresh view to check what happend" % dir_key
             print e.message
         self.fileManager.save_data()
         self.tableview.reload_data()
@@ -459,15 +464,20 @@ class FileViewer(ui.View):
             }
             fdlist.append(data)
         self.listview.data_source = ui.ListDataSource(fdlist)
-        self.listview.data_source.tableview_cell_for_row = self.tableview_cell_for_row
+        self.listview.data_source.tableview_cell_for_row =\
+            self.tableview_cell_for_row
         self.listview.reload()
 
         add_act = AddAction(self.listview, d, self.fileManager)
         add_btn = ui.ButtonItem(
-            action=add_act.invoke, image=ui.Image.named("ionicons-ios7-compose-outline-24"))
+            action=add_act.invoke,
+            image=ui.Image.named("ionicons-ios7-compose-outline-24")
+        )
         edit_act = EditAction(self.listview, d, self.fileManager)
         edit_btn = ui.ButtonItem(
-            action=edit_act.invoke, image=ui.Image.named("ionicons-hammer-24"))
+            action=edit_act.invoke,
+            image=ui.Image.named("ionicons-hammer-24")
+        )
 
         self.listview.right_button_items = [edit_btn, add_btn]
 
@@ -501,7 +511,8 @@ class FileViewer(ui.View):
         listview = ui.TableView()
         listview.background_color = self.listview.background_color
         listview.data_source = ui.ListDataSource(fdlist)
-        listview.data_source.tableview_cell_for_row = self.tableview_cell_for_row
+        listview.data_source.tableview_cell_for_row =\
+            self.tableview_cell_for_row
         listview.data_source.move_enabled = True
         listview.reload()
         listview.delegate = self
@@ -510,10 +521,14 @@ class FileViewer(ui.View):
 
         add_act = AddAction(self.listview, directory, self.fileManager)
         add_btn = ui.ButtonItem(
-            action=add_act.invoke, image=ui.Image.named("ionicons-ios7-compose-outline-24"))
+            action=add_act.invoke,
+            image=ui.Image.named("ionicons-ios7-compose-outline-24")
+        )
         edit_act = EditAction(listview, directory, self.fileManager)
         edit_btn = ui.ButtonItem(
-            action=edit_act.invoke, image=ui.Image.named("ionicons-hammer-24"))
+            action=edit_act.invoke,
+            image=ui.Image.named("ionicons-hammer-24")
+        )
 
         listview.right_button_items = [edit_btn, add_btn]
         self.current_list = listview
@@ -544,9 +559,10 @@ class FileViewer(ui.View):
 if __name__ == "__main__":
     print "running simple file manager tests"
     m = Manager()
-    print 'm.add_file("dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")'
-    m.add_file(
-        "dir1/dir1/test.txt", "Bassus victrix saepe imperiums galatae est.")
+    print '''m.add_file("dir1/dir1/test.txt",
+            "Bassus victrix saepe imperiums galatae est.")'''
+    m.add_file("dir1/dir1/test.txt",
+               "Bassus victrix saepe imperiums galatae est.")
     print 'print m.get_file("dir1/dir1/test.txt")'
     print m.get_file("dir1/dir1/test.txt")
     print 'm.new_folder("dir/folder/path")'

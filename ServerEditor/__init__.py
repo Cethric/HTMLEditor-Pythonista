@@ -27,7 +27,7 @@ def show_hide_file_viewer(sender):
 
 @ui.in_background
 def html_editor(sender):
-    if sender.superview.superview.superview == None:
+    if sender.superview.superview.superview is None:
         console.hud_alert("html_editor")
     else:
         sender.superview.superview.superview.set_html_editor()
@@ -73,12 +73,12 @@ def quitter(sender):
     try:
         result = console.alert("Close", "", "Close File", "Quit")
         if result == 1:
-            if sender.superview.superview == None:
+            if sender.superview.superview is None:
                 console.hud_alert("Close File")
             else:
                 sender.superview.superview.on_close_file()
         elif result == 2:
-            if sender.superview.superview.superview == None:
+            if sender.superview.superview.superview is None:
                 sender.superview.superview.close()
             else:
                 sender.superview.superview.superview.close()
@@ -100,7 +100,11 @@ class Editor(ui.View):
         # self["fileViewContainer"].add_subview(self.fileViewer)
         self.fileViewer.flex = "WH"
         self.fileViewer.frame = (
-            0, 0, self["fileViewContainer"].frame[2], self["fileViewContainer"].frame[3])
+            0,
+            0,
+            self["fileViewContainer"].frame[2],
+            self["fileViewContainer"].frame[3]
+        )
         self.fileViewer.bring_to_front()
         self.fileViewer.size_to_fit()
         self.set_needs_display()
@@ -191,7 +195,11 @@ class TextEditorView(ui.View):
             if self.insert_tabs:
                 self.insert_tabs = False
                 self.insert_text(
-                    textview.text, "\t" * self.tabs, textview.selected_range[0], textview.selected_range)
+                    textview.text,
+                    "\t" * self.tabs,
+                    textview.selected_range[0],
+                    textview.selected_range
+                )
 
             if self.insert_comment:
                 print "insert comment"
@@ -204,7 +212,9 @@ class TextEditorView(ui.View):
         reprange = (start_point, len(text))
         self.textview.replace_range(reprange, replacement + reptext)
         self.textview.selected_range = (
-            start_point + len(replacement) - rev, start_point + len(replacement) - rev)
+            start_point + len(replacement) - rev,
+            start_point + len(replacement) - rev
+        )
 
     def get_tabs_for_line(self, text, textrange):
         ctext = text[textrange[0]:textrange[1]]
@@ -331,7 +341,12 @@ class PropertiesView(ui.View):
 ServerEditor = Editor
 
 
-def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 575), webdelegate=None):
+def load_editor(
+    file_manager=None,
+    file_viewer=ui.View(),
+    frame=(0, 0, 540, 575),
+    webdelegate=None
+):
     try:
         view = ui.load_view("ServerEditor/__init__")
     except ValueError as e:

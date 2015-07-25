@@ -5,14 +5,15 @@ except ImportError:
     import dummyUI as ui
 
 import FileManager
-reload(FileManager)
 import HTMLEditor
-reload(HTMLEditor)
 import ServerEditor
-reload(ServerEditor)
 import ConfigManager
-reload(ConfigManager)
 from EditorView import WebDelegate
+
+reload(FileManager)
+reload(HTMLEditor)
+reload(ServerEditor)
+reload(ConfigManager)
 reload(WebDelegate)
 
 DEBUG = False
