@@ -405,8 +405,8 @@ class ContentContainerView(ui.View):
     def close_file(self, file):
         print "Closing file: %s" % (file)
         for page in self.pagecontrol.segments:
-            self.pagecontrol.selected_index =
-            self.pagecontrol.segments.indexof(page)
+            self.pagecontrol.selected_index =\
+                self.pagecontrol.segments.indexof(page)
             self.select_page(None)
         self.pagecontrol.segments = tuple("NO OPEN FILE/s")
 
@@ -511,10 +511,10 @@ def load_editor(
         if DEBUG:
             edit_view = webdelegate.load_console()
             edit_view.name = "WebEditor"
-            edit_view["console_input"].delegate =
-            webdelegate.WebViewInputDelegate(
-                edit_view["web_view"]
-            )
+            edit_view["console_input"].delegate =\
+                webdelegate.WebViewInputDelegate(
+                    edit_view["web_view"]
+                )
         else:
             edit_view = webdelegate.load_editor_view()
             edit_view.name = "WebEditor"
