@@ -1,11 +1,14 @@
 print "Dummy UI Script Loaded"
 
+
 def in_background(func):
     def function(*args, **kwargs):
         return func(*args, **kwargs)
     return function
 
+
 class View(object):
+
     def __init__(self, *args, **kwargs):
         print "Initializing view %r" % self
         print "Args: %r" % list(args)
@@ -66,12 +69,14 @@ class View(object):
 
 
 class TableView(View):
+
     def reload(self):
         pass
-        
+
+
 class TextField(View):
     pass
-    
+
 
 class TextView(View):
     pass
@@ -82,6 +87,7 @@ class NavigationView(View):
 
 
 class ButtonItem(object):
+
     def __init__(self, *args, **kwargs):
         print "Args: %r" % list(args)
         for k, v in kwargs.items():
@@ -92,8 +98,8 @@ def load_view(ui_view_name=""):
     return View()
 
 
-
 class ListDataSource(object):
+
     def __init__(self, *args, **kwargs):
         print "Args: %r" % list(args)
         for k, v in kwargs.items():

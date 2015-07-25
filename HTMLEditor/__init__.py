@@ -18,33 +18,37 @@ except ImportError:
     print "Using Dummy UI"
     import dummyUI as ui
     import dummyConsole as console
-    
+
 import tag_manager
 import themes
 
 DEBUG = False
 WEBDELEGATE = None
 
+
 class DebugDelegate(object):
-            def __init__(self, on_load):
-                self.on_load = on_load
-                
-            def webview_should_start_load(self, webview, url, nav_type):
-                if "ios-" in url:
-                    url = urllib.unquote(url)
-                    print url
-                    return False
-                return True
-                
-            def webview_did_finish_load(self, webview):
-                if self.on_load:
-                    self.on_load()
+
+    def __init__(self, on_load):
+        self.on_load = on_load
+
+    def webview_should_start_load(self, webview, url, nav_type):
+        if "ios-" in url:
+            url = urllib.unquote(url)
+            print url
+            return False
+        return True
+
+    def webview_did_finish_load(self, webview):
+        if self.on_load:
+            self.on_load()
 
 
 def exception_str(exception):
     return '{}: {}'.format(exception.__class__.__name__, exception)
-    
+
+
 class Parser(HTMLParser.HTMLParser):
+
     def __init__(self):
         HTMLParser.HTMLParser.__init__(self)
         self.open_tags = []
@@ -76,9 +80,10 @@ class Parser(HTMLParser.HTMLParser):
         if not self.open_tags == []:
             print "Not all tag/s have been closed.\nOpen tag/s %r" % self.open_tags
 
+
 @ui.in_background
 def show_hide_file_viewer(sender):
-    #console.hud_alert("show_hide_file_viewer")
+    # console.hud_alert("show_hide_file_viewer")
     ss_view = sender.superview.superview
     old_width = ss_view["fileViewContainer"].width
     show = old_width == 0
@@ -106,7 +111,6 @@ def show_hide_file_viewer(sender):
                     pass
 
 
-
 @ui.in_background
 def server_editor(sender):
     sss_view = sender.superview.superview.superview
@@ -115,17 +119,20 @@ def server_editor(sender):
     else:
         console.hud_alert("server_editor")
 
+
 @ui.in_background
 def preview(sender):
-    #console.hud_alert("preview")
+    # console.hud_alert("preview")
     p = Parser()
     webdelegate = WEBDELEGATE
     fm = sender.superview.superview.fileManager
-    text = sender.superview.superview["contentContainer"]["editor_view"]["WebEditor"]["web_view"].evaluate_javascript("editor.getValue()")
+    text = sender.superview.superview["contentContainer"]["editor_view"][
+        "WebEditor"]["web_view"].evaluate_javascript("editor.getValue()")
     if webdelegate:
         edit_view = webdelegate.load_console()
         edit_view.name = "Previewer"
-        edit_view["console_input"].delegate = webdelegate.WebViewInputDelegate(edit_view["web_view"])
+        edit_view["console_input"].delegate = webdelegate.WebViewInputDelegate(
+            edit_view["web_view"])
     else:
         edit_view = ui.View()
         wv = ui.WebView()
@@ -133,11 +140,12 @@ def preview(sender):
         wv.flex = "WH"
         edit_view.flex = "WH"
         edit_view.add_subview(wv)
-        
+
     p.feed(text)
+
     def dummy(*args, **kwagrs):
         pass
-    
+
     def on_load(*args, **kwargs):
         edit_view["web_view"].eval_js("load(%s)" % json.dumps(text))
         for i in p.files_list:
@@ -148,7 +156,7 @@ style.setAttribute("type", "text/css");
 style.innerHTML = %s;
 document.getElementsByTagName("head")[0].appendChild(style);
 ''' % json.dumps(fm.get_file(i)[1])
-                
+
             elif i.endswith(".js"):
                 add_file = '''
 var script = document.createElement("SCRIPT");
@@ -159,21 +167,25 @@ document.getElementsByTagName("head")[0].appendChild(script);
             else:
                 add_file = ""
             edit_view["web_view"].eval_js(add_file)
-    
+
     if webdelegate:
-        edit_view["web_view"].delegate = webdelegate.WebViewDelegate(dummy, edit_view)
+        edit_view["web_view"].delegate = webdelegate.WebViewDelegate(
+            dummy, edit_view)
         edit_view["web_view"].delegate.add_load_callback(on_load)
-        edit_view["web_view"].load_url(webdelegate.load_html_preview_template())
+        edit_view["web_view"].load_url(
+            webdelegate.load_html_preview_template())
     else:
         edit_view["web_view"].delegate = DebugDelegate(on_load)
-        edit_view["web_view"].load_url(os.path.abspath("../EditorView/template.html"))
+        edit_view["web_view"].load_url(
+            os.path.abspath("../EditorView/template.html"))
     edit_view.present("sheet")
-    
+
 
 @ui.in_background
 def quitter(sender):
     try:
-        result = console.alert("Close", "Close File or Quit", "Close File", "Quit")
+        result = console.alert(
+            "Close", "Close File or Quit", "Close File", "Quit")
         if result == 1:
             if sender.superview.superview:
                 sender.superview.superview.on_close_file()
@@ -188,13 +200,15 @@ def quitter(sender):
     except KeyboardInterrupt as e:
         print "User canceled the input. " + exception_str(e)
 
+
 @ui.in_background
 def configure(sender):
     sss_view = sender.superview.superview.superview
     if sss_view:
         sss_view.config_view.present("sheet")
         sss_view.config_view.wait_modal()
-        tv = sender.superview.superview["contentContainer"]["editor_view"]["WebEditor"]["web_view"]
+        tv = sender.superview.superview["contentContainer"][
+            "editor_view"]["WebEditor"]["web_view"]
         config = sss_view.config_view.config
 
         font_size = config.get_value("editor.font.size")
@@ -204,7 +218,7 @@ def configure(sender):
         wrap = config.get_value("editor.line.wrap")
         soft_tab = config.get_value("editor.soft.tabs")
         tab_size = config.get_value("editor.tab.size")
-        
+
         fs = '''for (var elm in document.getElementsByClass('.CodeMirror')) {
     elm.style.font_size = '%ipt';"
 }''' % font_size
@@ -213,22 +227,28 @@ def configure(sender):
         tv.eval_js("editor.setOption('indentWithTabs', '%s')" % soft_tab)
         tv.eval_js("editor.setOption('lineWrapping', '%s')" % wrap)
         tv.eval_js("editor.setOption('lineNumbers', '%s')" % gutter)
-        
+
+        bc = themes.themes_data[style][0]
+        tv.eval_js("document.body.style.backgroundColor = '%s'" % bc)
+
         sender.superview.superview.fileViewer.style = style
         themes.set_bg(sender.superview.superview.superview, style)
         themes.set_bg(sender.superview.superview.fileViewer, style)
         themes.set_bg(sender.superview.superview.fileViewer.listview, style)
         if sender.superview.superview.fileViewer.current_list:
-            themes.set_bg(sender.superview.superview.fileViewer.current_list, style)
+            themes.set_bg(
+                sender.superview.superview.fileViewer.current_list, style)
     else:
         console.alert("Configuration is only available through the Main View")
+
 
 @ui.in_background
 def add_tag(sender):
     v = ui.TableView()
     v.data_source = ui.ListDataSource(tag_manager.TAGS)
     try:
-        we = sender.superview.superview["contentContainer"]["editor_view"]["WebEditor"]["web_view"]
+        we = sender.superview.superview["contentContainer"][
+            "editor_view"]["WebEditor"]["web_view"]
     except IndexError as e:
         print exception_str(e)
         we = ui.WebView()
@@ -236,11 +256,13 @@ def add_tag(sender):
     v.name = "Add Tag"
     v.width = 350
     v.height = 500
-    v.present("popover", popover_location=(sender.superview.x, sender.superview.y))
+    v.present("popover", popover_location=(
+        sender.superview.x, sender.superview.y))
     v.wait_modal()
-    
+
 
 class Editor(ui.View):
+
     def __init__(self, *args, **kwargs):
         ui.View.__init__(self, *args, **kwargs)
         self.fileManager = None
@@ -254,7 +276,7 @@ class Editor(ui.View):
         self.fileViewer = file_viewer
         self.fileViewer.flex = "WH"
         _, _, w, h = self["fileViewContainer"].frame
-        self.fileViewer.frame =(0, 0, 188, h)
+        self.fileViewer.frame = (0, 0, 188, h)
         self.fileViewer.bring_to_front()
         self.fileViewer.size_to_fit()
         self.set_needs_display()
@@ -279,6 +301,7 @@ class Editor(ui.View):
 
 HTMLEdit = Editor
 
+
 def save(page_contents, tev):
     try:
         sindex = tev.pagecontrol.selected_index
@@ -292,7 +315,9 @@ def save(page_contents, tev):
     except Exception as e:
         print "Failed to save. " + exception_str(e)
 
+
 class ContentContainerView(ui.View):
+
     def __init__(self, *args, **kwargs):
         ui.View.__init__(self, *args, **kwargs)
         self.html_parser = Parser()
@@ -310,7 +335,7 @@ class ContentContainerView(ui.View):
 
     def update_from_config(self, config_view):
         print "update_from_config(self, config_view)"
-        
+
         tv = self["editor_view"]["WebEditor"]["web_view"]
         config = config_view.config
 
@@ -321,18 +346,22 @@ class ContentContainerView(ui.View):
         wrap = config.get_value("editor.line.wrap")
         soft_tab = config.get_value("editor.soft.tabs")
         tab_size = config.get_value("editor.tab.size")
-        
+
         fs = '''for (var elm in document.getElementsByClass('.CodeMirror')) {
     elm.style.font_size = '%ipt';"
 }''' % font_size
+
         def c(*args):
             tv.eval_js("editor.setOption('theme', '%s')" % style)
             tv.eval_js("editor.setOption('tabSize', '%s')" % tab_size)
             tv.eval_js("editor.setOption('indentWithTabs', '%s')" % soft_tab)
             tv.eval_js("editor.setOption('lineWrapping', '%s')" % wrap)
             tv.eval_js("editor.setOption('lineNumbers', '%s')" % gutter)
+
+            bc = themes.themes_data[style][0]
+            tv.eval_js("document.body.style.backgroundColor = '%s'" % bc)
         tv.delegate.add_load_callback(c)
-        
+
         print style
         self.superview.fileViewer.style = style
         themes.set_bg(self.superview, style)
@@ -347,7 +376,8 @@ class ContentContainerView(ui.View):
             i.append(file_path)
             self.filecontrol.segments = i
             self.add_page(file_path)
-        self.filecontrol.selected_index = self.filecontrol.segments.index(file_path)
+        self.filecontrol.selected_index = self.filecontrol.segments.index(
+            file_path)
         self.select_file(None)
 
     def add_page(self, file_path):
@@ -369,10 +399,10 @@ class ContentContainerView(ui.View):
     def close_file(self, file):
         print "Closing file: %s" % (file)
         for page in self.pagecontrol.segments:
-            self.pagecontrol.selected_index = self.pagecontrol.segments.indexof(page)
+            self.pagecontrol.selected_index = self.pagecontrol.segments.indexof(
+                page)
             self.select_page(None)
         self.pagecontrol.segments = tuple("NO OPEN FILE/s")
-
 
     def select_file(self, sender):
         try:
@@ -387,7 +417,6 @@ class ContentContainerView(ui.View):
         except Exception as e:
             print "Error loading file " + exception_str(e)
             self.set_editor_value("Error Opening File\n%s" % exception_str(e))
-
 
     def select_page(self, sender):
         if self.superview.fileManager:
@@ -413,14 +442,17 @@ class ContentContainerView(ui.View):
                     self.add_page(file)
             self.pagecontrol.selected_index = 0
         if self.html_parser.open_tags:
-            self.superview["toolsContainer"]["open_tags"].text = "Open Tags: %s" % ", ".join(self.html_parser.open_tags)
-            self.superview["toolsContainer"]["open_tags"].line_break_mode = ui.LB_CHAR_WRAP
+            self.superview["toolsContainer"][
+                "open_tags"].text = "Open Tags: %s" % ", ".join(self.html_parser.open_tags)
+            self.superview["toolsContainer"][
+                "open_tags"].line_break_mode = ui.LB_CHAR_WRAP
             self.superview["toolsContainer"]["open_tags"].size_to_fit()
         else:
             self.superview["toolsContainer"]["open_tags"].text = "No open tags"
-            self.superview["toolsContainer"]["open_tags"].line_break_mode = ui.LB_CHAR_WRAP
+            self.superview["toolsContainer"][
+                "open_tags"].line_break_mode = ui.LB_CHAR_WRAP
             self.superview["toolsContainer"]["open_tags"].size_to_fit()
- 
+
     @ui.in_background
     def set_editor_value(self, text):
         we = self["editor_view"]["WebEditor"]["web_view"]
@@ -432,8 +464,8 @@ class ContentContainerView(ui.View):
         we.delegate.open(name, text)
 
 
-
 class PropertiesView(ui.View):
+
     def __init__(self, *args, **kwargs):
         ui.View.__init__(self, *args, **kwargs)
 
@@ -453,24 +485,27 @@ def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 600)
     view.size_to_fit()
     view.set_needs_display()
 
-    vx,vy,vw,vh = view["contentContainer"]["editor_view"].frame
+    vx, vy, vw, vh = view["contentContainer"]["editor_view"].frame
     width = vw
     height = vh
 
     if webdelegate:
         global WEBDELEGATE
         WEBDELEGATE = webdelegate
+
         def save_func(contents):
             save(contents, view["contentContainer"])
         if DEBUG:
             edit_view = webdelegate.load_console()
             edit_view.name = "WebEditor"
-            edit_view["console_input"].delegate = webdelegate.WebViewInputDelegate(edit_view["web_view"])
+            edit_view["console_input"].delegate = webdelegate.WebViewInputDelegate(
+                edit_view["web_view"])
         else:
             edit_view = webdelegate.load_editor_view()
             edit_view.name = "WebEditor"
-            
-        edit_view["web_view"].delegate = webdelegate.WebViewDelegate(save_func, edit_view)
+
+        edit_view["web_view"].delegate = webdelegate.WebViewDelegate(
+            save_func, edit_view)
         edit_view["web_view"].load_url(webdelegate.load_html_editor_view())
     else:
         edit_view = ui.View()
@@ -483,7 +518,7 @@ def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 600)
         d = os.path.abspath("../EditorView/index.html")
         print "Load: %r" % d
         edit_view["web_view"].load_url(d)
-        
+
     edit_view.flex = "WH"
     edit_view.size_to_fit()
     edit_view.frame = (0, 0, width, height)
@@ -496,7 +531,8 @@ def load_editor(file_manager=None, file_viewer=ui.View(), frame=(0, 0, 540, 600)
     return view
 
 
-__all__ = ["load_editor", "Editor", "HTMLEdit", "TextEditorView", "PropertiesView"]
+__all__ = ["load_editor", "Editor", "HTMLEdit",
+           "TextEditorView", "PropertiesView"]
 
 if __name__ == "__main__":
     view = load_editor()

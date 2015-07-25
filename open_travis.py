@@ -10,7 +10,7 @@ script: nosetest
 '''
 path = os.path.abspath(".travis.yml")
 print path
-#with open(path, "wb") as f:
+# with open(path, "wb") as f:
 #    f.write(CONTENTS)
-    
-editor.open_file("HTMLEditor-Pythonista/.travis.yml");
+
+editor.open_file("HTMLEditor-Pythonista/.travis.yml")

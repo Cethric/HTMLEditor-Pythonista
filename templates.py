@@ -3,7 +3,7 @@ function hello_world() {
     alert('hello {}');
 }
 '''
-                
+
 HTML = '''
 <html>
     <head>
@@ -14,7 +14,7 @@ HTML = '''
     </body>
 </html>
 '''
-          
+
 CSS = '''
 p {
     color: #000000;
@@ -22,7 +22,7 @@ p {
 '''
 
 
-## TODO - Update the request handler to work for this setup.
+# TODO - Update the request handler to work for this setup.
 REQUEST_HANDLER = '''
 class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_GET(self):
