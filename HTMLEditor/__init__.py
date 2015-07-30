@@ -213,6 +213,7 @@ def quitter(sender):
 @ui.in_background
 def configure(sender):
     sss_view = sender.superview.superview.superview
+    ss_view = sender.superview.superview
     if sss_view:
         sss_view.config_view.present("sheet")
         sss_view.config_view.wait_modal()
@@ -232,7 +233,20 @@ def configure(sender):
     elm.style.font_size = '%ipt';"
 }''' % font_size
 
-        def c(*args):
+
+        if len(themes.view_list) < 1:
+            themes.get_view_list(ss_view)
+            themes.get_view_list(ss_view.superview)
+            themes.get_view_list(ss_view.fileViewer)
+            themes.get_view_list(ss_view.fileViewer.listview)
+            themes.get_view_list(ss_view.fileViewer.navview)
+        
+        def load():
+            s = time.clock()
+            ss_view.fileViewer.style = style
+            ss_view.fileViewer.listview.reload()
+            ss_view.fileViewer.set_style()
+            themes.recursive_style_set(style)
             tv.eval_js("editor.setOption('theme', '%s')" % style)
             tv.eval_js("editor.setOption('tabSize', '%s')" % tab_size)
             tv.eval_js("editor.setOption('indentWithTabs', '%s')" % soft_tab)
@@ -241,20 +255,12 @@ def configure(sender):
 
             bc = themes.themes_data[style][0]
             tv.eval_js("document.body.style.backgroundColor = '%s'" % bc)
-        tv.delegate.add_load_callback(c)
-
-        print "Applying theme: %r" % style
-        sss_view.superview.fileViewer.style = style
-        themes.get_view_list(sss_view.superview)
-        themes.get_view_list(sss_view.superview.superview)
-        themes.get_view_list(sss_view.superview.fileViewer)
-        themes.get_view_list(sss_view.superview.fileViewer.listview)
-        
-        print "view_list: %r" % themes.view_list
-        def load():
-            themes.recursive_style_set(style)
-        #ui.animate(load, delay=0.001)
-        load()
+            
+            e = time.clock()
+            print "Took %.3f seconds to set the style" % (e - s)
+            #lg.close()
+            
+        ui.animate(load, duration=0.001, delay=0.001)
     else:
         console.alert("Configuration is only available through the Main View")
 
@@ -377,20 +383,19 @@ class ContentContainerView(ui.View):
 }''' % font_size
 
         print "Applying theme: %r" % style
-        self.superview.fileViewer.style = style
-        themes.get_view_list(self.superview)
-        themes.get_view_list(self.superview.superview)
-        themes.get_view_list(self.superview.fileViewer)
-        themes.get_view_list(self.superview.fileViewer.listview)
+        if len(themes.view_list) < 1:
+            themes.get_view_list(self.superview)
+            themes.get_view_list(self.superview.superview)
+            themes.get_view_list(self.superview.fileViewer)
+            themes.get_view_list(self.superview.fileViewer.listview)
+            themes.get_view_list(self.superview.fileViewer.navview)
+        
         def load():
             s = time.clock()
+            self.superview.fileViewer.style = style
+            self.superview.fileViewer.listview.reload()
+            self.superview.fileViewer.set_style()
             themes.recursive_style_set(style)
-            e = time.clock()
-            print "Took %.3f seconds to set the style" % (e - s)
-            lg.close()
-        ui.animate(load, duration=0.001, delay=0.001)
-        
-        def c(*args):
             tv.eval_js("editor.setOption('theme', '%s')" % style)
             tv.eval_js("editor.setOption('tabSize', '%s')" % tab_size)
             tv.eval_js("editor.setOption('indentWithTabs', '%s')" % soft_tab)
@@ -399,7 +404,12 @@ class ContentContainerView(ui.View):
 
             bc = themes.themes_data[style][0]
             tv.eval_js("document.body.style.backgroundColor = '%s'" % bc)
-        tv.delegate.add_load_callback(c)
+            
+            e = time.clock()
+            print "Took %.3f seconds to set the style" % (e - s)
+            lg.close()
+            
+        ui.animate(load, duration=0.001, delay=0.001)
 
     def add_file(self, file_path, file_contents):
         if file_path not in self.filecontrol.segments:

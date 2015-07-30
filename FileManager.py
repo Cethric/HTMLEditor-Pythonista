@@ -420,6 +420,11 @@ class FileViewer(ui.View):
         self.current_list = None
         c = Config()
         self.style = c.get_value("editor.style")
+        
+    def set_style(self):
+        themes.set_bg(self, self.style)
+        themes.set_bg(self.listview, self.style)
+        themes.set_bg(self.navview, self.style)
 
     def tableview_cell_for_row(self, tableview, section, row):
         cell = ui.ListDataSource.tableview_cell_for_row(
