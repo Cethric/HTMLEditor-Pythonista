@@ -55,34 +55,58 @@ def get_background_color():
     return themes
 
 themes_data = get_background_color()
+view_list = []
 
-
-def recursive_style_set(root, style):
+def get_view_list(root):
+    #print "Loading views for %r" % root
+    global view_list
     try:
+        #print root
+        #print root.subviews
         for sub in root.subviews:
+            view_list.append(sub)
+            try:
+                get_view_list(sub)
+            except SystemError as se:
+                print "Error loading view list. Load fial"
+                print exception_str(se)
+    except SystemError as se:
+        print "Error loading view list. Append func fail"
+        print exception_str(se)
+
+def recursive_style_set(style):
+    global view_list
+    #print "GLOABAL view_list: %r" % view_list
+    print len(view_list)
+    for sub in view_list:
+        try:
             if sub.name == "log_view":
                 continue
             set_bg(sub, style)
-    except SystemError as e:
-        print exception_str(e)
+        except SystemError as e:
+            print exception_str(e)
 
 
 def set_bg(sub, style):
-    recursive_style_set(sub, style)
-    sub.background_color = themes_data[style][0]
+    try:
+        sub.background_color = themes_data[style][0]
+    except Exception as e:
+        print exception_str(e)
     try:
         sub.bar_tint_color = themes_data[style][0]
     except AttributeError as e:
-        print exception_str(e)
+        # print exception_str(e)
+        pass
     try:
         sub.text_color = themes_data[style][1]
     except AttributeError as e1:
         try:
             sub.title_color = themes_data[style][1]
         except AttributeError as e2:
-            print exception_str(e1)
-            print exception_str(e2)
-    print "Style set"
+            # print exception_str(e1)
+            # print exception_str(e2)
+            pass
+    print "Style set for %r" % sub
 
 if __name__ == "__main__":
     print get_background_color()

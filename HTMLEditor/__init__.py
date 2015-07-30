@@ -24,8 +24,11 @@ except ImportError:
     import dummyUI as ui
     import dummyConsole as console
 
-import tag_manager
 import themes
+import tag_manager
+
+reload(themes)
+reload(tag_manager)
 
 DEBUG = False
 WEBDELEGATE = None
@@ -228,22 +231,30 @@ def configure(sender):
         fs = '''for (var elm in document.getElementsByClass('.CodeMirror')) {
     elm.style.font_size = '%ipt';"
 }''' % font_size
-        tv.eval_js("editor.setOption('theme', '%s')" % style)
-        tv.eval_js("editor.setOption('tabSize', '%s')" % tab_size)
-        tv.eval_js("editor.setOption('indentWithTabs', '%s')" % soft_tab)
-        tv.eval_js("editor.setOption('lineWrapping', '%s')" % wrap)
-        tv.eval_js("editor.setOption('lineNumbers', '%s')" % gutter)
 
-        bc = themes.themes_data[style][0]
-        tv.eval_js("document.body.style.backgroundColor = '%s'" % bc)
+        def c(*args):
+            tv.eval_js("editor.setOption('theme', '%s')" % style)
+            tv.eval_js("editor.setOption('tabSize', '%s')" % tab_size)
+            tv.eval_js("editor.setOption('indentWithTabs', '%s')" % soft_tab)
+            tv.eval_js("editor.setOption('lineWrapping', '%s')" % wrap)
+            tv.eval_js("editor.setOption('lineNumbers', '%s')" % gutter)
 
-        sender.superview.superview.fileViewer.style = style
-        themes.set_bg(sender.superview.superview.superview, style)
-        themes.set_bg(sender.superview.superview.fileViewer, style)
-        themes.set_bg(sender.superview.superview.fileViewer.listview, style)
-        if sender.superview.superview.fileViewer.current_list:
-            themes.set_bg(
-                sender.superview.superview.fileViewer.current_list, style)
+            bc = themes.themes_data[style][0]
+            tv.eval_js("document.body.style.backgroundColor = '%s'" % bc)
+        tv.delegate.add_load_callback(c)
+
+        print "Applying theme: %r" % style
+        sss_view.superview.fileViewer.style = style
+        themes.get_view_list(sss_view.superview)
+        themes.get_view_list(sss_view.superview.superview)
+        themes.get_view_list(sss_view.superview.fileViewer)
+        themes.get_view_list(sss_view.superview.fileViewer.listview)
+        
+        print "view_list: %r" % themes.view_list
+        def load():
+            themes.recursive_style_set(style)
+        #ui.animate(load, delay=0.001)
+        load()
     else:
         console.alert("Configuration is only available through the Main View")
 
@@ -340,8 +351,10 @@ class ContentContainerView(ui.View):
         self.pagecontrol.segments = ()
 
     def update_from_config(self, config_view):
-        print "update_from_config(self, config_view)"
-
+        lg = ui.View()
+        lg.present("sheet", hide_title_bar=True)
+        
+        print "Updating configuration"
         tv = self["editor_view"]["WebEditor"]["web_view"]
         config = config_view.config
 
@@ -352,11 +365,31 @@ class ContentContainerView(ui.View):
         wrap = config.get_value("editor.line.wrap")
         soft_tab = config.get_value("editor.soft.tabs")
         tab_size = config.get_value("editor.tab.size")
+        
+        lb = ui.Label()
+        lb.text = "Loading Style %r" % style
+        lb.flex = "WH"
+        lg.add_subview(lb)
+        lb.size_to_fit()
 
         fs = '''for (var elm in document.getElementsByClass('.CodeMirror')) {
     elm.style.font_size = '%ipt';"
 }''' % font_size
 
+        print "Applying theme: %r" % style
+        self.superview.fileViewer.style = style
+        themes.get_view_list(self.superview)
+        themes.get_view_list(self.superview.superview)
+        themes.get_view_list(self.superview.fileViewer)
+        themes.get_view_list(self.superview.fileViewer.listview)
+        def load():
+            s = time.clock()
+            themes.recursive_style_set(style)
+            e = time.clock()
+            print "Took %.3f seconds to set the style" % (e - s)
+            lg.close()
+        ui.animate(load, duration=0.001, delay=0.001)
+        
         def c(*args):
             tv.eval_js("editor.setOption('theme', '%s')" % style)
             tv.eval_js("editor.setOption('tabSize', '%s')" % tab_size)
@@ -367,14 +400,6 @@ class ContentContainerView(ui.View):
             bc = themes.themes_data[style][0]
             tv.eval_js("document.body.style.backgroundColor = '%s'" % bc)
         tv.delegate.add_load_callback(c)
-
-        print style
-        self.superview.fileViewer.style = style
-        themes.set_bg(self.superview, style)
-        themes.set_bg(self.superview.fileViewer, style)
-        themes.set_bg(self.superview.fileViewer.listview, style)
-        if self.superview.fileViewer.current_list:
-            themes.set_bg(self.superview.fileViewer.current_list, style)
 
     def add_file(self, file_path, file_contents):
         if file_path not in self.filecontrol.segments:
