@@ -272,7 +272,6 @@ class AddAction(object):
 
     @ui.in_background
     def invoke(self, sender):
-        print sender
         try:
             c = console.alert("New", "File/Folder", "File", "Folder") - 1
             r = console.input_alert("New File", "Enter Filename")
@@ -296,7 +295,8 @@ class AddAction(object):
             self.fileManager.save_data()
         except KeyboardInterrupt:
             print "The user cancled the input"
-        self.tableview.reload_data()
+        self.tableview.reload()
+        print self.tableview
 
 
 class EditAction(object):
@@ -354,7 +354,7 @@ class EditAction(object):
             print "refresh view to check what happend" % dir_key
             print e.message
         self.fileManager.save_data()
-        self.tableview.reload_data()
+        self.tableview.reload()
 
     def zipup(self, sender):
         print "Zipping Data"
@@ -425,6 +425,9 @@ class FileViewer(ui.View):
         themes.set_bg(self, self.style)
         themes.set_bg(self.listview, self.style)
         themes.set_bg(self.navview, self.style)
+        if self.current_list:
+            themes.set_bg(self.current_list, self.style)
+            self.current_list.reload()
 
     def tableview_cell_for_row(self, tableview, section, row):
         cell = ui.ListDataSource.tableview_cell_for_row(
@@ -524,7 +527,7 @@ class FileViewer(ui.View):
         listview.name = path
         self.navview.push_view(listview)
 
-        add_act = AddAction(self.listview, directory, self.fileManager)
+        add_act = AddAction(listview, directory, self.fileManager)
         add_btn = ui.ButtonItem(
             action=add_act.invoke,
             image=ui.Image.named("ionicons-ios7-compose-outline-24")
