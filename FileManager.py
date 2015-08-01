@@ -126,16 +126,12 @@ class Manager(object):
             self._save_as_zip(zip_name, [path, f[1]], "w")
 
     def _save_zip_data(self, zip_name, base, path):
-        # print "DIR"
         for dir in base[1]:
             p = os.path.join(path, dir)
             self._save_zip_data(zip_name, base[1][dir], p)
-        # print "FILE"
         for file in base[0]:
-            # print file
             self._save_as_zip(
                 zip_name, [os.path.join(path, file), base[0][file]])
-        # print base
 
     def _save_as_zip(self, zip_name, data, mode="a"):
         zip_file = zipfile.ZipFile(zip_name, mode, zipfile.ZIP_DEFLATED, True)
@@ -165,7 +161,6 @@ class Manager(object):
             head = name[0]
             name.remove(head)
         tail = name
-        # print head, tail
         if not tail:
             return head, last[0][head]
         else:
@@ -265,7 +260,8 @@ class Manager(object):
 
 class AddAction(object):
 
-    def __init__(self, tableview, tableview_data, fileManager):
+    def __init__(self, reload_action, tableview, tableview_data, fileManager):
+        self.reload_action = reload_action
         self.tableview_data = tableview_data
         self.tableview = tableview
         self.fileManager = fileManager
@@ -275,6 +271,7 @@ class AddAction(object):
         try:
             c = console.alert("New", "File/Folder", "File", "Folder") - 1
             r = console.input_alert("New File", "Enter Filename")
+            print "adding new file %s" % r
             if c == 0:
                 if r.endswith(".html"):
                     self.tableview_data[c][r] = templates.HTML.format(r)
@@ -295,13 +292,13 @@ class AddAction(object):
             self.fileManager.save_data()
         except KeyboardInterrupt:
             print "The user cancled the input"
-        self.tableview.reload()
-        print self.tableview
+        self.reload_action()
 
 
 class EditAction(object):
 
-    def __init__(self, tableview, tableview_data, fileManager):
+    def __init__(self, reload_action, tableview, tableview_data, fileManager):
+        self.reload_action = reload_action
         self.tableview = tableview
         self.tableview_data = tableview_data
         self.fileManager = fileManager
@@ -363,6 +360,7 @@ class EditAction(object):
             self.error_alert("No Selections Made")
         else:
             self.zip(si)
+        self.reload_action()
 
     @ui.in_background
     def error_alert(self, msg):
@@ -420,18 +418,24 @@ class FileViewer(ui.View):
         self.current_list = None
         c = Config()
         self.style = c.get_value("editor.style")
-        
+
     def set_style(self):
         themes.set_bg(self, self.style)
         themes.set_bg(self.listview, self.style)
         themes.set_bg(self.navview, self.style)
+        self.listview.reload()
         if self.current_list:
             themes.set_bg(self.current_list, self.style)
             self.current_list.reload()
 
     def tableview_cell_for_row(self, tableview, section, row):
+        print "Reload Cell at %i %i" % (section, row)
         cell = ui.ListDataSource.tableview_cell_for_row(
-            tableview.data_source, tableview, section, row)
+            tableview.data_source,
+            tableview,
+            section,
+            row
+        )
         if self.style:
             if cell.content_view:
                 themes.set_bg(cell.content_view, self.style)
@@ -476,12 +480,16 @@ class FileViewer(ui.View):
             self.tableview_cell_for_row
         self.listview.reload()
 
-        add_act = AddAction(self.listview, d, self.fileManager)
+        def reload_action():
+            self.init_list()
+
+        add_act = AddAction(reload_action, self.listview, d, self.fileManager)
         add_btn = ui.ButtonItem(
             action=add_act.invoke,
             image=ui.Image.named("ionicons-ios7-compose-outline-24")
         )
-        edit_act = EditAction(self.listview, d, self.fileManager)
+        edit_act = EditAction(
+            reload_action, self.listview, d, self.fileManager)
         edit_btn = ui.ButtonItem(
             action=edit_act.invoke,
             image=ui.Image.named("ionicons-hammer-24")
@@ -489,7 +497,7 @@ class FileViewer(ui.View):
 
         self.listview.right_button_items = [edit_btn, add_btn]
 
-    def populate_list(self, path, d_path, directory=[]):
+    def populate_list(self, path, d_path, directory=[], animate=True):
         print path
         files = directory[0]
         dirs = directory[1]
@@ -525,14 +533,20 @@ class FileViewer(ui.View):
         listview.reload()
         listview.delegate = self
         listview.name = path
-        self.navview.push_view(listview)
+        self.navview.push_view(listview, animate)
 
-        add_act = AddAction(listview, directory, self.fileManager)
+        def reload_action():
+            self.navview.pop_view(False)
+            self.populate_list(path, d_path, directory, False)
+
+        add_act = AddAction(
+            reload_action, listview, directory, self.fileManager)
         add_btn = ui.ButtonItem(
             action=add_act.invoke,
             image=ui.Image.named("ionicons-ios7-compose-outline-24")
         )
-        edit_act = EditAction(listview, directory, self.fileManager)
+        edit_act = EditAction(
+            reload_action, listview, directory, self.fileManager)
         edit_btn = ui.ButtonItem(
             action=edit_act.invoke,
             image=ui.Image.named("ionicons-hammer-24")

@@ -16,7 +16,7 @@ reload(ServerEditor)
 reload(ConfigManager)
 reload(WebDelegate)
 
-DEBUG = False
+DEBUG = True
 
 fm = FileManager.Manager()
 fv = FileManager.FileViewer(fm)

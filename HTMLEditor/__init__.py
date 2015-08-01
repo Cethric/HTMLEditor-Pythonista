@@ -233,14 +233,13 @@ def configure(sender):
     elm.style.font_size = '%ipt';"
 }''' % font_size
 
-
         if len(themes.view_list) < 1:
             themes.get_view_list(ss_view)
             themes.get_view_list(ss_view.superview)
             themes.get_view_list(ss_view.fileViewer)
             themes.get_view_list(ss_view.fileViewer.listview)
             themes.get_view_list(ss_view.fileViewer.navview)
-        
+
         def load():
             s = time.clock()
             ss_view.fileViewer.style = style
@@ -255,11 +254,11 @@ def configure(sender):
 
             bc = themes.themes_data[style][0]
             tv.eval_js("document.body.style.backgroundColor = '%s'" % bc)
-            
+
             e = time.clock()
             print "Took %.3f seconds to set the style" % (e - s)
-            #lg.close()
-            
+            # lg.close()
+
         ui.animate(load, duration=0.001, delay=0.001)
     else:
         console.alert("Configuration is only available through the Main View")
@@ -359,7 +358,7 @@ class ContentContainerView(ui.View):
     def update_from_config(self, config_view):
         lg = ui.View()
         lg.present("sheet", hide_title_bar=True)
-        
+
         print "Updating configuration"
         tv = self["editor_view"]["WebEditor"]["web_view"]
         config = config_view.config
@@ -371,7 +370,7 @@ class ContentContainerView(ui.View):
         wrap = config.get_value("editor.line.wrap")
         soft_tab = config.get_value("editor.soft.tabs")
         tab_size = config.get_value("editor.tab.size")
-        
+
         lb = ui.Label()
         lb.text = "Loading Style %r" % style
         lb.flex = "WH"
@@ -389,7 +388,7 @@ class ContentContainerView(ui.View):
             themes.get_view_list(self.superview.fileViewer)
             themes.get_view_list(self.superview.fileViewer.listview)
             themes.get_view_list(self.superview.fileViewer.navview)
-        
+
         def load():
             s = time.clock()
             self.superview.fileViewer.style = style
@@ -404,11 +403,11 @@ class ContentContainerView(ui.View):
 
             bc = themes.themes_data[style][0]
             tv.eval_js("document.body.style.backgroundColor = '%s'" % bc)
-            
+
             e = time.clock()
             print "Took %.3f seconds to set the style" % (e - s)
             lg.close()
-            
+
         ui.animate(load, duration=0.001, delay=0.001)
 
     def add_file(self, file_path, file_contents):
@@ -549,7 +548,7 @@ def load_editor(
             edit_view["console_input"].delegate =\
                 webdelegate.WebViewInputDelegate(
                     edit_view["web_view"]
-                )
+            )
         else:
             edit_view = webdelegate.load_editor_view()
             edit_view.name = "WebEditor"

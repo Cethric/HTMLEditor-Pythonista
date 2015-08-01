@@ -57,12 +57,13 @@ def get_background_color():
 themes_data = get_background_color()
 view_list = []
 
+
 def get_view_list(root):
-    #print "Loading views for %r" % root
+    # print "Loading views for %r" % root
     global view_list
     try:
-        #print root
-        #print root.subviews
+        # print root
+        # print root.subviews
         for sub in root.subviews:
             view_list.append(sub)
             try:
@@ -74,9 +75,10 @@ def get_view_list(root):
         print "Error loading view list. Append func fail"
         print exception_str(se)
 
+
 def recursive_style_set(style):
     global view_list
-    #print "GLOABAL view_list: %r" % view_list
+    # print "GLOABAL view_list: %r" % view_list
     print len(view_list)
     for sub in view_list:
         try:
