@@ -15,6 +15,7 @@ import time
 import HTMLParser
 import threading
 import urllib
+import logging
 
 try:
     import ui
@@ -29,6 +30,20 @@ import tag_manager
 
 reload(themes)
 reload(tag_manager)
+
+
+def get_logger(file_name):
+    logger = logging.getLogger(os.path.split(file_name)[-1])
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s --> %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
+
+logger = get_logger(__file__)
 
 DEBUG = False
 WEBDELEGATE = None
@@ -73,7 +88,7 @@ class Parser(HTMLParser.HTMLParser):
         try:
             self.open_tags.remove(tag)
         except ValueError as e:
-            print exception_str(e)
+            logger.exception(exception_str(e))
 
     def handle_startendtag(self, tag, attr):
         if tag == "link":
@@ -86,8 +101,8 @@ class Parser(HTMLParser.HTMLParser):
         self.files_list = []
         HTMLParser.HTMLParser.feed(self, *args, **kwargs)
         if not self.open_tags == []:
-            print "Not all tag/s have been closed.\n"
-            "Open tag/s %r" % self.open_tags
+            logger.debug("Not all tag/s have been closed.\n"
+                         "Open tag/s %r", self.open_tags)
 
 
 @ui.in_background
@@ -207,7 +222,7 @@ def quitter(sender):
             else:
                 sender.superview.superview.close()
     except KeyboardInterrupt as e:
-        print "User canceled the input. " + exception_str(e)
+        logger.warning("User canceled the input. %s",  exception_str(e))
 
 
 @ui.in_background
@@ -256,7 +271,7 @@ def configure(sender):
             tv.eval_js("document.body.style.backgroundColor = '%s'" % bc)
 
             e = time.clock()
-            print "Took %.3f seconds to set the style" % (e - s)
+            logger.debug("Took %.3f seconds to set the style", e - s)
             # lg.close()
 
         ui.animate(load, duration=0.001, delay=0.001)
@@ -291,7 +306,7 @@ class Editor(ui.View):
         self.fileViewer = None
 
     def did_load(self):
-        print "%r loaded" % self
+        logger.debug("%r loaded", self)
 
     def set_fv_fm(self, file_manager, file_viewer):
         self.fileManager = file_manager
@@ -304,7 +319,7 @@ class Editor(ui.View):
         self.set_needs_display()
 
     def update_config(self, config_view):
-        print "update_config: %r" % config_view
+        logger.debug("update_config: %r", config_view)
         self["contentContainer"].update_from_config(config_view)
 
     def apply_fileview(self):
@@ -319,7 +334,7 @@ class Editor(ui.View):
         try:
             self["contentContainer"].on_close_file()
         except Exception as e:  # todo: this should be a qualified exception
-            print "Error Closing File. " + exception_str(e)
+            logger.exception("Error Closing File. %s", exception_str(e))
 
 HTMLEdit = Editor
 
@@ -332,10 +347,10 @@ def save(page_contents, tev):
         if page.endswith(".html"):
             tev.parse_page(None, page, page_contents)
 
-        print "File saved"
-        print "%s saved with contents\n%s" % (page, page_contents)
+        logger.debug("File saved")
+        logger.debug("%s saved with contents\n%s", page, page_contents)
     except Exception as e:
-        print "Failed to save. " + exception_str(e)
+        logger.exception("Failed to save. %s", exception_str(e))
 
 
 class ContentContainerView(ui.View):
@@ -345,7 +360,7 @@ class ContentContainerView(ui.View):
         self.html_parser = Parser()
 
     def did_load(self):
-        print "DID LOAD %r" % self
+        logger.debug("DID LOAD %r", self)
         self.textview = self["editor_view"]
         self.filecontrol = self["file_control"]
         self.filecontrol.action = self.select_file
@@ -359,7 +374,7 @@ class ContentContainerView(ui.View):
         lg = ui.View()
         lg.present("sheet", hide_title_bar=True)
 
-        print "Updating configuration"
+        logger.debug("Updating configuration")
         tv = self["editor_view"]["WebEditor"]["web_view"]
         config = config_view.config
 
@@ -381,7 +396,7 @@ class ContentContainerView(ui.View):
     elm.style.font_size = '%ipt';"
 }''' % font_size
 
-        print "Applying theme: %r" % style
+        logger.debug("Applying theme: %r", style)
         if len(themes.view_list) < 1:
             themes.get_view_list(self.superview)
             themes.get_view_list(self.superview.superview)
@@ -405,7 +420,7 @@ class ContentContainerView(ui.View):
             tv.eval_js("document.body.style.backgroundColor = '%s'" % bc)
 
             e = time.clock()
-            print "Took %.3f seconds to set the style" % (e - s)
+            logger.debug("Took %.3f seconds to set the style", e - s)
             lg.close()
 
         ui.animate(load, duration=0.001, delay=0.001)
@@ -429,7 +444,7 @@ class ContentContainerView(ui.View):
     def on_close_file(self):
         segment = self.filecontrol.segments[self.filecontrol.selected_index]
         self.filecontrol.selected_index = self.filecontrol.selected_index - 1
-        print segment
+        logger.debug(segment)
         i = list(self.filecontrol.segments)
         i.remove(segment)
         self.filecontrol.segments = i
@@ -453,9 +468,9 @@ class ContentContainerView(ui.View):
                 self.pagecontrol.selected_index = 0
                 self.select_page(None)
             else:
-                print "Error opening file"
+                logger.error("Error opening file")
         except Exception as e:
-            print "Error loading file " + exception_str(e)
+            logger.exception("Error loading file. %s", exception_str(e))
             self.set_editor_value("Error Opening File\n%s" % exception_str(e))
 
     def select_page(self, sender):
@@ -472,8 +487,8 @@ class ContentContainerView(ui.View):
     @ui.in_background
     def parse_page(self, sender, page, file_data):
         self.html_parser.feed(file_data)
-        print self.html_parser.files_list
-        print list(self.pagecontrol.segments[1:])
+        logger.debug(self.html_parser.files_list)
+        logger.debug(list(self.pagecontrol.segments[1:]))
         if self.html_parser.files_list != list(self.pagecontrol.segments[1:]):
             self.pagecontrol.segments = ()
             self.add_page(page)
@@ -501,7 +516,7 @@ class ContentContainerView(ui.View):
         try:
             name = self.pagecontrol.segments[self.pagecontrol.selected_index]
         except IndexError as e:
-            print exception_str(e)
+            logger.exception(exception_str(e))
             name = "ERROR.txt"
         we.delegate.open(name, text)
 
@@ -521,11 +536,13 @@ def load_editor(
     try:
         view = ui.load_view("HTMLEditor/__init__")
     except ValueError as e:
-        print "Attempt 1 'HTMLEditor/__init__' failed " + exception_str(e)
+        logger.exception(
+            "Attempt 1 'HTMLEditor/__init__' failed. %s", exception_str(e))
         try:
             view = ui.load_view("__init__")
         except ValueError as e:
-            print "Attempt 2 '__init__' failed " + exception_str(e)
+            logger.exception(
+                "Attempt 2 '__init__' failed. %s", exception_str(e))
             view = ui.Editor()
     view.frame = frame
     view.set_fv_fm(file_manager, file_viewer)
@@ -565,7 +582,7 @@ def load_editor(
         wv.flex = "WH"
         edit_view.add_subview(wv)
         d = os.path.abspath("../EditorView/index.html")
-        print "Load: %r" % d
+        logger.debug("Load: %r", d)
         edit_view["web_view"].load_url(d)
 
     edit_view.flex = "WH"

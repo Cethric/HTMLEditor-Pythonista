@@ -3,6 +3,8 @@ try:
 except ImportError:
     print "Using Dummy UI"
     import dummyUI as ui
+import os
+import logging
 
 import FileManager
 import HTMLEditor
@@ -16,6 +18,20 @@ reload(ServerEditor)
 reload(ConfigManager)
 reload(WebDelegate)
 
+
+def get_logger(file_name):
+    logger = logging.getLogger(os.path.split(file_name)[-1])
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s --> %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
+
+logger = get_logger(__file__)
+
 DEBUG = True
 
 fm = FileManager.Manager()
@@ -23,7 +39,7 @@ fv = FileManager.FileViewer(fm)
 c = ConfigManager.Config()
 cv = ConfigManager.load_view(c)
 cv.set_config(c)
-print fv.name
+logger.debug(fv.name)
 
 
 class MainView(ui.View):
@@ -37,11 +53,11 @@ class MainView(ui.View):
         self.config_view = cv
 
     def did_load(self):
-        print "%r did load" % self
+        logger.debug("%r did load", self)
 
     def present(self, *args, **kwargs):
         ui.View.present(self, *args, **kwargs)
-        print WebDelegate
+        logger.debug(str(WebDelegate))
         self.htmlEditorView = HTMLEditor.load_editor(fm, fv,
                                                      (0, 0, self.frame[
                                                       2], self.frame[3]),
@@ -61,7 +77,8 @@ class MainView(ui.View):
         try:
             self.htmlEditorView.update_config(self.config_view)
         except Exception as e:
-            print (e)
+            logger.exception("Error updating config")
+            logger.error(e)
 
     def set_html_editor(self):
         self.htmlEditorView.bring_to_front()
@@ -76,10 +93,10 @@ class MainView(ui.View):
         self.htmlEditorView.send_to_back()
 
     def on_close_file(self):
-        print "Closing File"
+        logger.debug("Closing File")
 
     def will_close(self):
-        print "Goodbye"
+        logger.info("Goodbye")
 
 
 if __name__ == "__main__":

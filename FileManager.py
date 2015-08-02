@@ -1,6 +1,7 @@
 import os
 import copy
 import zipfile
+import logging
 try:
     import ui
     import console
@@ -9,15 +10,29 @@ except ImportError:
     import dummyUI as ui
     import dummyConsole as console
 
-import templates
-from HTMLEditor import themes
-from ConfigManager import Config
-
 try:
     import cPickle as pickle
 except ImportError:
     print "cPickle is not available, using standard pickle module."
     import pickle
+
+import templates
+from HTMLEditor import themes
+from ConfigManager import Config
+
+
+def get_logger(file_name):
+    logger = logging.getLogger(os.path.split(file_name)[-1])
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s --> %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
+
+logger = get_logger(__file__)
 
 reload(themes)
 reload(templates)
@@ -291,7 +306,7 @@ class AddAction(object):
                 self.tableview_data[c][r] = [{}, {}]
             self.fileManager.save_data()
         except KeyboardInterrupt:
-            print "The user cancled the input"
+            logger.warning("The user cancled the input")
         self.reload_action()
 
 
@@ -338,18 +353,18 @@ class EditAction(object):
             for file_key in x[0]:
                 del self.tableview_data[0][file_key]
         except RuntimeError as e:
-            print "Error occured deleting file %r."
-            print "refresh view to check what happend" % file_key
-            print e.message
+            logger.exception("Error occured deleting file %r.", file_key)
+            logger.exception("refresh view to check what happend")
+            logger.exception(e.message)
 
         dir_key = ""
         try:
             for dir_key in x[1]:
                 del self.tableview_data[1][dir_key]
         except RuntimeError as e:
-            print "Error occured deleting directory %r."
-            print "refresh view to check what happend" % dir_key
-            print e.message
+            logger.exception("Error occured deleting directory %r.", dir_key)
+            logger.exception("refresh view to check what happend")
+            logger.exception(e.message)
         self.fileManager.save_data()
         self.tableview.reload()
 
@@ -372,19 +387,19 @@ class EditAction(object):
             zn = console.input_alert("Enter the zip file name")
             if not zn.endswith(".zip"):
                 zn += ".zip"
-            print "Saving contents to the zip %r" % zn
+            logger.debug("Saving contents to the zip %r", zn)
             for i in si:
                 self.fileManager.save_as_zip(zn, i["d_path"], i["d_type"])
 
-            print "Saved contents to the zip %r" % zn
+            logger.debug("Saved contents to the zip %r", zn)
             console.hud_alert("Zipped", "success")
             console.open_in(os.path.abspath(zn))
         except KeyboardInterrupt as e:
-            print "User cancled the procces"
+            logger.warning("User cancled the procces")
 
 
 def dummy_file_callback(file_name, file_data):
-    print "The file %r was loaded\nContents:\n%s" % (file_name, file_data)
+    logger.debug("The file %r was loaded\nContents:\n%s", file_name, file_data)
     v = ui.TextView()
     v.text = file_data
     v.name = file_name
@@ -429,7 +444,7 @@ class FileViewer(ui.View):
             self.current_list.reload()
 
     def tableview_cell_for_row(self, tableview, section, row):
-        print "Reload Cell at %i %i" % (section, row)
+        logger.debug("Reload Cell at %i %i" % (section, row))
         cell = ui.ListDataSource.tableview_cell_for_row(
             tableview.data_source,
             tableview,
@@ -498,7 +513,6 @@ class FileViewer(ui.View):
         self.listview.right_button_items = [edit_btn, add_btn]
 
     def populate_list(self, path, d_path, directory=[], animate=True):
-        print path
         files = directory[0]
         dirs = directory[1]
         fdlist = []

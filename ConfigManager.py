@@ -1,3 +1,4 @@
+import os
 try:
     import ui
     import console
@@ -6,9 +7,24 @@ except ImportError:
     import dummyUI as ui
     import dummyConsole as console
 import plistlib
+import logging
 
 from EditorView import WebDelegate as wd
 reload(wd)
+
+
+def get_logger(file_name):
+    logger = logging.getLogger(os.path.split(file_name)[-1])
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s --> %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
+
+logger = get_logger(__file__)
 
 
 class Config(object):
@@ -23,7 +39,7 @@ class Config(object):
         try:
             self.config_dict = plistlib.readPlist("config.plist")
         except Exception as e:
-            print e
+            logger.exception(e)
             self.config_dict = {
                 "editor.font.size": 13,
                 "editor.style": "cobolt",
@@ -65,7 +81,7 @@ class ConfigView(ui.View):
     def did_load(self):
         self.tabs = self["TabControl"]
         self.editor = self["Editor"]
-        print self.tabs
+        logger.debug(self.tabs)
         self.tabs.action = self.change_tab
 
         self.editor.bounces = True
@@ -80,11 +96,11 @@ class ConfigView(ui.View):
         btn_l = wd.create_mode_btn(self.style_change)
         self.editor["editor.theme.view"].action = btn_l.action
 
-        print self.editor["editor.theme.view"].subviews
+        logger.debug(self.editor["editor.theme.view"].subviews)
 
     def change_tab(self, sender):
         tab = sender.segments[sender.selected_index]
-        print self[tab]
+        logger.debug(self[tab])
         self[tab].bring_to_front()
 
     def font_size_change(self, sender):
@@ -95,7 +111,7 @@ class ConfigView(ui.View):
         self.config.set_value("editor.show.gutter", str(sender.value).lower())
 
     def style_change(self, i):
-        print "Style Changed to: %s" % i["title"]
+        logger.debug("Style Changed to: %s" % i["title"])
         self.config.set_value("editor.style", str(i["title"]).lower())
         self.editor["editor.theme.view"].title = self.config.get_value(
             "editor.style")

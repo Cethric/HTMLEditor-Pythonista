@@ -1,4 +1,6 @@
 # coding: utf-8
+import os
+import logging
 try:
     import ui
     import console
@@ -6,6 +8,20 @@ except ImportError:
     print "Using Dummy UI"
     import dummyUI as ui
     import dummyConsole as console
+
+
+def get_logger(file_name):
+    logger = logging.getLogger(os.path.split(file_name)[-1])
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s --> %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
+
+logger = get_logger(__file__)
 
 
 @ui.in_background
@@ -39,7 +55,7 @@ class WebViewDelegate(object):
         pass
 
     def webview_should_start_load(self, webview, url, nav_type):
-        print "Loading %r of type %r" % (url, nav_type)
+        logger.debug("Loading %r of type %r", url, nav_type)
         return True
 
     def webview_did_finish_load(self, webview):
@@ -47,7 +63,8 @@ class WebViewDelegate(object):
         webview.name = name
 
     def webview_did_fail_load(self, webview, error_code, error_msg):
-        print "%r Failed to load. %r %r" % (webview, error_code, error_msg)
+        logger.debug(
+            "%r Failed to load. %r %r", webview, error_code, error_msg)
 
 server_active = False
 
@@ -65,7 +82,7 @@ def preview(sender):
             server_active = not server_active
             console.show_activity()
     except KeyboardInterrupt:
-        print "User canceled the input."
+        logger.warning("User canceled the input.")
 
 
 @ui.in_background
@@ -83,7 +100,7 @@ def quitter(sender):
             else:
                 sender.superview.superview.superview.close()
     except KeyboardInterrupt as e:
-        print "User cancled the input."
+        logger.warning("User cancled the input.")
 
 
 class Editor(ui.View):
@@ -92,7 +109,7 @@ class Editor(ui.View):
         ui.View.__init__(self, *args, **kwargs)
 
     def did_load(self):
-        print "%r loaded" % self
+        logger.debug("%r loaded", self)
 
     def set_fv_fm(self, file_manager, file_viewer):
         self.fileManager = file_manager
@@ -137,7 +154,7 @@ class TextEditorView(ui.View):
         self.filecontrol.segments = ()
         self.pagecontrol.segments = ()
 
-        print self.textview
+        logger.debug(self.textview)
         self.textview.delegate = self
 
         self.tabs = 0
@@ -154,7 +171,7 @@ class TextEditorView(ui.View):
 
     def textview_should_change(self, textview, range, replacement):
         keys = {u"÷": "insert_comment", u"π": "preview"}
-        print replacement
+        logger.debug(replacement)
         # print keys[replacement]
         if replacement in keys:
             ui.in_background(console.hud_alert(keys[replacement]))
@@ -202,7 +219,7 @@ class TextEditorView(ui.View):
                 )
 
             if self.insert_comment:
-                print "insert comment"
+                logger.debug("insert comment")
                 self.insert_comment = False
                 self.comment_line()
         self.old_text = textview.text

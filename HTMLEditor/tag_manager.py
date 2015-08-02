@@ -1,9 +1,25 @@
+import os
+import logging
 try:
     import ui
 except ImportError:
     print "Using Dummy UI"
     import dummyUI as ui
 import json
+
+
+def get_logger(file_name):
+    logger = logging.getLogger(os.path.split(file_name)[-1])
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s --> %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
+
+logger = get_logger(__file__)
 
 
 OPTION_FIELD_TEXT = 0x01
@@ -1219,10 +1235,10 @@ ALL_EVENTS = dict(WINDOW_EVENTS,
                                               **dict(MEDIA_EVENTS,
                                                      **MISC_EVENTS))))))
 
-print "%i GLOBAL_HTML_ATTR" % len(GLOBAL_HTML_ATTR)
-print "%i ALL_EVENTS" % len(ALL_EVENTS)
-print "%i TAGS" % len(TAGS)
-print "%i TOTAL" % (len(GLOBAL_HTML_ATTR) + len(ALL_EVENTS) + len(TAGS))
+logger.info("%i GLOBAL_HTML_ATTR", len(GLOBAL_HTML_ATTR))
+logger.info("%i ALL_EVENTS", len(ALL_EVENTS))
+logger.info("%i TAGS" % len(TAGS))
+logger.info("%i TOTAL", len(GLOBAL_HTML_ATTR) + len(ALL_EVENTS) + len(TAGS))
 
 
 class TagAddView(ui.View):
@@ -1280,7 +1296,7 @@ class TagAddView(ui.View):
         v.height = 800
         v.load_url("http://www.w3schools.com/tags/default.asp")
         v.present("popover", popover_location=(sender.x + 370, sender.y + 180))
-        print "Help Shown"
+        logger.debug("Help Shown")
 
     def present_page(self, page):
         for p in self.options.subviews:
@@ -1344,7 +1360,7 @@ class TagAddView(ui.View):
                                 kv.append("%s=\'%s\'" % (n, t))
                     else:
                         if n:
-                            print "%r\t%r" % (n, t)
+                            logger.debug("%r\t%r" % (n, t))
                         if n == u'tag-open':
                             tag_start = t
                         elif n == u'tag-close':
@@ -1394,12 +1410,12 @@ class TagDelegate (object):
         view.present_page("General")
         view.wait_modal()
         if not view.cancled:
-            print "Done"
+            logger.debug("Done")
             out = json.dumps(view.tag)
-            print "editor.replaceSelection(%s);" % out
+            logger.debug("editor.replaceSelection(%s);", out)
             self.js_eval("editor.replaceSelection(%s);" % out)
         else:
-            print "Cancled"
+            logger.debug("Cancled")
 
 
 def add_tag(sender=None, pop_loc=None):

@@ -7,6 +7,22 @@ except ImportError:
     import dummyConsole as console
 import urllib
 import os
+import logging
+
+
+def get_logger(file_name):
+    logger = logging.getLogger(os.path.split(file_name)[-1])
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s --> %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
+
+logger = get_logger(__file__)
+web_logger = get_logger("View/WebLogger")
 
 
 def exception_str(exception):
@@ -41,21 +57,21 @@ class WebViewDelegate(object):
             url = urllib.unquote(url)
             url = url.replace("ios-", "")
             if url.startswith("log"):
-                self.console_view.log(webview, url)
+                self.console_view.log(webview, url, "info")
             elif url.startswith("error"):
-                self.console_view.log(webview, url)
+                self.console_view.log(webview, url, "error")
             elif url.startswith("warn"):
-                self.console_view.log(webview, url)
+                self.console_view.log(webview, url, "warn")
             elif url.startswith("info"):
-                self.console_view.log(webview, url)
+                self.console_view.log(webview, url, "info")
             elif url.startswith("debug"):
-                self.console_view.log(webview, url)
+                self.console_view.log(webview, url, "debug")
             elif url.startswith("save"):
                 self.save(webview)
             elif url.startswith("alert"):
                 self.alert(*url.replace("alert:", "").split(":"))
             return False
-        print "Loading File: ", url
+        logger.debug("Loading File: %s", url)
         return True
 
     def webview_did_start_load(self, webview):
@@ -66,7 +82,7 @@ class WebViewDelegate(object):
             callback()
 
     def webview_did_fail_load(self, webview, error_code, error_msg):
-        print "Webview Error %r %s" % (error_code, error_msg)
+        logger.error("Webview Error %r %s", error_code, error_msg)
 
     def add_load_callback(self, callback):
         self.load_callback.append(callback)
@@ -83,15 +99,15 @@ class WebViewDelegate(object):
             if self.webview:
                 self.webview.eval_js("editor.setValue(%r)" % str(contents))
                 mode = self.get_mode(filename)
-                print "Loading: %s with mode %r" % (filename, mode)
+                logger.debug("Loading: %s with mode %r", filename, mode)
                 self.webview.eval_js(
                     "editor.setOption('mode', %r);" % str(mode))
                 self.webview.eval_js(
                     "CodeMirror.autoLoadMode(editor, %r);" % str(mode))
             else:
-                print "could not open file: %r" % filename
+                logger.debug("could not open file: %r", filename)
         except Exception as e:
-            print exception_str(e)
+            logger.exception(exception_str(e))
 
     def get_mode(self, filename):
         syntaxes = {'css': 'css',
@@ -109,7 +125,7 @@ class WebViewDelegate(object):
             ext = os.path.splitext(filename)[1][1:]
             syntax = syntaxes[ext]
         except KeyError as e:
-            print exception_str(e)
+            logger.exception(exception_str(e))
             syntax = 'htmlmixed'
         return syntax
 
@@ -120,9 +136,17 @@ class WebViewDelegate(object):
 
 class WebViewConsole(ui.View):
 
-    def log(self, wv, msg):
+    def log(self, wv, msg, lvl):
         self["log_view"].text += "%s\n" % msg
-        print "LOGGING MESSAGE ---> " + msg
+        if lvl == "info":
+            web_logger.info(msg)
+        elif lvl == "debug":
+            web_logger.debug(msg)
+        elif lvl == "error":
+            web_logger.error(msg)
+        elif lvl == "warm":
+            web_logger.warning(msg)
+
         ui.delay(self.scroll, 0.0)
 
     def scroll(self):
@@ -130,6 +154,9 @@ class WebViewConsole(ui.View):
         width, height = self["log_view"].content_size
         self["log_view"].content_offset = (0, height - self["log_view"].height)
         self["log_view"].bounces = False
+
+    def will_close(self):
+        ui.cancel_delays()
 
 
 class WebViewInputDelegate(object):
@@ -146,8 +173,15 @@ class WebViewInputDelegate(object):
 
 class WebView(ui.View):
 
-    def log(self, wv, msg):
-        print "LOGGING MESSAGE ---> " + msg
+    def log(self, wv, msg, lvl):
+        if lvl == "info":
+            web_logger.info(msg)
+        elif lvl == "debug":
+            web_logger.debug(msg)
+        elif lvl == "error":
+            web_logger.error(msg)
+        elif lvl == "warm":
+            web_logger.warning(msg)
 
     def will_close(self):
         ui.cancel_delays()
@@ -157,17 +191,17 @@ def load_console(frame=(0, 0, 540, 575), load_addons=True):
     try:
         view = ui.load_view("EditorView/EditorViewConsole")
     except ValueError as e:
-        print "Attempt 1 'EditorView/EditorViewConsole' failed"
-        print exception_str(e)
+        logger.error("Attempt 1 'EditorView/EditorViewConsole' failed")
+        logger.exception(exception_str(e))
         try:
             view = ui.load_view("EditorViewConsole")
         except ValueError as e:
-            print "Attempt 2 'EditorViewConsole' failed"
-            print exception_str(e)
+            logger.error("Attempt 2 'EditorViewConsole' failed")
+            logger.exception(exception_str(e))
             view = WebViewConsole()
-    print "Setting Frame"
+    logger.debug("Setting Frame")
     view.frame = frame
-    print "Done"
+    logger.debug("Done")
     return view
 
 
@@ -175,13 +209,13 @@ def load_editor_view(frame=None, load_addons=True):
     try:
         view = ui.load_view("EditorView/EditorView")
     except ValueError as e:
-        print "Attempt 1 'EditorView/EditorView' failed"
-        print exception_str(e)
+        logger.debug("Attempt 1 'EditorView/EditorView' failed")
+        logger.exception(exception_str(e))
         try:
             view = ui.load_view("EditorView")
         except ValueError as e:
-            print "Attempt 2 'EditorView' failed"
-            print exception_str(e)
+            logger.debug("Attempt 2 'EditorView' failed")
+            logger.exception(exception_str(e))
             view = ui.WebView()
     if frame:
         view.frame = frame
