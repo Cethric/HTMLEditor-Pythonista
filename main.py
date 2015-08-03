@@ -32,7 +32,7 @@ def get_logger(file_name):
 
 logger = get_logger(__file__)
 
-DEBUG = True
+DEBUG = False
 
 fm = FileManager.Manager()
 fv = FileManager.FileViewer(fm)
