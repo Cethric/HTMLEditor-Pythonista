@@ -474,7 +474,7 @@ class FileViewer(ui.View):
         files = d[0]
         dirs = d[1]
         fdlist = []
-        for file_name, file_data in files:
+        for file_name, file_data in files.iteritems():
             data = {
                 "title": file_name,
                 "image": "ionicons-document-text-24",
@@ -520,7 +520,7 @@ class FileViewer(ui.View):
         files = directory[0]
         dirs = directory[1]
         fdlist = []
-        for file_name, file_data in files.items():
+        for file_name, file_data in files.iteritems():
             data = {
                 "title": file_name,
                 "image": "ionicons-document-text-24",

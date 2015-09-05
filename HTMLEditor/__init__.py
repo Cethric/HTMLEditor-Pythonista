@@ -212,19 +212,22 @@ document.getElementsByTagName("head")[0].appendChild(script);
 @ui.in_background
 def quitter(sender):
     try:
-        result = console.alert(
-            "Close", "Close File or Quit", "Close File", "Quit")
-        if result == 1:
-            if sender.superview.superview:
-                sender.superview.superview.on_close_file()
-            else:
-                console.hud_alert("Close File")
-        elif result == 2:
-            sender.superview.superview["contentContainer"].active = False
-            if sender.superview.superview.superview:
-                sender.superview.superview.superview.close()
-            else:
-                sender.superview.superview.close()
+        if DEBUG:
+            result = console.alert(
+                "Close", "Close File or Quit", "Close File", "Quit")
+            if result == 1:
+                if sender.superview.superview:
+                    sender.superview.superview.on_close_file()
+                else:
+                    console.hud_alert("Close File")
+            elif result == 2:
+                sender.superview.superview["contentContainer"].active = False
+                if sender.superview.superview.superview:
+                    sender.superview.superview.superview.close()
+                else:
+                    sender.superview.superview.close()
+        else:
+            sender.superview.superview.on_close_file()
     except KeyboardInterrupt as e:
         logger.warning("User canceled the input. %s",  exception_str(e))
 
