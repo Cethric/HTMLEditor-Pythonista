@@ -1,4 +1,5 @@
 import os
+import sys
 try:
     import ui
     import console
@@ -12,10 +13,12 @@ import logging
 from EditorView import WebDelegate as wd
 #reload(wd)
 
+DEBUG = "debug" in sys.argv
+
 
 def get_logger(file_name):
     logger = logging.getLogger(os.path.split(file_name)[-1])
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
     if len(logger.handlers) == 0:
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)

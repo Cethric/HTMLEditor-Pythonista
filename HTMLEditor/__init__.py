@@ -10,6 +10,7 @@
 #                          )
 # todo: uncomment the line above and then fix up all the print commands
 import os
+import sys
 import json
 import time
 import HTMLParser
@@ -32,9 +33,11 @@ import tag_manager
 #reload(tag_manager)
 
 
+DEBUG = "debug" in sys.argv
+
 def get_logger(file_name):
     logger = logging.getLogger(os.path.split(file_name)[-1])
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
     if len(logger.handlers) == 0:
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)

@@ -7,12 +7,15 @@ except ImportError:
     import dummyConsole as console
 import urllib
 import os
+import sys
 import logging
 
 
+DEBUG = "debug" in sys.argv
+
 def get_logger(file_name):
     logger = logging.getLogger(os.path.split(file_name)[-1])
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
     if len(logger.handlers) == 0:
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
