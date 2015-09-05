@@ -24,18 +24,19 @@ from ConfigManager import Config
 def get_logger(file_name):
     logger = logging.getLogger(os.path.split(file_name)[-1])
     logger.setLevel(logging.DEBUG)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s --> %(message)s')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    if len(logger.handlers) == 0:
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s --> %(message)s')
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
     return logger
 
 logger = get_logger(__file__)
 
-reload(themes)
-reload(templates)
+#reload(themes)
+#reload(templates)
 
 
 def pickle_dump(data, filename):  # saves data into filename

@@ -1,10 +1,14 @@
+import sys
+sys.path[0] = "."
 try:
     import ui
 except ImportError:
     print "Using Dummy UI"
     import dummyUI as ui
 import os
+import shutil
 import logging
+import cPickle
 
 import FileManager
 import HTMLEditor
@@ -12,27 +16,23 @@ import ServerEditor
 import ConfigManager
 from EditorView import WebDelegate
 
-reload(FileManager)
-reload(HTMLEditor)
-reload(ServerEditor)
-reload(ConfigManager)
-reload(WebDelegate)
-
+FILE_DIR = __file__.replace("/main.py", "")
 
 def get_logger(file_name):
     logger = logging.getLogger(os.path.split(file_name)[-1])
     logger.setLevel(logging.DEBUG)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s --> %(message)s')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    if len(logger.handlers) == 0:
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s --> %(message)s')
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
     return logger
 
 logger = get_logger(__file__)
 
-DEBUG = False
+DEBUG = True
 
 fm = FileManager.Manager()
 fv = FileManager.FileViewer(fm)

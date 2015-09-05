@@ -6,12 +6,13 @@ import logging
 def get_logger(file_name):
     logger = logging.getLogger(os.path.split(file_name)[-1])
     logger.setLevel(logging.DEBUG)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s --> %(message)s')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    if len(logger.handlers) == 0:
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s --> %(message)s')
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
     return logger
 
 logger = get_logger(__file__)
@@ -85,10 +86,10 @@ def get_view_list(root):
                 get_view_list(sub)
             except SystemError as se:
                 logger.error("Error loading view list. Load fial")
-                logger.exception(exception_str(se))
+                logger.error(se, exc_info=0)
     except SystemError as se:
         logger.error("Error loading view list. Appent func fial")
-        logger.exception(exception_str(se), exc_info=False)
+        logger.error(se, exc_info=0)
 
 
 def recursive_style_set(style):
@@ -101,27 +102,31 @@ def recursive_style_set(style):
                 continue
             set_bg(sub, style)
         except SystemError as e:
-            logger.exception(exception_str(e), exc_info=False)
+            #logger.exception(exception_str(e), exc_info=False)
+            print e
 
 
 def set_bg(sub, style):
     try:
         sub.background_color = themes_data[style][0]
     except Exception as e:
-        logger.exception(exception_str(e), exc_info=False)
+        #logger.exception(exception_str(e), exc_info=False)
+        print e
     try:
         sub.bar_tint_color = themes_data[style][0]
     except AttributeError as e:
-        logger.exception(exception_str(e), exc_info=False)
+        #logger.exception(exception_str(e), exc_info=False)
+        print e
     try:
         sub.text_color = themes_data[style][1]
     except AttributeError as e1:
         try:
             sub.title_color = themes_data[style][1]
         except AttributeError as e2:
-            logger.exception(exception_str(e1), exc_info=False)
-            logger.exception(exception_str(e2), exc_info=False)
-    logger.debug("Style set for %r", sub)
+            #logger.exception(exception_str(e1), exc_info=False)
+            #logger.exception(exception_str(e2), exc_info=False)
+            print e
+    #logger.debug("Style set for %r", sub)
 
 if __name__ == "__main__":
     print get_background_color()
