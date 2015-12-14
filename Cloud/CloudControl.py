@@ -5,6 +5,7 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import onedrive.api_v5 as onedrive
 import keychain
+import sys
 try:
     import cPickle as pickle
 except ImportError:
@@ -38,7 +39,8 @@ class BaseConnection(object):
             self.connect()
 
     def connect(self):
-        raise NotImplementedError("this function is not set up.")
+        method_name = "{}.{}()".format(self.__class__.__name__, sys._getframe().f_code.co_name)
+        raise NotImplementedError(method_name)
 
     def read(self, file_name_path):
         raise NotImplementedError("this function is not set up.")
